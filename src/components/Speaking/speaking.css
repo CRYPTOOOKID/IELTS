@@ -1,0 +1,234 @@
+/* Speaking Test Styles */
+
+/* Card styling for questions */
+.speaking-question-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.speaking-question-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Microphone button styling */
+.mic-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.mic-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.mic-button.recording {
+  animation: pulse 1.5s infinite;
+}
+
+.mic-button.recording::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 1.5s infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Part 2 cue card styling */
+.cue-card {
+  background-color: #f8fafc;
+  border-left: 4px solid #3b82f6;
+}
+
+.cue-item {
+  margin-bottom: 0.75rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.cue-item:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+/* Transcription area styling */
+.transcription-area {
+  background-color: #f8fafc;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.transcription-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.transcription-text {
+  color: #334155;
+  line-height: 1.5;
+}
+
+/* Navigation buttons */
+.nav-button {
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation for recording indicator */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .mic-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .speaking-question-card h2 {
+    font-size: 1rem;
+  }
+}
+
+/* Feedback page animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes grow-width {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+}
+
+.animate-grow-width {
+  animation: grow-width 1s ease-out forwards;
+}
+
+/* Skill meter styling */
+.skill-meter {
+  margin-bottom: 1rem;
+}
+
+.skill-meter-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.skill-meter-track {
+  height: 0.5rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.skill-meter-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1s ease-out;
+}
+
+/* Radar chart styling */
+.radar-chart-container {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.radar-chart-axis {
+  stroke: #d1d5db;
+  stroke-width: 1;
+}
+
+.radar-chart-circle {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 1;
+}
+
+.radar-chart-polygon {
+  fill: rgba(79, 70, 229, 0.3);
+  stroke: rgba(79, 70, 229, 0.8);
+  stroke-width: 2;
+}
+
+.radar-chart-point {
+  fill: #4f46e5;
+}
+
+.radar-chart-label {
+  font-size: 12px;
+  font-weight: 600;
+}

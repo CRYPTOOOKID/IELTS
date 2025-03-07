@@ -1,56 +1,87 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent } from '../ui/card';
+import { useReadingContext } from './ReadingContext';
 import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import ReadingInstructions from './ReadingInstructions';
+import ReadingTest from './ReadingTest';
+import './reading.css';
 
 const ReadingHome = () => {
+  const {
+    testData,
+    loading,
+    error,
+    setError,
+    showInstructions,
+    fetchTestData,
+    usingFallback
+  } = useReadingContext();
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[80vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
+          <p className="text-xl text-slate-600">Loading test data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[80vh]">
+        <Card className="max-w-md w-full p-6 bg-red-50 border-red-200">
+          <h2 className="text-2xl font-bold text-red-700 mb-4">Error</h2>
+          <p className="text-red-600 mb-6">{error}</p>
+          <div className="flex flex-col space-y-3">
+            <Button onClick={() => fetchTestData("IELTS_TEST_001")}>
+              Try Again
+            </Button>
+            <Button
+              onClick={() => setError(null)}
+              variant="ghost"
+              className="mt-2"
+            >
+              Back to Selection
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!testData) {
+    return <ReadingInstructions />;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-slate-800 mb-6">IELTS Reading Practice</h2>
-      <p className="text-lg text-slate-600 mb-8">
-        Improve your reading skills for the IELTS test with practice passages and questions.
-      </p>
+      {usingFallback ? (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <span>
+            GraphQL API requests failed. Using fallback test data.
+          </span>
+        </div>
+      ) : (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>
+            Successfully loaded test data from GraphQL API.
+          </span>
+        </div>
+      )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card className="bg-white border-slate-200 shadow-lg">
-          <CardContent className="pt-6">
-            <h3 className="text-xl font-semibold text-slate-700 mb-4">About IELTS Reading</h3>
-            <p className="text-slate-600 mb-4">
-              The IELTS Reading test consists of three passages of increasing difficulty, and you'll have 60 minutes to answer 40 questions.
-            </p>
-            <ul className="list-disc pl-5 text-slate-600 space-y-2">
-              <li>Academic Reading: texts from books, journals, magazines, and newspapers</li>
-              <li>General Training Reading: texts from notices, advertisements, official documents, booklets, newspapers, and instruction manuals</li>
-              <li>Questions may include multiple choice, matching information, sentence completion, summary completion, and more</li>
-            </ul>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white border-slate-200 shadow-lg">
-          <CardContent className="pt-6">
-            <h3 className="text-xl font-semibold text-slate-700 mb-4">Reading Tips</h3>
-            <ul className="list-disc pl-5 text-slate-600 space-y-2">
-              <li>Skim the passage first to get a general idea of the content</li>
-              <li>Read the questions carefully before reading the passage in detail</li>
-              <li>Pay attention to key words in the questions</li>
-              <li>Don't spend too much time on one question</li>
-              <li>Watch out for similar words that might have different meanings</li>
-              <li>Check your spelling and grammar in your answers</li>
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="text-center">
-        <p className="text-slate-600 mb-6">
-          This feature is coming soon. Reading practice tests will be available in future updates.
-        </p>
-        <Link to="/">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            Return to Home
-          </Button>
-        </Link>
-      </div>
+      {showInstructions ? (
+        <ReadingInstructions />
+      ) : (
+        <ReadingTest />
+      )}
     </div>
   );
 };

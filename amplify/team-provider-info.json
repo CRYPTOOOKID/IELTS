@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ieltsreact-dev-c05e6-authRole",
+      "UnauthRoleArn": "arn:aws:iam::440744215515:role/amplify-ieltsreact-dev-c05e6-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::440744215515:role/amplify-ieltsreact-dev-c05e6-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-ieltsreact-dev-c05e6-deployment",
+      "UnauthRoleName": "amplify-ieltsreact-dev-c05e6-unauthRole",
+      "StackName": "amplify-ieltsreact-dev-c05e6",
+      "StackId": "arn:aws:cloudformation:us-east-1:440744215515:stack/amplify-ieltsreact-dev-c05e6/633821c0-fb3b-11ef-8321-1249ad34c09d",
+      "AmplifyAppId": "d114p1ftp5bpu"
+    }
+  }
+}
