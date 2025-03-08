@@ -1,10 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-import { getIELTSTest, listIELTSTests } from '../../graphql/queries';
 import fallbackData from './fallbackData';
 
-// Create API client
-const client = generateClient();
+// No API client needed as we're using fallback data
 
 // Create the context
 const ReadingContext = createContext();
@@ -28,180 +25,48 @@ export const ReadingProvider = ({ children }) => {
   const [availableTests, setAvailableTests] = useState([]);
   const [usingFallback, setUsingFallback] = useState(false);
 
-  // Function to fetch available tests
+  // Function to fetch available tests (using fallback data)
   const fetchAvailableTests = async () => {
     try {
-      console.log('Fetching available tests from GraphQL API');
-      const response = await client.graphql({
-        query: listIELTSTests
-      });
+      console.log('Using fallback test data');
       
-      if (response.data && response.data.listIELTSTests) {
-        console.log('Available tests:', response.data.listIELTSTests);
-        
-        // Process the test list
-        const tests = response.data.listIELTSTests.map(test => ({
-          testId: test.testId,
-          // Extract a title from the rawJson if possible
-          title: test.testId // We could parse the rawJson to get a better title if needed
-        }));
-        
-        setAvailableTests(tests);
-      } else {
-        console.warn('No tests available from API');
-      }
+      // Create a mock test list from fallback data
+      const tests = [{
+        testId: fallbackData.testId,
+        title: "Fallback Reading Test"
+      }];
+      
+      setAvailableTests(tests);
     } catch (err) {
-      console.error('Error fetching available tests:', err);
+      console.error('Error setting up fallback tests:', err);
     }
   };
 
-  // Function to fetch test data from API with retry mechanism
+  // Function to fetch test data (using fallback data directly)
   const fetchTestData = async (testId = "IELTS_TEST_001") => {
     setLoading(true);
     setError(null);
-    setUsingFallback(false);
+    setUsingFallback(true);
     
-    // Maximum number of retry attempts
-    const maxRetries = 3;
-    let currentRetry = 0;
-    let success = false;
-    
-    while (currentRetry < maxRetries && !success) {
-      try {
-        console.log(`Fetching test data for ID: ${testId} (Attempt ${currentRetry + 1}/${maxRetries})`);
-        const response = await client.graphql({
-          query: getIELTSTest,
-          variables: { testId }
-        });
-        
-        if (response.data && response.data.getIELTSTest && response.data.getIELTSTest.rawJson) {
-          try {
-            // Log the raw JSON to see what we're working with
-            console.log('Raw JSON:', response.data.getIELTSTest.rawJson);
-            
-            // Parse the JSON string - it might be double or triple-stringified
-            let fetchedData;
-            try {
-              // First, get the raw JSON string
-              const rawJson = response.data.getIELTSTest.rawJson;
-              console.log('Raw JSON type:', typeof rawJson);
-              
-              // Direct approach for the specific format we're seeing in the logs
-              // This is a very specific solution for the exact format we're seeing
-              if (rawJson.startsWith('"\\"{') && rawJson.endsWith('}\\\""')) {
-                console.log('Detected triple-stringified JSON format');
-                
-                try {
-                  // Method 1: Manual string manipulation
-                  // Remove the outer quotes and unescape the inner JSON
-                  const content = rawJson.slice(1, -1)  // Remove outer quotes
-                    .replace(/\\"/g, '"')               // Replace \" with "
-                    .replace(/\\\\/g, '\\');            // Replace \\ with \
-                  
-                  // Now we should have a valid JSON string
-                  fetchedData = JSON.parse(content);
-                  console.log('Successfully parsed using manual string manipulation');
-                } catch (e1) {
-                  console.error('Method 1 failed:', e1);
-                  
-                  try {
-                    // Method 2: Regex-based approach
-                    const regex = /^"\\"{(.*)}\\\""$/;
-                    const match = rawJson.match(regex);
-                    
-                    if (match && match[1]) {
-                      // We've extracted the content between the quotes
-                      const extracted = match[1].replace(/\\\\/g, '\\').replace(/\\"/g, '"');
-                      const jsonStr = '{' + extracted + '}';
-                      fetchedData = JSON.parse(jsonStr);
-                      console.log('Successfully parsed using regex extraction');
-                    } else {
-                      throw new Error('Regex extraction failed');
-                    }
-                  } catch (e2) {
-                    console.error('Method 2 failed:', e2);
-                    // Method 3: Last resort
-                    console.error('All parsing methods failed');
-                    throw new Error('Failed to parse complex JSON data');
-                  }
-                }
-              } else {
-                // Standard approach for other formats
-                // Try to parse it, handling multiple levels of stringification
-                let parsedData = rawJson;
-                let attempts = 0;
-                const maxParseAttempts = 3; // Prevent infinite loops
-                
-                // Keep parsing as long as we have a string that looks like JSON
-                while (typeof parsedData === 'string' &&
-                      (parsedData.startsWith('{') || parsedData.startsWith('[')) &&
-                      attempts < maxParseAttempts) {
-                  try {
-                    parsedData = JSON.parse(parsedData);
-                    attempts++;
-                    console.log(`Parse attempt ${attempts} successful, result type:`, typeof parsedData);
-                  } catch (e) {
-                    // If parsing fails, we've reached the end of JSON strings
-                    console.log(`Parse attempt ${attempts} failed:`, e.message);
-                    break;
-                  }
-                }
-                
-                fetchedData = parsedData;
-              }
-              
-              console.log('Final parsed data type:', typeof fetchedData);
-              
-              // Format the data properly - ensure testData is an object, not a string
-              const formattedData = {
-                testId: testId,
-                testData: typeof fetchedData === 'string' ? JSON.parse(fetchedData) : fetchedData
-              };
-              
-              // Check if the data has the right structure using our validation function
-              if (isValidTestData(formattedData)) {
-                setTestData(formattedData);
-                console.log('Successfully loaded test data from GraphQL API');
-                success = true;
-                break; // Exit the retry loop
-              } else {
-                console.warn('Invalid data structure from API');
-                throw new Error('The data from GraphQL API has an invalid structure');
-              }
-            } catch (parseError) {
-              console.error('Error parsing test data JSON:', parseError);
-              throw new Error('Error parsing data from GraphQL API');
-            }
-          } catch (parseError) {
-            console.error('Error parsing test data JSON:', parseError);
-            throw new Error('Error parsing data from GraphQL API');
-          }
-        } else {
-          console.warn('No test data returned from API');
-          throw new Error('No test data available from GraphQL API');
-        }
-      } catch (err) {
-        console.error(`Error fetching test data (Attempt ${currentRetry + 1}/${maxRetries}):`, err);
-        currentRetry++;
-        
-        if (currentRetry < maxRetries) {
-          console.log(`Retrying... (${currentRetry}/${maxRetries})`);
-          // Optional: Add a delay before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+    try {
+      console.log('Using fallback reading test data');
+      
+      // Validate the fallback data
+      if (isValidTestData(fallbackData)) {
+        setTestData(fallbackData);
+        console.log('Successfully loaded fallback test data');
+      } else {
+        console.warn('Invalid fallback data structure');
+        setError('Error loading test data');
       }
+    } catch (err) {
+      console.error('Error setting up test data:', err);
+      setError('Error loading test data');
+    } finally {
+      // Start the test automatically after data is loaded
+      setShowInstructions(false);
+      setLoading(false);
     }
-    
-    // If all retries failed, use fallback data
-    if (!success) {
-      console.log('All GraphQL attempts failed. Using fallback data.');
-      setTestData(fallbackData);
-      setUsingFallback(true);
-    }
-    
-    // Start the test automatically after data is loaded
-    setShowInstructions(false);
-    setLoading(false);
   };
 
   // Validate the structure of the test data

@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
 import fallbackData from './fallback.js';
-import { testGenerationPrompt, feedbackPrompt } from './prompt.js';
+import { feedbackPrompt } from './prompt.js';
+import { Amplify } from 'aws-amplify';
+import awsExports from '../../aws-exports';
+
+// Configure Amplify
+Amplify.configure(awsExports);
 
 // Create the context
 const SpeakingContext = createContext();
@@ -36,199 +41,71 @@ export const SpeakingProvider = ({ children }) => {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  // Function to fetch test data from Gemini API
+  // Function to fetch test data from GraphQL API with fallback
   const fetchTestData = async () => {
     setLoading(true);
     setError(null);
     setUsingFallback(false);
     
-    const API_KEY = "AIzaSyA6MdoSLwUd2D8kf1goBDg-92nvMTq2j9A";
-    const MODEL = "gemini-2.0-flash-lite";
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+    console.log("Attempting to fetch speaking test data from GraphQL API");
     
-    // Add a console log to show when we're attempting to fetch new data
-    console.log("Attempting to fetch new speaking test data from Gemini API");
-    
-    // Maximum number of retry attempts
-    const maxRetries = 2;
-    let currentRetry = 0;
-    let success = false;
-    
-    while (currentRetry < maxRetries && !success) {
-      try {
-        console.log(`Fetching speaking test data (Attempt ${currentRetry + 1}/${maxRetries})`);
-        
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: testGenerationPrompt + `\n\nGenerate a unique set of questions. Current timestamp: ${new Date().toISOString()}`
-                  }
-                ]
+    try {
+      // Use a fixed test ID to avoid randomness and speed up loading
+      const testId = 1; // Using ID 1 which we know exists
+      console.log(`Fetching speaking test with ID: ${testId}`);
+      
+      // Use fetch directly to call the GraphQL API
+      const response = await fetch(awsExports.aws_appsync_graphqlEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': awsExports.aws_appsync_apiKey
+        },
+        body: JSON.stringify({
+          query: `
+            query GetIELTSpeakingTest($id: Int!) {
+              getIELTSpeakingTest(id: $id) {
+                id
+                Part1
+                Part2 {
+                  title
+                  cues
+                  final_question
+                }
+                Part3
               }
-            ],
-            generationConfig: {
-              temperature: 0.9, // Increased for more variety
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 2048
             }
-          })
+          `,
+          variables: { id: testId }
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.data && data.data.getIELTSpeakingTest) {
+        const speakingTestData = data.data.getIELTSpeakingTest;
+        
+        // Set the test data directly without extensive validation
+        // since we know the structure from the GraphQL schema
+        setTestData({
+          testId: `SPEAKING_TEST_${speakingTestData.id}`,
+          testData: speakingTestData
         });
-        
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("API Response:", data);
-        
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-          try {
-            const generatedText = data.candidates[0].content.parts[0].text;
-            console.log("Generated Text:", generatedText);
-            
-            // Extract JSON from the response - handle different possible formats
-            let parsedData;
-            
-            try {
-              // First attempt: Try to parse the entire text as JSON
-              parsedData = JSON.parse(generatedText);
-              console.log("Successfully parsed entire text as JSON");
-            } catch (e) {
-              console.log("Could not parse entire text as JSON, trying to extract JSON...");
-              
-              try {
-                // Second attempt: Try to extract JSON using regex
-                const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-                if (!jsonMatch) {
-                  throw new Error('No JSON found in the response');
-                }
-                
-                const jsonString = jsonMatch[0];
-                console.log("Extracted JSON string:", jsonString);
-                
-                try {
-                  parsedData = JSON.parse(jsonString);
-                  console.log("Successfully parsed extracted JSON");
-                } catch (e2) {
-                  console.error("Error parsing extracted JSON:", e2);
-                  
-                  // Third attempt: Try to manually fix common JSON issues
-                  console.log("Attempting to fix JSON manually...");
-                  let fixedJson = jsonString
-                    .replace(/,(\s*[\]}])/g, '$1') // Remove trailing commas
-                    .replace(/'/g, '"') // Replace single quotes with double quotes
-                    .replace(/\n/g, ''); // Remove newlines
-                    
-                  try {
-                    parsedData = JSON.parse(fixedJson);
-                    console.log("Successfully parsed fixed JSON");
-                  } catch (e3) {
-                    console.error("Error parsing fixed JSON:", e3);
-                    throw new Error('Failed to parse JSON after multiple attempts');
-                  }
-                }
-              } catch (error) {
-                console.error("All JSON extraction attempts failed:", error);
-                throw error;
-              }
-            }
-            
-            // Validate and fix the structure if needed
-            console.log("Validating data structure:", parsedData);
-            
-            // Ensure we have the required parts
-            let validatedData = { ...parsedData };
-            
-            // Check and fix Part1
-            if (!validatedData.Part1 || !Array.isArray(validatedData.Part1)) {
-              console.warn('Part1 is missing or not an array, creating default');
-              validatedData.Part1 = fallbackData.testData.Part1;
-            } else if (validatedData.Part1.length < 4) {
-              console.warn('Part1 has fewer than 4 questions, using available questions');
-              // Keep what we have but ensure we have 4 questions
-              while (validatedData.Part1.length < 4) {
-                validatedData.Part1.push(fallbackData.testData.Part1[validatedData.Part1.length]);
-              }
-            }
-            
-            // Check and fix Part2
-            if (!validatedData.Part2 || typeof validatedData.Part2 !== 'object') {
-              console.warn('Part2 is missing or not an object, creating default');
-              validatedData.Part2 = fallbackData.testData.Part2;
-            } else {
-              // Ensure Part2 has all required properties
-              if (!validatedData.Part2.title) {
-                validatedData.Part2.title = fallbackData.testData.Part2.title;
-              }
-              if (!validatedData.Part2.cues || !Array.isArray(validatedData.Part2.cues)) {
-                validatedData.Part2.cues = fallbackData.testData.Part2.cues;
-              }
-              if (!validatedData.Part2.final_question) {
-                validatedData.Part2.final_question = fallbackData.testData.Part2.final_question;
-              }
-            }
-            
-            // Check and fix Part3
-            if (!validatedData.Part3 || !Array.isArray(validatedData.Part3)) {
-              console.warn('Part3 is missing or not an array, creating default');
-              validatedData.Part3 = fallbackData.testData.Part3;
-            } else if (validatedData.Part3.length < 4) {
-              console.warn('Part3 has fewer than 4 questions, using available questions');
-              // Keep what we have but ensure we have 4 questions
-              while (validatedData.Part3.length < 4) {
-                validatedData.Part3.push(fallbackData.testData.Part3[validatedData.Part3.length]);
-              }
-            }
-            
-            setTestData({
-              testId: "SPEAKING_TEST_GEMINI",
-              testData: validatedData
-            });
-            console.log('Successfully loaded and validated test data from Gemini API');
-            success = true;
-            break; // Exit the retry loop
-          } catch (parseError) {
-            console.error('Error parsing test data JSON:', parseError);
-            throw new Error('Error parsing data from Gemini API');
-          }
-        } else {
-          console.warn('No test data returned from API');
-          throw new Error('No test data available from Gemini API');
-        }
-      } catch (err) {
-        console.error(`Error fetching test data (Attempt ${currentRetry + 1}/${maxRetries}):`, err);
-        currentRetry++;
-        
-        if (currentRetry < maxRetries) {
-          console.log(`Retrying... (${currentRetry}/${maxRetries})`);
-          // Add a delay before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+        console.log('Successfully loaded test data from GraphQL API');
+      } else {
+        // If API call succeeded but no data, use fallback
+        console.warn('No test data returned from API, using fallback');
+        setTestData(fallbackData);
+        setUsingFallback(true);
       }
-    }
-    
-    // If all retries failed, use fallback data
-    if (!success) {
-      console.log('⚠️ WARNING: All Gemini API attempts failed. Using fallback data. ⚠️');
-      console.log('This is why you are seeing the same questions every time.');
+    } catch (err) {
+      console.error(`Error fetching test data:`, err);
+      console.log('Using fallback data due to API error');
       setTestData(fallbackData);
       setUsingFallback(true);
-      
-      // Display a more visible alert in the console
-      console.warn('%c USING FALLBACK DATA - API CALLS FAILED ', 'background: #FFA500; color: #000; font-size: 16px; padding: 5px;');
-    } else {
-      console.log('✅ Successfully fetched new speaking test data from Gemini API');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   // Start the test by hiding instructions
