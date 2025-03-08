@@ -323,7 +323,9 @@ export const SpeakingProvider = ({ children }) => {
     // Stop any active recordings when getting feedback
     stopAllRecordings();
     
+    // Set loading state and show feedback page immediately
     setFeedbackLoading(true);
+    setShowFeedback(true);
     setError(null);
     
     try {
@@ -457,7 +459,6 @@ export const SpeakingProvider = ({ children }) => {
           }
           
           setFeedback(parsedData);
-          setShowFeedback(true);
           console.log('Successfully received AI feedback', parsedData);
         } catch (parseError) {
           console.error('Error parsing feedback JSON:', parseError);

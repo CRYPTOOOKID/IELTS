@@ -3,15 +3,16 @@ import { useSpeakingContext } from './SpeakingContext';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import useSpeechRecognition from './useSpeechRecognition';
+import './speaking.css';
 
 // Part 1 Component
 export const Part1 = () => {
-  const { 
-    testData, 
-    nextPart, 
-    transcriptions, 
-    isRecording, 
-    updateTranscription, 
+  const {
+    testData,
+    nextPart,
+    transcriptions,
+    isRecording,
+    updateTranscription,
     toggleRecording,
     setError
   } = useSpeakingContext();
@@ -82,17 +83,26 @@ export const Part1 = () => {
   const questions = testData?.testData?.Part1 || [];
   
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">Speaking Test - Part 1</h1>
-      <p className="text-center text-slate-600 mb-8">
-        Answer the following questions about familiar topics. Click the microphone button to start recording your answer.
-      </p>
+    <div className="max-w-5xl mx-auto">
+      <div className="text-center mb-10 animate-fade-in">
+        <h1 className="text-4xl font-bold mb-3" style={{
+          background: "var(--primary-gradient)",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          color: "transparent"
+        }}>
+          Speaking Test - Part 1
+        </h1>
+        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          Answer the following questions about familiar topics. Click the microphone button to start recording your answer.
+        </p>
+      </div>
       
-      <div className="space-y-8 mb-8">
+      <div className="space-y-8 mb-12">
         {questions.map((question, index) => (
-          <div key={index} className="flex items-start gap-4">
-            <Card className="p-6 speaking-question-card flex-1">
-              <h2 className="text-xl font-semibold text-slate-800 mb-4">{question}</h2>
+          <div key={index} className="flex items-start gap-6 animate-fade-in" style={{ animationDelay: `${index * 0.15}s` }}>
+            <Card className="p-8 speaking-question-card flex-1">
+              <h2 className="text-xl font-semibold mb-4">{question}</h2>
               
               {transcriptions.part1[index] && (
                 <div className="transcription-area">
@@ -104,10 +114,10 @@ export const Part1 = () => {
             
             <Button
               onClick={() => startRecording(index)}
-              className={`mic-button rounded-full w-14 h-14 flex-shrink-0 ${
+              className={`mic-button ${
                 isRecording.part1[index]
-                  ? 'bg-red-600 hover:bg-red-700 recording'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800'
+                  ? 'recording'
+                  : ''
               }`}
               aria-label={isRecording.part1[index] ? "Stop recording" : "Start recording"}
             >
@@ -126,13 +136,15 @@ export const Part1 = () => {
         ))}
       </div>
       
-      <div className="text-center mb-12">
+      <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
         <Button
-          size="lg"
           onClick={nextPart}
-          className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 text-lg nav-button"
+          className="nav-button px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-medium rounded-xl shadow-lg"
         >
-          Next: Part 2
+          <span className="mr-2">Next: Part 2</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
         </Button>
       </div>
     </div>
@@ -141,12 +153,12 @@ export const Part1 = () => {
 
 // Part 2 Component
 export const Part2 = () => {
-  const { 
-    testData, 
-    nextPart, 
-    transcriptions, 
-    isRecording, 
-    updateTranscription, 
+  const {
+    testData,
+    nextPart,
+    transcriptions,
+    isRecording,
+    updateTranscription,
     toggleRecording,
     setError
   } = useSpeakingContext();
@@ -221,71 +233,86 @@ export const Part2 = () => {
   };
   
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">Speaking Test - Part 2</h1>
-      <p className="text-center text-slate-600 mb-8">
-        You will be given a topic to talk about for 1-2 minutes. You have 1 minute to prepare your response.
-      </p>
-      
-      <Card className="p-6 mb-8 speaking-question-card cue-card">
-        <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">{part2Data.title}</h2>
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-slate-700 mb-3">You should say:</h3>
-          <ul className="space-y-2 text-slate-700">
-            {part2Data.cues.map((cue, index) => (
-              <li key={index} className="cue-item">{cue}</li>
-            ))}
-          </ul>
-        </div>
-        
-        {part2Data.final_question && (
-          <p className="text-lg font-medium text-slate-700 mb-6">{part2Data.final_question}</p>
-        )}
-        
-        <div className="flex justify-center mt-8">
-          <Button
-            onClick={toggleRecordingHandler}
-            className={`flex items-center justify-center rounded-full w-20 h-20 ${
-              isRecording.part2
-                ? 'bg-red-600 hover:bg-red-700 recording'
-                : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800'
-            }`}
-            aria-label={isRecording.part2 ? "Stop recording" : "Start recording"}
-          >
-            {isRecording.part2 ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-            )}
-          </Button>
-        </div>
-        <p className="text-center text-sm text-slate-500 mt-2">
-          {isRecording.part2 ? "Click to stop recording" : "Click to start recording your response"}
+    <div className="max-w-5xl mx-auto">
+      <div className="text-center mb-10 animate-fade-in">
+        <h1 className="text-4xl font-bold mb-3" style={{
+          background: "var(--primary-gradient)",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          color: "transparent"
+        }}>
+          Speaking Test - Part 2
+        </h1>
+        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          You will be given a topic to talk about for 1-2 minutes. You have 1 minute to prepare your response.
         </p>
-      </Card>
+      </div>
+      
+      <div className="animate-scale-in" style={{ animationDelay: "0.3s" }}>
+        <Card className="p-8 mb-10 speaking-question-card cue-card">
+          <h2 className="text-2xl font-bold mb-8 text-center">{part2Data.title}</h2>
+          
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-indigo-800">You should say:</h3>
+            <ul className="space-y-3">
+              {part2Data.cues.map((cue, index) => (
+                <li key={index} className="cue-item">{cue}</li>
+              ))}
+            </ul>
+          </div>
+          
+          {part2Data.final_question && (
+            <p className="text-lg font-medium text-indigo-700 mb-8 italic">{part2Data.final_question}</p>
+          )}
+          
+          <div className="flex justify-center mt-10">
+            <Button
+              onClick={toggleRecordingHandler}
+              className={`flex items-center justify-center rounded-full w-24 h-24 ${
+                isRecording.part2
+                  ? 'recording'
+                  : ''
+              }`}
+              aria-label={isRecording.part2 ? "Stop recording" : "Start recording"}
+            >
+              {isRecording.part2 ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              )}
+            </Button>
+          </div>
+          <p className="text-center text-indigo-600 font-medium mt-4">
+            {isRecording.part2 ? "Click to stop recording" : "Click to start recording your response"}
+          </p>
+        </Card>
+      </div>
       
       {transcriptions.part2 && (
-        <Card className="p-6 mb-8 speaking-question-card">
-          <h3 className="text-lg font-semibold text-slate-700 mb-3">Your Response:</h3>
-          <div className="transcription-area">
-            <p className="transcription-text">{transcriptions.part2}</p>
-          </div>
-        </Card>
+        <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <Card className="p-8 mb-10 speaking-question-card">
+            <h3 className="text-xl font-semibold mb-4 text-indigo-800">Your Response:</h3>
+            <div className="transcription-area">
+              <p className="transcription-text">{transcriptions.part2}</p>
+            </div>
+          </Card>
+        </div>
       )}
       
-      <div className="text-center mb-12">
+      <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
         <Button
-          size="lg"
           onClick={nextPart}
-          className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 text-lg nav-button"
+          className="nav-button px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-medium rounded-xl shadow-lg"
         >
-          Next: Part 3
+          <span className="mr-2">Next: Part 3</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
         </Button>
       </div>
     </div>
@@ -370,17 +397,26 @@ export const Part3 = () => {
   const questions = testData?.testData?.Part3 || [];
   
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">Speaking Test - Part 3</h1>
-      <p className="text-center text-slate-600 mb-8">
-        Answer the following questions related to the topic from Part 2. These questions will be more abstract and require deeper analysis.
-      </p>
+    <div className="max-w-5xl mx-auto">
+      <div className="text-center mb-10 animate-fade-in">
+        <h1 className="text-4xl font-bold mb-3" style={{
+          background: "var(--primary-gradient)",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          color: "transparent"
+        }}>
+          Speaking Test - Part 3
+        </h1>
+        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          Answer the following questions related to the topic from Part 2. These questions will be more abstract and require deeper analysis.
+        </p>
+      </div>
       
-      <div className="space-y-8 mb-8">
+      <div className="space-y-8 mb-12">
         {questions.map((question, index) => (
-          <div key={index} className="flex items-start gap-4">
-            <Card className="p-6 speaking-question-card flex-1">
-              <h2 className="text-xl font-semibold text-slate-800 mb-4">{question}</h2>
+          <div key={index} className="flex items-start gap-6 animate-fade-in" style={{ animationDelay: `${index * 0.15}s` }}>
+            <Card className="p-8 speaking-question-card flex-1">
+              <h2 className="text-xl font-semibold mb-4">{question}</h2>
               
               {transcriptions.part3[index] && (
                 <div className="transcription-area">
@@ -392,10 +428,10 @@ export const Part3 = () => {
             
             <Button
               onClick={() => startRecording(index)}
-              className={`mic-button rounded-full w-14 h-14 flex-shrink-0 ${
+              className={`mic-button ${
                 isRecording.part3[index]
-                  ? 'bg-red-600 hover:bg-red-700 recording'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800'
+                  ? 'recording'
+                  : ''
               }`}
               aria-label={isRecording.part3[index] ? "Stop recording" : "Start recording"}
             >
@@ -414,15 +450,17 @@ export const Part3 = () => {
         ))}
       </div>
       
-      <div className="text-center mb-12">
+      <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
         <Button
-          size="lg"
           onClick={getFeedback}
-          className="bg-green-700 hover:bg-green-800 text-white px-8 py-3 text-lg nav-button"
+          className="nav-button px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-medium rounded-xl shadow-lg"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline-block" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
           Complete Test & Get Feedback
         </Button>
-        <p className="mt-4 text-slate-500 text-sm">
+        <p className="mt-4 text-slate-600 text-sm">
           Click the button above to complete the test and get AI feedback on your performance.
         </p>
       </div>
