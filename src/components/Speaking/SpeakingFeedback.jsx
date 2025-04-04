@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSpeakingContext } from './SpeakingContext';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -267,6 +267,33 @@ const SpeakingFeedback = () => {
   } = useSpeakingContext();
   
   const [activeTab, setActiveTab] = useState('overview');
+  const [progressPercentage, setProgressPercentage] = useState(0);
+  
+  // Set up the progress animation when feedbackLoading changes
+  useEffect(() => {
+    let progressTimer = null;
+    
+    if (feedbackLoading) {
+      setProgressPercentage(0);
+      progressTimer = setInterval(() => {
+        setProgressPercentage(prev => {
+          if (prev >= 100) {
+            clearInterval(progressTimer);
+            return 100;
+          }
+          return prev + 1;
+        });
+      }, 100); // 100ms * 100 steps = 10 seconds
+    } else {
+      setProgressPercentage(100);
+    }
+    
+    return () => {
+      if (progressTimer) {
+        clearInterval(progressTimer);
+      }
+    };
+  }, [feedbackLoading]);
 
   if (feedbackLoading) {
     return (
@@ -296,7 +323,10 @@ const SpeakingFeedback = () => {
             
             {/* Progress bar */}
             <div className="max-w-md mx-auto bg-indigo-900 bg-opacity-50 rounded-full h-2.5 mb-4 overflow-hidden">
-              <div className="bg-gradient-to-r from-indigo-400 to-purple-400 h-2.5 rounded-full animate-progress"></div>
+              <div 
+                className="bg-gradient-to-r from-indigo-400 to-purple-400 h-2.5 rounded-full" 
+                style={{ width: `${progressPercentage}%`, transition: 'width 0.5s ease-in-out' }}
+              ></div>
             </div>
             
             <p className="text-indigo-300 text-sm">

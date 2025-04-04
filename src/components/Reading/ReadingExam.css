@@ -1,0 +1,443 @@
+/* --- Base Styles --- */
+:root {
+    --primary-color: #0052cc; /* Primary blue */
+    --primary-color-dark: #003f9e;
+    --primary-color-light: #e9f2ff;
+    --text-color-primary: #212529;
+    --text-color-secondary: #495057;
+    --text-color-muted: #6c757d;
+    --background-color: #f8f9fa; /* Main background */
+    --content-background: #ffffff;
+    --border-color: #dee2e6;
+    --border-color-light: #e9ecef;
+    --border-radius: 8px;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Global Styles (Applied to ReadingExam.jsx root if needed) */
+body { /* Apply base font to body for better inheritance */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color-primary);
+    line-height: 1.65; /* Improved line height */
+    font-size: 16px; /* Base font size */
+}
+
+.reading-exam-container {
+    max-width: 1600px;
+    margin: 20px auto;
+    background-color: var(--content-background);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: 1px solid var(--border-color-light);
+}
+
+/* Header Styling */
+.reading-test-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 20px 35px;
+    text-align: center;
+}
+.reading-test-header h1 {
+    margin: 0;
+    font-size: 1.75em;
+    font-weight: 700;
+}
+
+/* Tab Navigation Styling */
+.tab-navigation {
+    display: flex;
+    background-color: var(--content-background);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 20px;
+}
+.tab-button {
+    padding: 14px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1.05em;
+    font-weight: 500;
+    color: var(--text-color-secondary);
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    margin-right: 10px;
+    position: relative;
+    top: 1px;
+}
+.tab-button:hover {
+    color: var(--primary-color);
+}
+.tab-button.active {
+    color: var(--primary-color);
+    font-weight: 600;
+    border-bottom-color: var(--primary-color);
+}
+
+/* Content Area Header (Below Tabs) */
+.content-header {
+    padding: 18px 30px;
+    background-color: #fdfdff;
+    border-bottom: 1px solid var(--border-color-light);
+}
+.content-header h2 {
+    margin: 0;
+    font-size: 1.3em;
+    color: var(--text-color-primary);
+    font-weight: 600;
+}
+
+/* Main Container for Passage and Questions */
+.test-container {
+    display: flex;
+    /* Approximate height, adjust based on total viewport and other elements */
+    height: calc(85vh - 160px);
+    max-height: 700px; /* Or adjust as needed */
+    overflow: hidden; /* Let inner divs handle scrolling */
+}
+
+/* Scrollbar Styling */
+.passage-display::-webkit-scrollbar,
+.question-area::-webkit-scrollbar {
+    width: 8px;
+}
+.passage-display::-webkit-scrollbar-track,
+.question-area::-webkit-scrollbar-track {
+    background: var(--border-color-light);
+    border-radius: 4px;
+}
+.passage-display::-webkit-scrollbar-thumb,
+.question-area::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+    border: 2px solid var(--border-color-light);
+}
+.passage-display::-webkit-scrollbar-thumb:hover,
+.question-area::-webkit-scrollbar-thumb:hover {
+    background-color: #adb5bd;
+}
+
+/* Passage Display Area */
+.passage-display {
+    flex: 1 1 55%;
+    padding: 30px;
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto; /* Enable vertical scrolling */
+    background-color: var(--content-background);
+}
+.passage-text-block {
+    margin-bottom: 35px;
+    border-bottom: 1px dashed var(--border-color-light);
+    padding-bottom: 25px;
+}
+.passage-text-block:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.passage-text-block h3 { /* Short text titles */
+    margin-top: 0;
+    margin-bottom: 18px;
+    color: var(--primary-color-dark);
+    font-size: 1.3em;
+    font-weight: 600;
+    border-bottom: none;
+    padding-bottom: 0;
+ }
+.passage-text-block h2 { /* Long passage titles */
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--primary-color-dark);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    font-size: 1.5em;
+    font-weight: 600;
+ }
+.passage-text-block p, .passage-text-block pre {
+    text-align: left;
+    margin-bottom: 1.3em;
+    font-size: 1em;
+    white-space: pre-wrap; /* Wrap long lines in pre and p */
+    word-wrap: break-word;
+    color: var(--text-color-primary);
+}
+.passage-text-block .paragraph-marker {
+     font-weight: 700;
+     margin-right: 10px;
+     color: var(--text-color-secondary);
+}
+
+/* Question Area */
+.question-area {
+    flex: 1 1 45%;
+    padding: 30px;
+    overflow-y: auto; /* Enable vertical scrolling */
+    background-color: var(--background-color);
+}
+.question-block {
+    margin-bottom: 30px;
+    padding: 25px;
+    background-color: var(--content-background);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+.question-block h3 { /* Question block title (e.g., Questions 1-5) */
+    margin-top: 0;
+    font-size: 1.25em;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color-light);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+.question-block .instructions {
+    font-style: normal;
+    color: var(--text-color-secondary);
+    margin-bottom: 25px;
+    background-color: var(--primary-color-light);
+    padding: 15px 18px;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 4px;
+    font-size: 0.95em;
+    text-align: left; /* Ensure instructions text is left-aligned */
+}
+.question-block .instructions ul { /* Ensure lists inside instructions are styled */
+    margin-top: 10px;
+    margin-bottom: 5px;
+    padding-left: 20px;
+}
+.question-block .instructions li {
+    margin-bottom: 5px;
+}
+
+
+.question {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color-light);
+    text-align: left; /* Ensure question text itself is left-aligned */
+}
+.question:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.question-number {
+    font-weight: 600;
+    margin-right: 10px;
+    color: var(--text-color-primary);
+    display: inline-block;
+    min-width: 20px;
+    vertical-align: top; /* Align number with top of question text */
+}
+.question-text {
+   display: inline; /* Keep question text inline */
+   color: var(--text-color-primary);
+   vertical-align: baseline; /* Align with surrounding text */
+}
+
+/* --- Specific Question Type Styles --- */
+
+/* Options List (Radio/Checkbox) - UPDATED FOR ALIGNMENT */
+.options-list {
+    margin-top: 10px;
+    text-align: left; /* Ensure container is left-aligned */
+}
+.options-list label {
+    display: block; /* Each option on a new line */
+    text-align: left; /* Align text within label to left */
+    margin: 5px 0; /* Adjust vertical margin, remove horizontal margin/indent */
+    padding: 10px 15px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out;
+    border: 1px solid transparent;
+    cursor: pointer;
+    position: relative;
+}
+.options-list label:hover {
+     background-color: var(--primary-color-light);
+}
+.options-list input[type="radio"],
+.options-list input[type="checkbox"] {
+    margin-right: 12px;
+    vertical-align: middle; /* Align input vertically */
+    accent-color: var(--primary-color);
+    width: 1.1em;
+    height: 1.1em;
+}
+
+/* Input Fields (Completion, Short Answer) - UPDATED TO BOX STYLE */
+.completion-input,
+.short-answer-input {
+    /* Remove previous border styles */
+    border-bottom: none;
+
+    /* Add box styles */
+    border: 1px solid var(--border-color); /* Standard border */
+    border-radius: 5px; /* Slightly rounded corners */
+    padding: 8px 12px; /* Comfortable padding */
+    min-width: 180px; /* Ensure a decent minimum width */
+    font-family: inherit;
+    font-size: 0.95em; /* Match surrounding text size */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff; /* Ensure background is white */
+    margin: 0 8px; /* Keep horizontal margin for inline completion */
+    vertical-align: baseline; /* Align better with surrounding text */
+    box-shadow: var(--shadow-sm); /* Subtle shadow */
+}
+
+/* Focus style for the new box look */
+.completion-input:focus,
+.short-answer-input:focus {
+    outline: none;
+    border-color: var(--primary-color); /* Highlight focus */
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.15); /* Focus ring like other inputs */
+    background-color: #fff; /* Keep background white on focus */
+}
+
+/* Specific adjustment for short answer to be block-level */
+.short-answer-input {
+    display: block; /* Make it take full width */
+    margin-top: 8px; /* Space above */
+    width: calc(100% - 24px); /* Adjust width considering padding */
+    min-width: auto; /* Override min-width for block element */
+    margin-left: 0; /* Remove left margin for block */
+    margin-right: 0; /* Remove right margin for block */
+}
+
+.word-limit-note {
+     font-size: 0.9em;
+     color: var(--text-color-muted);
+     margin-left: 8px;
+     font-style: italic;
+     display: inline-block; /* Ensure it flows correctly */
+}
+
+/* Ensure label for sentence completion allows inline input */
+.sentence-completion > label {
+    display: inline; /* Allow input to sit inline */
+}
+
+/* Matching Questions (Headings, Information) */
+.matching-item {
+     display: flex;
+     flex-wrap: wrap;
+     align-items: center;
+     margin-bottom: 15px;
+     padding: 8px 0;
+ }
+.matching-item label {
+    margin-right: 15px;
+    margin-bottom: 5px;
+    font-weight: 500;
+ }
+.matching-item select, .matching-item input[type="text"] {
+     padding: 8px 12px;
+     border: 1px solid var(--border-color);
+     border-radius: 6px;
+     font-size: 0.95em;
+     flex-grow: 1;
+     max-width: 220px; /* Limit select width */
+     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+ }
+.matching-item select:focus, .matching-item input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+/* Align label and select properly in matching information */
+.matching-information-new .matching-item {
+    align-items: flex-start; /* Align items to top */
+}
+.matching-information-new .matching-item label {
+    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-right: 10px;
+}
+.matching-information-new .matching-item div { /* Container for text + select */
+    flex-grow: 1;
+}
+.matching-information-new .matching-item select {
+    display: block; /* Make select block-level within its container */
+    margin-top: 5px;
+    max-width: 150px; /* Adjust width as needed */
+    margin-left: 0; /* Align left within its container */
+}
+
+
+ /* Options Box (Headings List etc.) */
+.options-box {
+     list-style-position: inside;
+     background-color: var(--background-color);
+     padding: 20px 25px;
+     margin-bottom: 25px;
+     border-radius: var(--border-radius);
+     border: 1px solid var(--border-color-light);
+     text-align: left; /* Ensure content is left-aligned */
+ }
+.options-box h4 { /* E.g., "List of Headings" */
+     margin-top: 0;
+     margin-bottom: 15px;
+     font-size: 1.1em;
+     font-weight: 600;
+     color: var(--text-color-primary);
+ }
+.options-box ol, .options-box ul {
+    padding-left: 5px; /* Minimal padding */
+    margin-bottom: 0;
+    color: var(--text-color-secondary);
+    list-style-type: none; /* Remove default list bullets/numbers */
+ }
+.options-box li {
+     margin-bottom: 8px;
+     padding-left: 15px; /* Indent list items slightly */
+     position: relative;
+ }
+ /* If you want to keep original list markers, adjust padding and remove list-style-type:none */
+ /* .options-box ol, .options-box ul { padding-left: 25px; list-style-type: initial; } */
+
+
+ /* Specific Matching Headings List styling */
+.matching-headings-json .options-box ul {
+    padding-left: 5px;
+    list-style-type: none;
+}
+.matching-headings-json .options-box li {
+    margin-bottom: 6px;
+    padding-left: 0; /* No extra padding needed if markers are part of text */
+}
+.matching-headings-json .matching-item label {
+    min-width: initial; /* Allow label width to be natural */
+}
+
+
+/* Loading/Error Styles */
+.loading-message, .error-message {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: var(--text-color-secondary);
+}
+.error-message {
+    color: #dc3545; /* Bootstrap danger color */
+}
+
+/* Ensure bold tags are styled */
+strong {
+    font-weight: 600; /* Or bolder if needed */
+}
+
+/* Add styles for warning/error messages within questions if needed */
+.question.warning, .question.error {
+    color: #dc3545; /* Example error color */
+    font-style: italic;
+    padding: 10px;
+    background-color: #f8d7da; /* Light red background */
+    border: 1px solid #f5c6cb; /* Red border */
+    border-radius: 4px;
+}

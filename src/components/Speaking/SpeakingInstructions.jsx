@@ -19,7 +19,11 @@ const SpeakingInstructions = () => {
       startTest();
     } catch (error) {
       console.error('Error starting test:', error);
-      setError('Failed to load test data. Please try again.');
+      setError('Failed to load test data. Using fallback test content instead.');
+      // Even if there's an error, still start the test with fallback data
+      startTest();
+    } finally {
+      setLoading(false);
     }
   };
 

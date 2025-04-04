@@ -1,125 +1,65 @@
 import React from 'react';
-import { useReadingContext } from './ReadingContext';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
-import './reading.css';
+import { useNavigate } from 'react-router-dom';
 
 const ReadingInstructions = () => {
-  const { startTest, fetchTestData, setLoading } = useReadingContext();
-  
-  const handleStartTest = async () => {
-    try {
-      // Show loading state
-      setLoading(true);
-      
-      // Fetch test data
-      await fetchTestData("IELTS_TEST_001");
-      
-      // Start the test - this is now handled in fetchTestData
-      // but we'll call it here as well to ensure it works
-      startTest();
-    } catch (error) {
-      console.error("Error starting test:", error);
-    }
+  const navigate = useNavigate();
+
+  const startExam = () => {
+    navigate('/reading/exam');
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-blue-800 mb-6 text-center">IELTS Reading Test</h1>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h1 className="text-3xl font-bold text-center text-blue-800 mb-6">IELTS Reading Test Instructions</h1>
       
-      <Card className="mb-8 p-6">
-        <h2 className="text-2xl font-semibold mb-4">Instructions</h2>
-        <div className="space-y-4 text-slate-700">
-          <p>
-            The IELTS Reading test consists of 3 sections with a total of 40 questions. You have 60 minutes to complete the test.
-          </p>
-          <p>
-            Each section contains one long text. Texts are taken from books, journals, magazines, and newspapers. They are written for a non-specialist audience and are on academic topics of general interest.
-          </p>
-          <p>
-            You will need to answer a variety of questions that test your reading skills, including:
-          </p>
+      <div className="space-y-6 text-gray-700">
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+          <h2 className="text-xl font-semibold text-blue-800 mb-2">Overview</h2>
+          <p>The IELTS Reading test assesses your ability to understand written English in various contexts. The test contains 3 sections with increasing difficulty.</p>
+        </div>
+        
+        <div>
+          <h2 className="text-xl font-semibold text-blue-800 mb-2">Test Format</h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Multiple choice</li>
-            <li>True/False/Not Given</li>
-            <li>Matching headings</li>
-            <li>Matching information</li>
-            <li>Matching features</li>
-            <li>Sentence completion</li>
-            <li>Summary completion</li>
+            <li>Duration: 60 minutes</li>
+            <li>3 sections with increasing difficulty</li>
+            <li>Total of 40 questions</li>
+            <li>Various question types (multiple choice, matching, short answer, etc.)</li>
+            <li>No extra time given for transferring answers</li>
           </ul>
         </div>
-      </Card>
-
-      <Card className="mb-8 p-6">
-        <h2 className="text-2xl font-semibold mb-4">Tips for Success</h2>
-        <div className="space-y-4 text-slate-700">
-          <div className="bg-blue-50 p-4 rounded-md mb-4">
-            <h3 className="font-semibold text-blue-800 mb-2">Time Management</h3>
-            <p>Spend about 20 minutes on each section. If you can't answer a question, move on and come back to it later.</p>
-          </div>
-          
-          <div className="bg-green-50 p-4 rounded-md mb-4">
-            <h3 className="font-semibold text-green-800 mb-2">Skimming and Scanning</h3>
-            <p>Quickly skim the text first to get a general idea of the content. Then scan for specific information when answering questions.</p>
-          </div>
-          
-          <div className="bg-purple-50 p-4 rounded-md mb-4">
-            <h3 className="font-semibold text-purple-800 mb-2">Read the Instructions Carefully</h3>
-            <p>Pay attention to word limits and specific instructions for each question type.</p>
-          </div>
-          
-          <div className="bg-amber-50 p-4 rounded-md">
-            <h3 className="font-semibold text-amber-800 mb-2">Answer All Questions</h3>
-            <p>There is no penalty for wrong answers, so make sure to answer every question even if you have to guess.</p>
-          </div>
+        
+        <div>
+          <h2 className="text-xl font-semibold text-blue-800 mb-2">Tips for Success</h2>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Read the instructions carefully for each question</li>
+            <li>Pay attention to word limits for short-answer questions</li>
+            <li>Manage your time - approximately 20 minutes per section</li>
+            <li>Don't spend too long on difficult questions</li>
+            <li>Transfer your answers accurately if using an answer sheet</li>
+          </ul>
         </div>
-      </Card>
-
-      <Card className="mb-8 p-6">
-        <h2 className="text-2xl font-semibold mb-4">Question Types Explained</h2>
-        <div className="space-y-4 text-slate-700">
-          <div className="border-l-4 border-blue-500 pl-4 py-2 mb-4">
-            <h3 className="font-semibold mb-1">True/False/Not Given</h3>
-            <p className="text-sm">Determine if statements agree with (TRUE), contradict (FALSE), or have no information about (NOT GIVEN) in the text.</p>
-          </div>
-          
-          <div className="border-l-4 border-green-500 pl-4 py-2 mb-4">
-            <h3 className="font-semibold mb-1">Matching Headings</h3>
-            <p className="text-sm">Match headings to paragraphs based on the main idea of each paragraph.</p>
-          </div>
-          
-          <div className="border-l-4 border-purple-500 pl-4 py-2 mb-4">
-            <h3 className="font-semibold mb-1">Multiple Choice</h3>
-            <p className="text-sm">Select the correct answer from several options based on information in the text.</p>
-          </div>
-          
-          <div className="border-l-4 border-amber-500 pl-4 py-2 mb-4">
-            <h3 className="font-semibold mb-1">Sentence Completion</h3>
-            <p className="text-sm">Complete sentences with words from the text, following word limits (e.g., NO MORE THAN THREE WORDS).</p>
-          </div>
-          
-          <div className="border-l-4 border-red-500 pl-4 py-2">
-            <h3 className="font-semibold mb-1">Paragraph Matching</h3>
-            <p className="text-sm">Match statements or questions to specific paragraphs in the text.</p>
-          </div>
+        
+        <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+          <h2 className="text-xl font-semibold text-yellow-700 mb-2">Important Notes</h2>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Spelling and grammar count in your answers</li>
+            <li>All answers must be written on the answer sheet</li>
+            <li>No extra time is allowed for transferring answers</li>
+          </ul>
         </div>
-      </Card>
-
-      <div className="text-center mb-12">
-        <Button 
-          size="lg" 
-          onClick={handleStartTest}
-          className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 text-lg"
+      </div>
+      
+      <div className="mt-8 text-center">
+        <button 
+          onClick={startExam}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition duration-200 shadow-md hover:shadow-lg"
         >
-          Start Now
-        </Button>
-        <p className="mt-4 text-slate-500 text-sm">
-          You will have 60 minutes to complete the test once you begin.
-        </p>
+          Start Exam
+        </button>
       </div>
     </div>
   );
 };
 
-export default ReadingInstructions;
+export default ReadingInstructions; 

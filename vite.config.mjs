@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -11,16 +10,19 @@ export default defineConfig({
   build: {
     sourcemap: true
   },
-  optimizeDeps: {
-    exclude: ['@aws-amplify/core']
-  },
-  // Ignore source map warnings from node_modules
   server: {
     hmr: {
       overlay: {
         errors: true,
         warnings: false
       }
+    },
+    // Use default file watching behavior
+    watch: {
+      usePolling: false,
+    },
+    headers: {
+      'Content-Security-Policy': "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none';"
     }
   }
-})
+});

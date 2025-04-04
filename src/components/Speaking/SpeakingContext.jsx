@@ -1,11 +1,20 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import fallbackData from './fallback.js';
 import { feedbackPrompt } from './prompt.js';
 import { Amplify } from 'aws-amplify';
-import awsExports from '../../aws-exports';
+import awsExports from '../../../aws-exports';
 
-// Configure Amplify
-Amplify.configure(awsExports);
+// Configure Amplify with the proper format
+Amplify.configure({
+  API: {
+    GraphQL: {
+      endpoint: awsExports.API.GraphQL.endpoint,
+      region: awsExports.API.GraphQL.region,
+      defaultAuthMode: awsExports.API.GraphQL.defaultAuthMode,
+      apiKey: awsExports.API.GraphQL.apiKey
+    }
+  }
+});
 
 // Create the context
 const SpeakingContext = createContext();
@@ -41,6 +50,11 @@ export const SpeakingProvider = ({ children }) => {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
+  // Reset state when component mounts
+  useEffect(() => {
+    resetTest();
+  }, []);
+
   // Function to fetch test data from GraphQL API with fallback
   const fetchTestData = async () => {
     setLoading(true);
@@ -49,17 +63,26 @@ export const SpeakingProvider = ({ children }) => {
     
     console.log("Attempting to fetch speaking test data from GraphQL API");
     
+    // Validate AWS exports configuration
+    if (!awsExports || !awsExports.API || !awsExports.API.GraphQL || !awsExports.API.GraphQL.endpoint) {
+      console.warn("GraphQL API endpoint not properly configured. Using fallback data.");
+      setTestData(fallbackData);
+      setUsingFallback(true);
+      setLoading(false);
+      return;
+    }
+    
     try {
       // Use a fixed test ID to avoid randomness and speed up loading
       const testId = 1; // Using ID 1 which we know exists
       console.log(`Fetching speaking test with ID: ${testId}`);
       
       // Use fetch directly to call the GraphQL API
-      const response = await fetch(awsExports.aws_appsync_graphqlEndpoint, {
+      const response = await fetch(awsExports.API.GraphQL.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': awsExports.aws_appsync_apiKey
+          'x-api-key': awsExports.API.GraphQL.apiKey || '' // Add fallback empty string
         },
         body: JSON.stringify({
           query: `
@@ -80,9 +103,28 @@ export const SpeakingProvider = ({ children }) => {
         })
       });
       
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`API request failed with status: ${response.status}. Error: ${errorText}. Using fallback data.`);
+        setError("API Authentication Failed: Using pre-loaded test data instead.\nThe API key may have expired or been revoked. Contact administrator for assistance.");
+        setTestData(fallbackData);
+        setUsingFallback(true);
+        setLoading(false);
+        return;
+      }
+      
       const data = await response.json();
       
-      if (data.data && data.data.getIELTSpeakingTest) {
+      if (data.errors) {
+        console.warn(`GraphQL errors: ${JSON.stringify(data.errors)}. Using fallback data.`);
+        if (data.errors.some(err => err.message?.includes('not authorized') || err.errorType === 'UnauthorizedException')) {
+          setError("API Authentication Failed: Using pre-loaded test data instead.\nThe API key may have expired or been revoked. Contact administrator for assistance.");
+        } else {
+          setError(`GraphQL API Error: ${data.errors[0]?.message || 'Unknown error'}. Using fallback data.`);
+        }
+        setTestData(fallbackData);
+        setUsingFallback(true);
+      } else if (data.data && data.data.getIELTSpeakingTest) {
         const speakingTestData = data.data.getIELTSpeakingTest;
         
         // Set the test data directly without extensive validation
@@ -95,12 +137,14 @@ export const SpeakingProvider = ({ children }) => {
       } else {
         // If API call succeeded but no data, use fallback
         console.warn('No test data returned from API, using fallback');
+        setError("No test data returned from API. Using pre-loaded test data instead.");
         setTestData(fallbackData);
         setUsingFallback(true);
       }
     } catch (err) {
       console.error(`Error fetching test data:`, err);
       console.log('Using fallback data due to API error');
+      setError(`Error fetching test data: ${err.message}. Using pre-loaded test data instead.`);
       setTestData(fallbackData);
       setUsingFallback(true);
     } finally {
@@ -197,6 +241,12 @@ export const SpeakingProvider = ({ children }) => {
   const getFeedback = async () => {
     if (!testData) return;
     
+    // Check if the user has spoken at all
+    if (!hasSpoken()) {
+      setError("You need to record at least one answer before getting feedback.");
+      return;
+    }
+    
     // Stop any active recordings when getting feedback
     stopAllRecordings();
     
@@ -273,84 +323,96 @@ export const SpeakingProvider = ({ children }) => {
       
       console.log("Sending speaking test responses for AI feedback");
       
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: feedbackPrompt + "\n\n" + promptContent
-                }
-              ]
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: feedbackPrompt + "\n\n" + promptContent
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048
             }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048
-          }
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        try {
-          const generatedText = data.candidates[0].content.parts[0].text;
-          
-          // Extract JSON from the response
-          let parsedData;
-          
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`API request failed with status ${response.status}: ${errorText}`);
+          throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
           try {
-            // First attempt: Try to parse the entire text as JSON
-            parsedData = JSON.parse(generatedText);
-          } catch (e) {
-            // Second attempt: Try to extract JSON using regex
-            const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-              throw new Error('No JSON found in the response');
-            }
+            const generatedText = data.candidates[0].content.parts[0].text;
             
-            const jsonString = jsonMatch[0];
+            // Extract JSON from the response
+            let parsedData;
             
             try {
-              parsedData = JSON.parse(jsonString);
-            } catch (e2) {
-              // Third attempt: Try to manually fix common JSON issues
-              let fixedJson = jsonString
-                .replace(/,(\s*[\]}])/g, '$1') // Remove trailing commas
-                .replace(/'/g, '"') // Replace single quotes with double quotes
-                .replace(/\n/g, ''); // Remove newlines
-                
-              parsedData = JSON.parse(fixedJson);
+              // First attempt: Try to parse the entire text as JSON
+              parsedData = JSON.parse(generatedText);
+            } catch (e) {
+              // Second attempt: Try to extract JSON using regex
+              const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
+              if (!jsonMatch) {
+                throw new Error('No JSON found in the response');
+              }
+              
+              const jsonString = jsonMatch[0];
+              
+              try {
+                parsedData = JSON.parse(jsonString);
+              } catch (e2) {
+                // Third attempt: Try to manually fix common JSON issues
+                let fixedJson = jsonString
+                  .replace(/,(\s*[\]}])/g, '$1') // Remove trailing commas
+                  .replace(/'/g, '"') // Replace single quotes with double quotes
+                  .replace(/\n/g, ''); // Remove newlines
+                  
+                parsedData = JSON.parse(fixedJson);
+              }
             }
+            
+            setFeedback(parsedData);
+            console.log('Successfully received AI feedback', parsedData);
+          } catch (parseError) {
+            console.error('Error parsing feedback JSON:', parseError);
+            setError('Error parsing feedback from AI: ' + parseError.message);
           }
-          
-          setFeedback(parsedData);
-          console.log('Successfully received AI feedback', parsedData);
-        } catch (parseError) {
-          console.error('Error parsing feedback JSON:', parseError);
-          setError('Error parsing feedback from AI');
+        } else {
+          console.warn('No feedback data returned from API');
+          setError('No feedback available from AI. The API response did not contain the expected data format.');
         }
-      } else {
-        console.warn('No feedback data returned from API');
-        setError('No feedback available from AI');
+      } catch (fetchError) {
+        console.error('Error calling Gemini API:', fetchError);
+        setError(`Error getting feedback: ${fetchError.message}. Please check your internet connection and try again.`);
       }
     } catch (err) {
-      console.error('Error getting feedback:', err);
-      setError(`Error getting feedback: ${err.message}`);
+      console.error('Error preparing feedback data:', err);
+      setError(`Error preparing feedback data: ${err.message}`);
     } finally {
       setFeedbackLoading(false);
     }
+  };
+
+  // Function to check if the user has spoken
+  const hasSpoken = () => {
+    return transcriptions.part1.some(text => text.trim() !== "") || transcriptions.part2.trim() !== "" || transcriptions.part3.some(text => text.trim() !== "");
   };
 
   // Value object to be provided by the context
@@ -376,6 +438,7 @@ export const SpeakingProvider = ({ children }) => {
     toggleRecording,
     resetTest,
     getFeedback,
+    hasSpoken,
   };
 
   return (

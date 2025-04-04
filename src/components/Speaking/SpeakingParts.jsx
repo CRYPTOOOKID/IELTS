@@ -396,6 +396,12 @@ export const Part3 = () => {
   // Get the questions from the test data
   const questions = testData?.testData?.Part3 || [];
   
+  const hasSpoken = () => {
+    return transcriptions.part1.some(text => text.trim() !== "") || 
+           transcriptions.part2.trim() !== "" || 
+           transcriptions.part3.some(text => text.trim() !== "");
+  };
+  
   return (
     <div className="max-w-5xl mx-auto">
       <div className="text-center mb-10 animate-fade-in">
@@ -453,7 +459,8 @@ export const Part3 = () => {
       <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
         <Button
           onClick={getFeedback}
-          className="nav-button px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-medium rounded-xl shadow-lg"
+          disabled={!hasSpoken()}
+          className={`nav-button px-10 py-4 text-white text-lg font-medium rounded-xl shadow-lg ${!hasSpoken() ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-emerald-600'}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline-block" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -461,7 +468,9 @@ export const Part3 = () => {
           Complete Test & Get Feedback
         </Button>
         <p className="mt-4 text-slate-600 text-sm">
-          Click the button above to complete the test and get AI feedback on your performance.
+          {!hasSpoken() ? 
+            "Please record at least one answer before completing the test." : 
+            "Click the button above to complete the test and get AI feedback on your performance."}
         </p>
       </div>
     </div>

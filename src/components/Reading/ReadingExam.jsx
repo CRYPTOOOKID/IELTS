@@ -1,0 +1,496 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './ReadingExam.css'; // Ensure your CSS file is correctly linked
+
+//----------------------------------------------------------------------
+// Helper Components
+//----------------------------------------------------------------------
+// (SafeHtmlRenderer remains the same as the last version - already handles **bold**)
+const SafeHtmlRenderer = React.memo(({ htmlContent }) => {
+  if (typeof htmlContent !== 'string' || !htmlContent) { return null; }
+  try {
+    let processedContent = htmlContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    processedContent = processedContent.replace(/<br\s*\/?>/gi, '\n');
+    const lines = processedContent.split('\n');
+    const formatLine = (line) => {
+      return line.split(/<strong>(.*?)<\/strong>/g).map((part, index) => {
+        return index % 2 === 1 ? <strong key={index}>{part}</strong> : part;
+      });
+    };
+    return (
+      <>
+        {lines.map((line, index) => (
+          <React.Fragment key={index}>
+            {formatLine(line)}
+            {index < lines.length - 1 && <br />}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  } catch (error) {
+    console.error("Error rendering safe HTML:", error, "Content:", htmlContent);
+    return <span>{htmlContent || ''}</span>;
+  }
+});
+
+//----------------------------------------------------------------------
+// Passage Display Component (MODIFIED TO USE SafeHtmlRenderer)
+//----------------------------------------------------------------------
+const PassageDisplay = React.memo(({ texts }) => {
+  if (!Array.isArray(texts) || texts.length === 0) {
+    console.warn("PassageDisplay received invalid or empty 'texts' prop.");
+    return <div className="passage-display"><p>No reading passages available for this section.</p></div>;
+  }
+
+  const hasParagraphMarkers = (textString) => {
+    if (typeof textString !== 'string') return false;
+    const paragraphs = textString.split(/[\r\n]{2,}/);
+    return paragraphs.some(p => /^[A-Z0-9]+\.\s/.test(p.trim()));
+  };
+
+  return (
+    <div className="passage-display">
+      {texts.map((textItem, index) => {
+        if (!textItem || typeof textItem !== 'object') {
+          console.warn(`Invalid text item at index ${index}. Skipping.`);
+          return null;
+        }
+        const passageText = textItem.text;
+        const textTitle = textItem.textTitle;
+
+        return (
+          <div key={`text-${index}`} className="passage-text-block">
+            {textTitle && (texts.length === 1 ? <h2>{textTitle}</h2> : <h3>{textTitle}</h3>)}
+
+            {typeof passageText === 'string' && passageText.length > 0 ? (
+              hasParagraphMarkers(passageText) ? (
+                passageText.split(/[\r\n]{2,}/).map((paragraph, pIndex) => {
+                  const trimmedParagraph = paragraph.trim();
+                  if (!trimmedParagraph) return null;
+                  const markerMatch = trimmedParagraph.match(/^([A-Z0-9]+)\.?\s*/i);
+                  const marker = markerMatch ? markerMatch[1] : null;
+                  const paragraphContent = marker ? trimmedParagraph.substring(markerMatch[0].length) : trimmedParagraph;
+
+                  return (
+                    <p key={`p-${pIndex}`}>
+                      {marker && <span className="paragraph-marker">{marker}.</span>}
+                      {/* *** CHANGE: Use SafeHtmlRenderer for paragraph content *** */}
+                      <SafeHtmlRenderer htmlContent={paragraphContent} />
+                      {/* *** END CHANGE *** */}
+                    </p>
+                  );
+                })
+              ) : (
+                // Modified to support bold text in pre-formatted content
+                <pre className="passage-pre">
+                  <SafeHtmlRenderer htmlContent={passageText.replace(/\\n/g, '\n')} />
+                </pre>
+              )
+            ) : (
+              <p><em>Reading passage text is unavailable for this block.</em></p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+
+//----------------------------------------------------------------------
+// Individual Question Type Components
+//----------------------------------------------------------------------
+// (No changes needed for MultipleChoiceSingle, TrueFalseNotGiven, YesNoNotGiven,
+// SentenceCompletion, ShortAnswer, MatchingHeadingsNew, MatchingInformationNew
+// from the previous stable version)
+
+const MultipleChoiceSingle = React.memo(({ questionNumber, questionData }) => {
+  if (!questionData || typeof questionData !== 'object') return null;
+  const name = `q${questionNumber}`;
+  const questionText = questionData.question || "Question text not available.";
+  const options = Array.isArray(questionData.options) ? questionData.options : [];
+  return (
+    <div className="question multiple-choice-single">
+      <span className="question-number">{questionNumber}.</span>
+      <span className="question-text">{questionText}</span>
+      <div className="options-list">
+        {options.length > 0 ? options.map((optionText, index) => {
+          const displayOption = typeof optionText === 'string' ? optionText.replace(/^[A-Z]\)\s*/, '') : `Option ${index + 1}`;
+          const valueOption = typeof optionText === 'string' ? optionText.match(/^([A-Z])\)/)?.[1] || displayOption : displayOption;
+          return (
+            <label key={index}>
+              <input type="radio" name={name} value={valueOption} />
+              {displayOption}
+            </label>
+          );
+        }) : <p><em>Options not available.</em></p>}
+      </div>
+    </div>
+  );
+});
+
+const TrueFalseNotGiven = React.memo(({ questionNumber, questionData }) => {
+  if (!questionData || typeof questionData !== 'object') return null;
+  const name = `q${questionNumber}`;
+  const questionText = questionData.question || "Statement not available.";
+  return (
+    <div className="question true-false-not-given">
+      <span className="question-number">{questionNumber}.</span>
+      <span className="question-text">{questionText}</span>
+      <div className="options-list">
+        <label><input type="radio" name={name} value="TRUE" /> True</label>
+        <label><input type="radio" name={name} value="FALSE" /> False</label>
+        <label><input type="radio" name={name} value="NOT_GIVEN" /> Not Given</label>
+      </div>
+    </div>
+  );
+});
+
+const YesNoNotGiven = React.memo(({ questionNumber, questionData }) => {
+  if (!questionData || typeof questionData !== 'object') return null;
+  const name = `q${questionNumber}`;
+  const questionText = questionData.question || "Claim not available.";
+  return (
+    <div className="question yes-no-not-given">
+      <span className="question-number">{questionNumber}.</span>
+      <span className="question-text">{questionText}</span>
+      <div className="options-list">
+        <label><input type="radio" name={name} value="YES" /> Yes</label>
+        <label><input type="radio" name={name} value="NO" /> No</label>
+        <label><input type="radio" name={name} value="NOT_GIVEN" /> Not Given</label>
+      </div>
+    </div>
+  );
+});
+
+const SentenceCompletion = React.memo(({ questionNumber, questionData, wordLimit }) => {
+  if (!questionData || typeof questionData !== 'object') return null;
+  const questionText = questionData.question || "";
+  const parts = questionText.split(/\s*_{3,}\s*|\s*\[\s*…\s*\]\s*/);
+  const sentenceStart = parts[0] || '';
+  const sentenceEnd = parts.length > 1 ? parts.slice(1).join(' ') : '';
+  return (
+    <div className="question sentence-completion">
+      <label htmlFor={`q${questionNumber}`} style={{ display: 'inline' }}>
+        <span className="question-number">{questionNumber}.</span>
+        <span className="question-text">{sentenceStart}</span>
+      </label>
+      <input type="text" id={`q${questionNumber}`} name={`q${questionNumber}`} className="completion-input" placeholder="Your answer" aria-label={`Answer for question ${questionNumber}`} />
+      {sentenceEnd && <span className="question-text">{` ${sentenceEnd}`}</span>}
+      {wordLimit && <span className="word-limit-note">({wordLimit})</span>}
+    </div>
+  );
+});
+
+const ShortAnswer = React.memo(({ questionNumber, questionData, wordLimit }) => {
+  if (!questionData || typeof questionData !== 'object') return null;
+  const questionText = questionData.question || "Question not available.";
+  return (
+    <div className="question short-answer">
+      <label htmlFor={`q${questionNumber}`}>
+        <span className="question-number">{questionNumber}.</span>
+        <span className="question-text">{questionText}</span>
+        {wordLimit && <span className="word-limit-note">({wordLimit})</span>}
+      </label>
+      <input type="text" id={`q${questionNumber}`} name={`q${questionNumber}`} className="short-answer-input" placeholder="Your answer..." aria-label={`Answer for question ${questionNumber}`} />
+    </div>
+  );
+});
+
+const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData }) => {
+  if (!questionData || !Array.isArray(questionData.questions)) {
+     console.error("Invalid data received for MatchingHeadingsNew:", questionData);
+     return <div className="question error">Error: Invalid data for Matching Headings.</div>;
+  }
+  const allItems = questionData.questions;
+  const headings = allItems.filter(q => q?.type === 'heading' && typeof q.text === 'string');
+  const paragraphs = allItems.filter(q => q?.type === 'paragraph' && typeof q.text === 'string');
+  if (headings.length === 0 || paragraphs.length === 0) {
+    console.warn("MatchingHeadingsNew missing headings or paragraphs:", questionData);
+    return <div className="question warning">Warning: Incomplete data for Matching Headings.</div>;
+  }
+  const headingOptions = headings.map(h => h.text.match(/^([A-Z]+|[ivxlcdm]+)\.?\s*/i)?.[1]).filter(Boolean);
+  return (
+    <div className="question matching-headings-json">
+      <div className="options-box">
+        <h4>List of Headings</h4>
+        <ul>
+          {headings.map((heading, index) => <li key={`h-${index}`}>{heading.text}</li>)}
+        </ul>
+      </div>
+      {paragraphs.map((para, index) => {
+        const qNum = questionNumberStart + index;
+        const paraIdentifier = para.text;
+        return (
+          <div key={`p-${index}`} className="matching-item">
+            <label htmlFor={`q${qNum}`}> <span className="question-number">{qNum}.</span> {paraIdentifier} </label>
+            <select id={`q${qNum}`} name={`q${qNum}`}> <option value="">Select...</option> {headingOptions.map((optionMarker, hIndex) => ( <option key={`opt-${hIndex}`} value={optionMarker}> {optionMarker} </option> ))} </select>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, paragraphLetters }) => {
+  if (!questionData || !Array.isArray(questionData.questions)) {
+      console.error("Invalid data received for MatchingInformationNew:", questionData);
+      return <div className="question error">Error: Invalid data for Matching Information.</div>;
+  }
+   if (!Array.isArray(paragraphLetters)) { paragraphLetters = []; }
+  const statements = questionData.questions.filter(q => q?.type === 'statement' && typeof q.text === 'string');
+  if (statements.length === 0) {
+    console.warn("MatchingInformationNew missing statements:", questionData);
+    return <div className="question warning">Warning: No statements found for Matching Information.</div>;
+  }
+  return (
+    <div className="question matching-information-new">
+      {statements.map((statement, index) => {
+        const qNum = questionNumberStart + index;
+        const name = `q${qNum}`;
+        return (
+          <div key={`stmt-${index}`} className="matching-item" style={{ alignItems: 'start' }}>
+            <label htmlFor={name} style={{ marginRight: '10px', flexShrink: 0 }}> <span className="question-number">{qNum}.</span> </label>
+            <div style={{ flexGrow: 1 }}> <span className="question-text">{statement.text}</span> <select id={name} name={name} style={{ marginLeft: '10px', padding: '5px', display: 'block', marginTop: '5px', maxWidth: '150px' }}> <option value="">Select Para...</option> {paragraphLetters.map(letter => ( <option key={letter} value={letter}>{letter}</option> ))} </select> </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+//----------------------------------------------------------------------
+// Question Block Wrapper Component
+//----------------------------------------------------------------------
+const QuestionBlock = React.memo(({ title, instructions, children }) => {
+  const validChildren = React.Children.toArray(children).filter(Boolean);
+  if (validChildren.length === 0) { return null; }
+  return (
+    <div className="question-block">
+      {title && <h3>{title}</h3>}
+      {instructions && ( <div className="instructions"> <SafeHtmlRenderer htmlContent={instructions} /> </div> )}
+      {validChildren}
+    </div>
+  );
+});
+
+
+//----------------------------------------------------------------------
+// Question Area Component (MODIFIED Instructions for MATCHING_HEADINGS)
+//----------------------------------------------------------------------
+const QuestionArea = React.memo(({ section }) => {
+  if (!section || !Array.isArray(section.texts)) {
+    console.error("QuestionArea received invalid 'section' prop:", section);
+    return <div className="question-area"><p>Error displaying questions: Invalid section data.</p></div>;
+  }
+
+  let paragraphLetters = [];
+  const firstTextContent = section.texts[0]?.text;
+  if (typeof firstTextContent === 'string') {
+      const potentialMarkers = firstTextContent.match(/^[A-Z]\.\s|^[A-Z]\.$/gm);
+      if (potentialMarkers) { paragraphLetters = potentialMarkers.map(m => m.charAt(0)); }
+  }
+
+  let globalQuestionCounter = 1;
+  const questionBlocksRendered = [];
+
+  section.texts.forEach((textBlock, textIndex) => {
+    if (!textBlock || typeof textBlock !== 'object' || !textBlock.questionType || !Array.isArray(textBlock.questions)) {
+      console.warn(`Skipping invalid text block structure at index ${textIndex} in section ${section.sectionNumber}.`);
+      return;
+    }
+
+    const { questionType, questions } = textBlock;
+    const questionsInBlock = questions;
+    let numberOfQuestionsInBlock = 0;
+
+    switch (questionType) {
+      case 'MATCHING_HEADINGS': numberOfQuestionsInBlock = questionsInBlock.filter(q => q?.type === 'paragraph').length; break;
+      case 'PARAGRAPH_MATCHING': numberOfQuestionsInBlock = questionsInBlock.filter(q => q?.type === 'statement').length; break;
+      default: numberOfQuestionsInBlock = questionsInBlock.length; break;
+    }
+
+    if (numberOfQuestionsInBlock <= 0) { return; }
+
+    const startNum = globalQuestionCounter;
+    const endNum = startNum + numberOfQuestionsInBlock - 1;
+    const title = `Questions ${startNum}${endNum > startNum ? `-${endNum}` : ''}`;
+    const blockContent = [];
+
+    try {
+        switch (questionType) {
+             case 'MATCHING_HEADINGS': blockContent.push(<MatchingHeadingsNew key={`${questionType}-${startNum}`} questionNumberStart={startNum} questionData={textBlock} />); break;
+             case 'PARAGRAPH_MATCHING': blockContent.push(<MatchingInformationNew key={`${questionType}-${startNum}`} questionNumberStart={startNum} questionData={textBlock} paragraphLetters={paragraphLetters} />); break;
+             case 'SENTENCE_COMPLETION': case 'TRUE_FALSE_NOT_GIVEN': case 'SHORT_ANSWER': case 'IDENTIFYING_VIEWS_CLAIMS': case 'MULTIPLE_CHOICE':
+                 questionsInBlock.forEach((qData, index) => {
+                     const qNum = startNum + index;
+                     if (!qData || typeof qData !== 'object') { return; }
+                     let wordLimit = null;
+                     const sourcesToCheck = [textBlock.instructions, qData.question];
+                     for (const source of sourcesToCheck) {
+                         if (typeof source === 'string') {
+                             const match = source.match(/(?:NO\s+MORE\s+THAN\s+([\w\s\/()]+?)\b(?:\s+WORDS)?(?:(?:\s+AND\/OR\s+A)?\s+NUMBER)?)/i);
+                             if (match && match[1]) {
+                                 wordLimit = `NO MORE THAN ${match[1].trim().toUpperCase()}`;
+                                 if (!wordLimit.includes("WORDS") && (source.toLowerCase().includes("words"))) wordLimit += " WORDS";
+                                 if (!wordLimit.includes("NUMBER") && (source.toLowerCase().includes("number"))) wordLimit += " AND/OR A NUMBER";
+                                 break;
+                             }
+                         }
+                     }
+                     if (questionType === 'SENTENCE_COMPLETION') blockContent.push(<SentenceCompletion key={qNum} questionNumber={qNum} questionData={qData} wordLimit={wordLimit} />);
+                     else if (questionType === 'TRUE_FALSE_NOT_GIVEN') blockContent.push(<TrueFalseNotGiven key={qNum} questionNumber={qNum} questionData={qData} />);
+                     else if (questionType === 'SHORT_ANSWER') blockContent.push(<ShortAnswer key={qNum} questionNumber={qNum} questionData={qData} wordLimit={wordLimit} />);
+                     else if (questionType === 'IDENTIFYING_VIEWS_CLAIMS') blockContent.push(<YesNoNotGiven key={qNum} questionNumber={qNum} questionData={qData} />);
+                     else if (questionType === 'MULTIPLE_CHOICE') blockContent.push(<MultipleChoiceSingle key={qNum} questionNumber={qNum} questionData={qData} />);
+                 });
+                 break;
+             default:
+                 console.warn(`Unsupported question type "${questionType}" encountered in section ${section.sectionNumber}.`);
+                 blockContent.push(<div key={`unsupported-${startNum}`} className="question warning">Warning: Unsupported question type "{questionType}".</div>);
+                 break;
+        }
+    } catch (renderError) {
+         console.error(`Error rendering questions for type ${questionType} starting at Q#${startNum}:`, renderError);
+         blockContent.push(<div key={`render-error-${startNum}`} className="question error">Error displaying these questions.</div>);
+    }
+
+    // --- Determine Instructions ---
+    let instructions = "";
+    // For MATCHING_HEADINGS, always use a clean default instruction, ignoring textBlock.instructions
+    // to prevent duplicating the list.
+    if (questionType === 'MATCHING_HEADINGS') {
+        instructions = `Choose the correct heading for each paragraph (Questions ${startNum}-${endNum}) from the list of headings below.`;
+    } else {
+        // For other types, use provided instructions or generate default
+        instructions = textBlock.instructions || "";
+        if (!instructions) {
+           switch (questionType) { // Regenerate defaults if needed
+               case 'SENTENCE_COMPLETION': instructions = 'Complete the sentences below. Choose <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> from the passage for each answer.'; break;
+               case 'TRUE_FALSE_NOT_GIVEN': instructions = 'Do the following statements agree with the information given in the passage?<br/>Write:<br/><strong>TRUE</strong> if the statement agrees with the information<br/><strong>FALSE</strong> if the statement contradicts the information<br/><strong>NOT GIVEN</strong> if there is no information on this'; break;
+               case 'SHORT_ANSWER': instructions = 'Answer the questions below. Choose <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> from the passage for each answer.'; break;
+               // Default for MATCHING_HEADINGS removed here, handled above.
+               case 'IDENTIFYING_VIEWS_CLAIMS': instructions = 'Do the following statements agree with the claims of the writer in the passage?<br/>Write:<br/><strong>YES</strong> if the statement agrees with the claims of the writer<br/><strong>NO</strong> if the statement contradicts the claims of the writer<br/><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this'; break;
+               case 'PARAGRAPH_MATCHING': instructions = `Look at the following statements (Questions ${startNum}-${endNum}) and the letters of the paragraphs ${paragraphLetters.length > 0 ? `(${paragraphLetters.join('-')})` : ''} in the reading passage. Match each statement with the correct paragraph.`; break;
+               case 'MULTIPLE_CHOICE': instructions = 'Choose the correct letter, <strong>A</strong>, <strong>B</strong>, <strong>C</strong> or <strong>D</strong>.'; break;
+               default: instructions = `Instructions for ${questionType}.`;
+           }
+        }
+    }
+
+
+    if (blockContent.length > 0) {
+        questionBlocksRendered.push(
+            <QuestionBlock key={`block-${textIndex}-${startNum}`} title={title} instructions={instructions}>
+                {blockContent}
+            </QuestionBlock>
+        );
+    } else {
+         console.warn(`Skipping QuestionBlock for ${title} as no content was generated.`);
+    }
+
+    globalQuestionCounter += numberOfQuestionsInBlock;
+  });
+
+  return (
+      <div className="question-area">
+         {questionBlocksRendered.length > 0 ? questionBlocksRendered : <p>No questions to display for this section.</p>}
+      </div>
+  );
+});
+
+
+//----------------------------------------------------------------------
+// Reading Test Section Component (Container for Passage + Questions)
+//----------------------------------------------------------------------
+const ReadingTestSection = React.memo(({ testSection }) => {
+  if (!testSection || typeof testSection !== 'object' || !Array.isArray(testSection.texts)) {
+    console.error("ReadingTestSection received invalid 'testSection' prop:", testSection);
+    return <div className="error-message">Error: Cannot display section content due to invalid data format.</div>;
+  }
+  const sectionHeaderDisplay = `Section ${testSection.sectionNumber || 'N/A'}`;
+  return (
+    <React.Fragment>
+      <div className="content-header">
+        <h2>{sectionHeaderDisplay}</h2>
+      </div>
+      <div className="test-container">
+        <PassageDisplay texts={testSection.texts} />
+        <QuestionArea section={testSection} />
+      </div>
+    </React.Fragment>
+  );
+});
+
+//----------------------------------------------------------------------
+// Main ReadingExam Component (Top Level: Fetching, State, Tabs)
+//----------------------------------------------------------------------
+const ReadingExam = () => {
+  const [testData, setTestData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeSectionIndex, setActiveSectionIndex] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchTestData = async () => {
+      setLoading(true); setError(null); setTestData(null);
+      console.log("Fetching test data..."); // ADDED: Log start of fetch
+      const testIdToFetch = "IELTS_TEST_005"; // Make dynamic if needed
+      const apiUrl = `https://xguxnr9iu0.execute-api.us-east-1.amazonaws.com/live/tests/${testIdToFetch}`;
+      console.log(`Fetching test data from: ${apiUrl}`);
+      try {
+        const response = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' }});
+        if (!response.ok) {
+          let errorPayload = null; try { errorPayload = await response.json(); } catch (e) {}
+          const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
+          throw new Error(errorMsg);
+        }
+        const responseData = await response.json();
+        // console.log("Raw API response data:", responseData);
+        let finalTestData = null;
+        if (responseData?.testData && typeof responseData.testData === 'string') {
+            try { finalTestData = JSON.parse(responseData.testData); } catch (parseError) { throw new Error("Failed to parse the test data received from the API."); }
+        } else if (responseData?.sections && Array.isArray(responseData.sections)) { finalTestData = responseData; }
+        else { throw new Error("Received unexpected data format from the API."); }
+        if (!finalTestData?.sections || !Array.isArray(finalTestData.sections) || finalTestData.sections.length === 0) { throw new Error("Invalid data format: 'sections' array is missing or empty."); }
+        console.log("Successfully fetched and validated final test data.");
+        setTestData(finalTestData);
+      } catch (err) {
+        console.error("Error during test data fetch or processing:", err);
+        setError(err.message || "An unexpected error occurred loading the exam."); setTestData(null);
+      } finally { setLoading(false); }
+    };
+    fetchTestData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const goToHomePage = () => { navigate('/reading'); };
+
+  if (loading) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50"> <div className="text-center"> <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div> <p className="text-lg text-gray-700">Loading exam data...</p> </div> </div> ); }
+  if (error) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6"> <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full"> <div className="text-red-600 mb-4 text-center"> <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> </div> <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Error Loading Exam</h2> <p className="text-gray-600 mb-6 text-center">{error}</p> <div className="text-center"> <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button> </div> </div> </div> ); }
+  if (!testData?.sections?.length) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6"> <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center"> <p className="text-gray-700 mb-6">No valid exam data is available to display.</p> <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button> </div> </div> ); }
+
+  const sections = testData.sections;
+  const currentSectionIndex = Math.max(0, Math.min(activeSectionIndex, sections.length - 1));
+  const currentSection = sections[currentSectionIndex];
+  if (!currentSection) { return <div className="error-message">Internal Error: Could not load section data.</div> }
+
+  return (
+    <div className="reading-exam-container">
+      <div className="reading-test-header"> <h1>{testData.testTitle || "IELTS Reading Practice"}</h1> </div>
+      <div className="tab-navigation">
+        {sections.map((section, index) => {
+          if (!section || typeof section.sectionNumber !== 'number') { return null; }
+          const sectionIdentifier = section.sectionNumber;
+          const tabTitle = `Section ${sectionIdentifier}`;
+          return ( <button key={`tab-${sectionIdentifier}`} className={`tab-button ${index === activeSectionIndex ? 'active' : ''}`} onClick={() => setActiveSectionIndex(index)}> {tabTitle} </button> );
+        })}
+      </div>
+      <ReadingTestSection testSection={currentSection} />
+      <div className="p-4 text-center"> <button onClick={goToHomePage} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mt-4"> Exit Exam </button> </div>
+    </div>
+  );
+};
+
+export default ReadingExam;
