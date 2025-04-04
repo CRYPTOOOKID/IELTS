@@ -436,7 +436,7 @@ const ReadingExam = () => {
     const fetchTestData = async () => {
       setLoading(true); setError(null); setTestData(null);
       console.log("Fetching test data..."); // ADDED: Log start of fetch
-      const testIdToFetch = "IELTS_TEST_005"; // Make dynamic if needed
+      const testIdToFetch = "IELTS_TEST_001"; // Make dynamic if needed
       const apiUrl = `https://xguxnr9iu0.execute-api.us-east-1.amazonaws.com/live/tests/${testIdToFetch}`;
       console.log(`Fetching test data from: ${apiUrl}`);
       try {
