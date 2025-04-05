@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ReadingExam.css'; // Ensure your CSS file is correctly linked
+import ReadingResults from './ReadingResults'; // Import the ReadingResults component
 
 //----------------------------------------------------------------------
 // Helper Components
@@ -104,11 +105,16 @@ const PassageDisplay = React.memo(({ texts }) => {
 // SentenceCompletion, ShortAnswer, MatchingHeadingsNew, MatchingInformationNew
 // from the previous stable version)
 
-const MultipleChoiceSingle = React.memo(({ questionNumber, questionData }) => {
+const MultipleChoiceSingle = React.memo(({ questionNumber, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
   const name = `q${questionNumber}`;
   const questionText = questionData.question || "Question text not available.";
   const options = Array.isArray(questionData.options) ? questionData.options : [];
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question multiple-choice-single">
       <span className="question-number">{questionNumber}.</span>
@@ -119,7 +125,13 @@ const MultipleChoiceSingle = React.memo(({ questionNumber, questionData }) => {
           const valueOption = typeof optionText === 'string' ? optionText.match(/^([A-Z])\)/)?.[1] || displayOption : displayOption;
           return (
             <label key={index}>
-              <input type="radio" name={name} value={valueOption} />
+              <input
+                type="radio"
+                name={name}
+                value={valueOption}
+                checked={userAnswers && userAnswers[name] === valueOption}
+                onChange={handleChange}
+              />
               {displayOption}
             </label>
           );
@@ -129,75 +141,115 @@ const MultipleChoiceSingle = React.memo(({ questionNumber, questionData }) => {
   );
 });
 
-const TrueFalseNotGiven = React.memo(({ questionNumber, questionData }) => {
+const TrueFalseNotGiven = React.memo(({ questionNumber, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
   const name = `q${questionNumber}`;
   const questionText = questionData.question || "Statement not available.";
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question true-false-not-given">
       <span className="question-number">{questionNumber}.</span>
       <span className="question-text">{questionText}</span>
       <div className="options-list">
-        <label><input type="radio" name={name} value="TRUE" /> True</label>
-        <label><input type="radio" name={name} value="FALSE" /> False</label>
-        <label><input type="radio" name={name} value="NOT_GIVEN" /> Not Given</label>
+        <label><input type="radio" name={name} value="TRUE" checked={userAnswers && userAnswers[name] === "TRUE"} onChange={handleChange} /> True</label>
+        <label><input type="radio" name={name} value="FALSE" checked={userAnswers && userAnswers[name] === "FALSE"} onChange={handleChange} /> False</label>
+        <label><input type="radio" name={name} value="NOT_GIVEN" checked={userAnswers && userAnswers[name] === "NOT_GIVEN"} onChange={handleChange} /> Not Given</label>
       </div>
     </div>
   );
 });
 
-const YesNoNotGiven = React.memo(({ questionNumber, questionData }) => {
+const YesNoNotGiven = React.memo(({ questionNumber, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
   const name = `q${questionNumber}`;
   const questionText = questionData.question || "Claim not available.";
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question yes-no-not-given">
       <span className="question-number">{questionNumber}.</span>
       <span className="question-text">{questionText}</span>
       <div className="options-list">
-        <label><input type="radio" name={name} value="YES" /> Yes</label>
-        <label><input type="radio" name={name} value="NO" /> No</label>
-        <label><input type="radio" name={name} value="NOT_GIVEN" /> Not Given</label>
+        <label><input type="radio" name={name} value="YES" checked={userAnswers && userAnswers[name] === "YES"} onChange={handleChange} /> Yes</label>
+        <label><input type="radio" name={name} value="NO" checked={userAnswers && userAnswers[name] === "NO"} onChange={handleChange} /> No</label>
+        <label><input type="radio" name={name} value="NOT_GIVEN" checked={userAnswers && userAnswers[name] === "NOT_GIVEN"} onChange={handleChange} /> Not Given</label>
       </div>
     </div>
   );
 });
 
-const SentenceCompletion = React.memo(({ questionNumber, questionData, wordLimit }) => {
+const SentenceCompletion = React.memo(({ questionNumber, questionData, wordLimit, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
   const questionText = questionData.question || "";
   const parts = questionText.split(/\s*_{3,}\s*|\s*\[\s*…\s*\]\s*/);
   const sentenceStart = parts[0] || '';
   const sentenceEnd = parts.length > 1 ? parts.slice(1).join(' ') : '';
+  const name = `q${questionNumber}`;
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question sentence-completion">
-      <label htmlFor={`q${questionNumber}`} style={{ display: 'inline' }}>
+      <label htmlFor={name} style={{ display: 'inline' }}>
         <span className="question-number">{questionNumber}.</span>
         <span className="question-text">{sentenceStart}</span>
       </label>
-      <input type="text" id={`q${questionNumber}`} name={`q${questionNumber}`} className="completion-input" placeholder="Your answer" aria-label={`Answer for question ${questionNumber}`} />
+      <input
+        type="text"
+        id={name}
+        name={name}
+        className="completion-input"
+        placeholder="Your answer"
+        value={userAnswers && userAnswers[name] ? userAnswers[name] : ''}
+        onChange={handleChange}
+        aria-label={`Answer for question ${questionNumber}`}
+      />
       {sentenceEnd && <span className="question-text">{` ${sentenceEnd}`}</span>}
       {wordLimit && <span className="word-limit-note">({wordLimit})</span>}
     </div>
   );
 });
 
-const ShortAnswer = React.memo(({ questionNumber, questionData, wordLimit }) => {
+const ShortAnswer = React.memo(({ questionNumber, questionData, wordLimit, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
   const questionText = questionData.question || "Question not available.";
+  const name = `q${questionNumber}`;
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question short-answer">
-      <label htmlFor={`q${questionNumber}`}>
+      <label htmlFor={name}>
         <span className="question-number">{questionNumber}.</span>
         <span className="question-text">{questionText}</span>
         {wordLimit && <span className="word-limit-note">({wordLimit})</span>}
       </label>
-      <input type="text" id={`q${questionNumber}`} name={`q${questionNumber}`} className="short-answer-input" placeholder="Your answer..." aria-label={`Answer for question ${questionNumber}`} />
+      <input
+        type="text"
+        id={name}
+        name={name}
+        className="short-answer-input"
+        placeholder="Your answer..."
+        value={userAnswers && userAnswers[name] ? userAnswers[name] : ''}
+        onChange={handleChange}
+        aria-label={`Answer for question ${questionNumber}`}
+      />
     </div>
   );
 });
 
-const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData }) => {
+const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || !Array.isArray(questionData.questions)) {
      console.error("Invalid data received for MatchingHeadingsNew:", questionData);
      return <div className="question error">Error: Invalid data for Matching Headings.</div>;
@@ -210,6 +262,11 @@ const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData }) =
     return <div className="question warning">Warning: Incomplete data for Matching Headings.</div>;
   }
   const headingOptions = headings.map(h => h.text.match(/^([A-Z]+|[ivxlcdm]+)\.?\s*/i)?.[1]).filter(Boolean);
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question matching-headings-json">
       <div className="options-box">
@@ -220,11 +277,24 @@ const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData }) =
       </div>
       {paragraphs.map((para, index) => {
         const qNum = questionNumberStart + index;
+        const name = `q${qNum}`;
         const paraIdentifier = para.text;
         return (
           <div key={`p-${index}`} className="matching-item">
-            <label htmlFor={`q${qNum}`}> <span className="question-number">{qNum}.</span> {paraIdentifier} </label>
-            <select id={`q${qNum}`} name={`q${qNum}`}> <option value="">Select...</option> {headingOptions.map((optionMarker, hIndex) => ( <option key={`opt-${hIndex}`} value={optionMarker}> {optionMarker} </option> ))} </select>
+            <label htmlFor={name}> <span className="question-number">{qNum}.</span> {paraIdentifier} </label>
+            <select
+              id={name}
+              name={name}
+              value={userAnswers && userAnswers[name] ? userAnswers[name] : ''}
+              onChange={handleChange}
+            >
+              <option value="">Select...</option>
+              {headingOptions.map((optionMarker, hIndex) => (
+                <option key={`opt-${hIndex}`} value={optionMarker}>
+                  {optionMarker}
+                </option>
+              ))}
+            </select>
           </div>
         );
       })}
@@ -232,7 +302,7 @@ const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData }) =
   );
 });
 
-const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, paragraphLetters }) => {
+const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, paragraphLetters, userAnswers, onAnswerChange }) => {
   if (!questionData || !Array.isArray(questionData.questions)) {
       console.error("Invalid data received for MatchingInformationNew:", questionData);
       return <div className="question error">Error: Invalid data for Matching Information.</div>;
@@ -243,6 +313,11 @@ const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, 
     console.warn("MatchingInformationNew missing statements:", questionData);
     return <div className="question warning">Warning: No statements found for Matching Information.</div>;
   }
+
+  const handleChange = (e) => {
+    onAnswerChange(e.target.name, e.target.value);
+  };
+
   return (
     <div className="question matching-information-new">
       {statements.map((statement, index) => {
@@ -251,7 +326,21 @@ const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, 
         return (
           <div key={`stmt-${index}`} className="matching-item" style={{ alignItems: 'start' }}>
             <label htmlFor={name} style={{ marginRight: '10px', flexShrink: 0 }}> <span className="question-number">{qNum}.</span> </label>
-            <div style={{ flexGrow: 1 }}> <span className="question-text">{statement.text}</span> <select id={name} name={name} style={{ marginLeft: '10px', padding: '5px', display: 'block', marginTop: '5px', maxWidth: '150px' }}> <option value="">Select Para...</option> {paragraphLetters.map(letter => ( <option key={letter} value={letter}>{letter}</option> ))} </select> </div>
+            <div style={{ flexGrow: 1 }}>
+              <span className="question-text">{statement.text}</span>
+              <select
+                id={name}
+                name={name}
+                style={{ marginLeft: '10px', padding: '5px', display: 'block', marginTop: '5px', maxWidth: '150px' }}
+                value={userAnswers && userAnswers[name] ? userAnswers[name] : ''}
+                onChange={handleChange}
+              >
+                <option value="">Select Para...</option>
+                {paragraphLetters.map(letter => (
+                  <option key={letter} value={letter}>{letter}</option>
+                ))}
+              </select>
+            </div>
           </div>
         );
       })}
@@ -278,7 +367,7 @@ const QuestionBlock = React.memo(({ title, instructions, children }) => {
 //----------------------------------------------------------------------
 // Question Area Component (MODIFIED Instructions for MATCHING_HEADINGS)
 //----------------------------------------------------------------------
-const QuestionArea = React.memo(({ section }) => {
+const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
   if (!section || !Array.isArray(section.texts)) {
     console.error("QuestionArea received invalid 'section' prop:", section);
     return <div className="question-area"><p>Error displaying questions: Invalid section data.</p></div>;
@@ -319,8 +408,29 @@ const QuestionArea = React.memo(({ section }) => {
 
     try {
         switch (questionType) {
-             case 'MATCHING_HEADINGS': blockContent.push(<MatchingHeadingsNew key={`${questionType}-${startNum}`} questionNumberStart={startNum} questionData={textBlock} />); break;
-             case 'PARAGRAPH_MATCHING': blockContent.push(<MatchingInformationNew key={`${questionType}-${startNum}`} questionNumberStart={startNum} questionData={textBlock} paragraphLetters={paragraphLetters} />); break;
+             case 'MATCHING_HEADINGS':
+               blockContent.push(
+                 <MatchingHeadingsNew
+                   key={`${questionType}-${startNum}`}
+                   questionNumberStart={startNum}
+                   questionData={textBlock}
+                   userAnswers={userAnswers}
+                   onAnswerChange={onAnswerChange}
+                 />
+               );
+               break;
+             case 'PARAGRAPH_MATCHING':
+               blockContent.push(
+                 <MatchingInformationNew
+                   key={`${questionType}-${startNum}`}
+                   questionNumberStart={startNum}
+                   questionData={textBlock}
+                   paragraphLetters={paragraphLetters}
+                   userAnswers={userAnswers}
+                   onAnswerChange={onAnswerChange}
+                 />
+               );
+               break;
              case 'SENTENCE_COMPLETION': case 'TRUE_FALSE_NOT_GIVEN': case 'SHORT_ANSWER': case 'IDENTIFYING_VIEWS_CLAIMS': case 'MULTIPLE_CHOICE':
                  questionsInBlock.forEach((qData, index) => {
                      const qNum = startNum + index;
@@ -338,11 +448,58 @@ const QuestionArea = React.memo(({ section }) => {
                              }
                          }
                      }
-                     if (questionType === 'SENTENCE_COMPLETION') blockContent.push(<SentenceCompletion key={qNum} questionNumber={qNum} questionData={qData} wordLimit={wordLimit} />);
-                     else if (questionType === 'TRUE_FALSE_NOT_GIVEN') blockContent.push(<TrueFalseNotGiven key={qNum} questionNumber={qNum} questionData={qData} />);
-                     else if (questionType === 'SHORT_ANSWER') blockContent.push(<ShortAnswer key={qNum} questionNumber={qNum} questionData={qData} wordLimit={wordLimit} />);
-                     else if (questionType === 'IDENTIFYING_VIEWS_CLAIMS') blockContent.push(<YesNoNotGiven key={qNum} questionNumber={qNum} questionData={qData} />);
-                     else if (questionType === 'MULTIPLE_CHOICE') blockContent.push(<MultipleChoiceSingle key={qNum} questionNumber={qNum} questionData={qData} />);
+                     if (questionType === 'SENTENCE_COMPLETION')
+                       blockContent.push(
+                         <SentenceCompletion
+                           key={qNum}
+                           questionNumber={qNum}
+                           questionData={qData}
+                           wordLimit={wordLimit}
+                           userAnswers={userAnswers}
+                           onAnswerChange={onAnswerChange}
+                         />
+                       );
+                     else if (questionType === 'TRUE_FALSE_NOT_GIVEN')
+                       blockContent.push(
+                         <TrueFalseNotGiven
+                           key={qNum}
+                           questionNumber={qNum}
+                           questionData={qData}
+                           userAnswers={userAnswers}
+                           onAnswerChange={onAnswerChange}
+                         />
+                       );
+                     else if (questionType === 'SHORT_ANSWER')
+                       blockContent.push(
+                         <ShortAnswer
+                           key={qNum}
+                           questionNumber={qNum}
+                           questionData={qData}
+                           wordLimit={wordLimit}
+                           userAnswers={userAnswers}
+                           onAnswerChange={onAnswerChange}
+                         />
+                       );
+                     else if (questionType === 'IDENTIFYING_VIEWS_CLAIMS')
+                       blockContent.push(
+                         <YesNoNotGiven
+                           key={qNum}
+                           questionNumber={qNum}
+                           questionData={qData}
+                           userAnswers={userAnswers}
+                           onAnswerChange={onAnswerChange}
+                         />
+                       );
+                     else if (questionType === 'MULTIPLE_CHOICE')
+                       blockContent.push(
+                         <MultipleChoiceSingle
+                           key={qNum}
+                           questionNumber={qNum}
+                           questionData={qData}
+                           userAnswers={userAnswers}
+                           onAnswerChange={onAnswerChange}
+                         />
+                       );
                  });
                  break;
              default:
@@ -403,7 +560,7 @@ const QuestionArea = React.memo(({ section }) => {
 //----------------------------------------------------------------------
 // Reading Test Section Component (Container for Passage + Questions)
 //----------------------------------------------------------------------
-const ReadingTestSection = React.memo(({ testSection }) => {
+const ReadingTestSection = React.memo(({ testSection, userAnswers, onAnswerChange }) => {
   if (!testSection || typeof testSection !== 'object' || !Array.isArray(testSection.texts)) {
     console.error("ReadingTestSection received invalid 'testSection' prop:", testSection);
     return <div className="error-message">Error: Cannot display section content due to invalid data format.</div>;
@@ -416,7 +573,11 @@ const ReadingTestSection = React.memo(({ testSection }) => {
       </div>
       <div className="test-container">
         <PassageDisplay texts={testSection.texts} />
-        <QuestionArea section={testSection} />
+        <QuestionArea
+          section={testSection}
+          userAnswers={userAnswers}
+          onAnswerChange={onAnswerChange}
+        />
       </div>
     </React.Fragment>
   );
@@ -430,6 +591,10 @@ const ReadingExam = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [finalScore, setFinalScore] = useState(null);
+  const [resultsFeedback, setResultsFeedback] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -467,6 +632,243 @@ const ReadingExam = () => {
 
   const goToHomePage = () => { navigate('/reading'); };
 
+  const resetExam = () => {
+    setIsSubmitted(false);
+    setUserAnswers({});
+    setFinalScore(null);
+    setResultsFeedback(null);
+  };
+
+  // Helper function to extract word limit from instructions or question text
+  const extractWordLimit = (sources) => {
+    for (const source of sources) {
+      if (typeof source === 'string') {
+        const match = source.match(/(?:NO\s+MORE\s+THAN\s+([\w\s\/()]+?)\b(?:\s+WORDS)?(?:(?:\s+AND\/OR\s+A)?\s+NUMBER)?)/i);
+        if (match && match[1]) {
+          return match[1].trim().toUpperCase();
+        }
+      }
+    }
+    return null;
+  };
+
+  // Helper function to check if answer exceeds word limit
+  const exceedsWordLimit = (answer, limit) => {
+    if (!limit || !answer) return false;
+
+    // Convert limit text to number (e.g., "THREE" to 3)
+    const limitMap = {
+      "ONE": 1, "TWO": 2, "THREE": 3, "FOUR": 4, "FIVE": 5,
+      "SIX": 6, "SEVEN": 7, "EIGHT": 8, "NINE": 9, "TEN": 10
+    };
+
+    const numericLimit = limitMap[limit] || parseInt(limit);
+    if (isNaN(numericLimit)) return false;
+
+    // Count words in answer
+    const wordCount = answer.trim().split(/\s+/).length;
+    return wordCount > numericLimit;
+  };
+
+  // Function to calculate score by comparing user answers with correct answers
+  const calculateScore = (testData, userAnswers) => {
+    if (!testData || !userAnswers) return { score: 0, detailedResults: [] };
+
+    let score = 0;
+    const detailedResults = [];
+    let globalQuestionCounter = 1;
+
+    // Iterate through sections
+    testData.sections.forEach(section => {
+      if (!section || !Array.isArray(section.texts)) return;
+
+      // Iterate through text blocks in each section
+      section.texts.forEach(textBlock => {
+        if (!textBlock || typeof textBlock !== 'object' || !textBlock.questionType || !Array.isArray(textBlock.questions)) {
+          return;
+        }
+
+        const { questionType, questions } = textBlock;
+        let questionsInBlock = questions;
+        let numberOfQuestionsInBlock = 0;
+
+        // Determine number of questions in this block based on question type
+        switch (questionType) {
+          case 'MATCHING_HEADINGS':
+            numberOfQuestionsInBlock = questionsInBlock.filter(q => q?.type === 'paragraph').length;
+            break;
+          case 'PARAGRAPH_MATCHING':
+            numberOfQuestionsInBlock = questionsInBlock.filter(q => q?.type === 'statement').length;
+            break;
+          default:
+            numberOfQuestionsInBlock = questionsInBlock.length;
+            break;
+        }
+
+        if (numberOfQuestionsInBlock <= 0) return;
+
+        // Extract word limit for text input questions
+        const blockWordLimit = extractWordLimit([textBlock.instructions]);
+
+        // Process questions based on question type
+        switch (questionType) {
+          case 'MATCHING_HEADINGS': {
+            const paragraphs = questionsInBlock.filter(q => q?.type === 'paragraph');
+            paragraphs.forEach((paragraph, index) => {
+              const qNum = globalQuestionCounter + index;
+              const questionName = `q${qNum}`;
+              const userAnswer = userAnswers[questionName];
+              const correctAnswer = paragraph.answer;
+
+              // Direct comparison without normalization
+              const isCorrect = userAnswer && correctAnswer &&
+                                userAnswer === correctAnswer;
+
+              if (isCorrect) score++;
+
+              detailedResults.push({
+                questionNumber: qNum,
+                userAnswer,
+                correctAnswer,
+                isCorrect,
+                questionText: paragraph.text
+              });
+            });
+            globalQuestionCounter += paragraphs.length;
+            break;
+          }
+
+          case 'PARAGRAPH_MATCHING': {
+            const statements = questionsInBlock.filter(q => q?.type === 'statement');
+            statements.forEach((statement, index) => {
+              const qNum = globalQuestionCounter + index;
+              const questionName = `q${qNum}`;
+              const userAnswer = userAnswers[questionName];
+              const correctAnswer = statement.answer;
+
+              // Direct comparison without normalization
+              const isCorrect = userAnswer && correctAnswer &&
+                                userAnswer === correctAnswer;
+
+              if (isCorrect) score++;
+
+              detailedResults.push({
+                questionNumber: qNum,
+                userAnswer,
+                correctAnswer,
+                isCorrect,
+                questionText: statement.text
+              });
+            });
+            globalQuestionCounter += statements.length;
+            break;
+          }
+
+          case 'SENTENCE_COMPLETION':
+          case 'SHORT_ANSWER': {
+            questionsInBlock.forEach((qData, index) => {
+              const qNum = globalQuestionCounter + index;
+              const questionName = `q${qNum}`;
+              const userAnswer = userAnswers[questionName];
+              const correctAnswer = qData.answer;
+
+              // Check word limit
+              const questionWordLimit = extractWordLimit([textBlock.instructions, qData.question]) || blockWordLimit;
+              const limitExceeded = questionWordLimit && exceedsWordLimit(userAnswer, questionWordLimit);
+
+              // Direct case-sensitive comparison of trimmed strings
+              const trimmedUserAnswer = userAnswer ? userAnswer.trim() : '';
+              const trimmedCorrectAnswer = correctAnswer ? correctAnswer.trim() : '';
+
+              const isCorrect = !limitExceeded && userAnswer && correctAnswer &&
+                               trimmedUserAnswer === trimmedCorrectAnswer;
+
+              if (isCorrect) score++;
+
+              detailedResults.push({
+                questionNumber: qNum,
+                userAnswer,
+                correctAnswer,
+                isCorrect,
+                questionText: qData.question,
+                limitExceeded
+              });
+            });
+            globalQuestionCounter += questionsInBlock.length;
+            break;
+          }
+
+          case 'TRUE_FALSE_NOT_GIVEN':
+          case 'IDENTIFYING_VIEWS_CLAIMS':
+          case 'MULTIPLE_CHOICE': {
+            questionsInBlock.forEach((qData, index) => {
+              const qNum = globalQuestionCounter + index;
+              const questionName = `q${qNum}`;
+              const userAnswer = userAnswers[questionName];
+              const correctAnswer = qData.answer;
+
+              // Direct comparison without normalization
+              const isCorrect = userAnswer && correctAnswer &&
+                               userAnswer === correctAnswer;
+
+              if (isCorrect) score++;
+
+              detailedResults.push({
+                questionNumber: qNum,
+                userAnswer,
+                correctAnswer,
+                isCorrect,
+                questionText: qData.question
+              });
+            });
+            globalQuestionCounter += questionsInBlock.length;
+            break;
+          }
+
+          default:
+            console.warn(`Unsupported question type "${questionType}" encountered during scoring.`);
+            globalQuestionCounter += numberOfQuestionsInBlock;
+            break;
+        }
+      });
+    });
+
+    return { score, detailedResults };
+  };
+
+  // Function to handle answer changes from any question component
+  const handleAnswerChange = (questionName, newValue) => {
+    setUserAnswers(prevAnswers => ({
+      ...prevAnswers,
+      [questionName]: newValue
+    }));
+  };
+
+  // Function to handle tab change
+  const handleTabChange = (newIndex) => {
+    // Simply switch to the new tab - no need to collect form data
+    // as answers are now updated immediately via handleAnswerChange
+    setActiveSectionIndex(newIndex);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    // Use the current userAnswers state directly - no need to collect form data
+    // since all answers are already stored in the state
+
+    // Calculate score using userAnswers
+    const results = calculateScore(testData, userAnswers);
+    setFinalScore(results.score);
+    setResultsFeedback(results.detailedResults);
+
+    // Set submitted state
+    setIsSubmitted(true);
+
+    console.log("Exam submitted. All captured answers:", userAnswers);
+    console.log("Score results:", results);
+  };
+
   if (loading) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50"> <div className="text-center"> <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div> <p className="text-lg text-gray-700">Loading exam data...</p> </div> </div> ); }
   if (error) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6"> <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full"> <div className="text-red-600 mb-4 text-center"> <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> </div> <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Error Loading Exam</h2> <p className="text-gray-600 mb-6 text-center">{error}</p> <div className="text-center"> <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button> </div> </div> </div> ); }
   if (!testData?.sections?.length) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6"> <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center"> <p className="text-gray-700 mb-6">No valid exam data is available to display.</p> <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button> </div> </div> ); }
@@ -478,17 +880,60 @@ const ReadingExam = () => {
 
   return (
     <div className="reading-exam-container">
-      <div className="reading-test-header"> <h1>{testData.testTitle || "IELTS Reading Practice"}</h1> </div>
-      <div className="tab-navigation">
-        {sections.map((section, index) => {
-          if (!section || typeof section.sectionNumber !== 'number') { return null; }
-          const sectionIdentifier = section.sectionNumber;
-          const tabTitle = `Section ${sectionIdentifier}`;
-          return ( <button key={`tab-${sectionIdentifier}`} className={`tab-button ${index === activeSectionIndex ? 'active' : ''}`} onClick={() => setActiveSectionIndex(index)}> {tabTitle} </button> );
-        })}
+      <div className="reading-test-header">
+        <h1>{testData.testTitle || "IELTS Reading Practice"}</h1>
       </div>
-      <ReadingTestSection testSection={currentSection} />
-      <div className="p-4 text-center"> <button onClick={goToHomePage} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mt-4"> Exit Exam </button> </div>
+
+      {isSubmitted ? (
+        <ReadingResults
+          testData={testData}
+          finalScore={finalScore}
+          resultsFeedback={resultsFeedback}
+          onReset={resetExam}
+          onExit={goToHomePage}
+        />
+      ) : (
+        <>
+          <div className="tab-navigation">
+            {sections.map((section, index) => {
+              if (!section || typeof section.sectionNumber !== 'number') { return null; }
+              const sectionIdentifier = section.sectionNumber;
+              const tabTitle = `Section ${sectionIdentifier}`;
+              return (
+                <button
+                  key={`tab-${sectionIdentifier}`}
+                  className={`tab-button ${index === activeSectionIndex ? 'active' : ''}`}
+                  onClick={() => handleTabChange(index)}
+                >
+                  {tabTitle}
+                </button>
+              );
+            })}
+          </div>
+          <form onSubmit={handleSubmit}>
+            <ReadingTestSection
+              testSection={currentSection}
+              userAnswers={userAnswers}
+              onAnswerChange={handleAnswerChange}
+            />
+            <div className="p-4 text-center sticky bottom-0 bg-white border-t border-gray-200 shadow-md">
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg mt-2 mr-4 font-medium"
+              >
+                Submit Exam
+              </button>
+              <button
+                type="button"
+                onClick={goToHomePage}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg mt-2 font-medium"
+              >
+                Exit Exam
+              </button>
+            </div>
+          </form>
+        </>
+      )}
     </div>
   );
 };
