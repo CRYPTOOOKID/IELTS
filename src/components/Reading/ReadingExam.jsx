@@ -107,7 +107,8 @@ const PassageDisplay = React.memo(({ texts }) => {
 
 const MultipleChoiceSingle = React.memo(({ questionNumber, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
-  const name = `q${questionNumber}`;
+  const questionId = questionData.questionId || questionNumber;
+  const name = `q${questionId}`;
   const questionText = questionData.question || "Question text not available.";
   const options = Array.isArray(questionData.options) ? questionData.options : [];
 
@@ -117,7 +118,7 @@ const MultipleChoiceSingle = React.memo(({ questionNumber, questionData, userAns
 
   return (
     <div className="question multiple-choice-single">
-      <span className="question-number">{questionNumber}.</span>
+      <span className="question-number">{questionId}.</span>
       <span className="question-text">{questionText}</span>
       <div className="options-list">
         {options.length > 0 ? options.map((optionText, index) => {
@@ -143,7 +144,8 @@ const MultipleChoiceSingle = React.memo(({ questionNumber, questionData, userAns
 
 const TrueFalseNotGiven = React.memo(({ questionNumber, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
-  const name = `q${questionNumber}`;
+  const questionId = questionData.questionId || questionNumber;
+  const name = `q${questionId}`;
   const questionText = questionData.question || "Statement not available.";
 
   const handleChange = (e) => {
@@ -152,7 +154,7 @@ const TrueFalseNotGiven = React.memo(({ questionNumber, questionData, userAnswer
 
   return (
     <div className="question true-false-not-given">
-      <span className="question-number">{questionNumber}.</span>
+      <span className="question-number">{questionId}.</span>
       <span className="question-text">{questionText}</span>
       <div className="options-list">
         <label><input type="radio" name={name} value="TRUE" checked={userAnswers && userAnswers[name] === "TRUE"} onChange={handleChange} /> True</label>
@@ -165,7 +167,8 @@ const TrueFalseNotGiven = React.memo(({ questionNumber, questionData, userAnswer
 
 const YesNoNotGiven = React.memo(({ questionNumber, questionData, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
-  const name = `q${questionNumber}`;
+  const questionId = questionData.questionId || questionNumber;
+  const name = `q${questionId}`;
   const questionText = questionData.question || "Claim not available.";
 
   const handleChange = (e) => {
@@ -174,7 +177,7 @@ const YesNoNotGiven = React.memo(({ questionNumber, questionData, userAnswers, o
 
   return (
     <div className="question yes-no-not-given">
-      <span className="question-number">{questionNumber}.</span>
+      <span className="question-number">{questionId}.</span>
       <span className="question-text">{questionText}</span>
       <div className="options-list">
         <label><input type="radio" name={name} value="YES" checked={userAnswers && userAnswers[name] === "YES"} onChange={handleChange} /> Yes</label>
@@ -187,11 +190,12 @@ const YesNoNotGiven = React.memo(({ questionNumber, questionData, userAnswers, o
 
 const SentenceCompletion = React.memo(({ questionNumber, questionData, wordLimit, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
+  const questionId = questionData.questionId || questionNumber;
   const questionText = questionData.question || "";
   const parts = questionText.split(/\s*_{3,}\s*|\s*\[\s*…\s*\]\s*/);
   const sentenceStart = parts[0] || '';
   const sentenceEnd = parts.length > 1 ? parts.slice(1).join(' ') : '';
-  const name = `q${questionNumber}`;
+  const name = `q${questionId}`;
 
   const handleChange = (e) => {
     onAnswerChange(e.target.name, e.target.value);
@@ -200,7 +204,7 @@ const SentenceCompletion = React.memo(({ questionNumber, questionData, wordLimit
   return (
     <div className="question sentence-completion">
       <label htmlFor={name} style={{ display: 'inline' }}>
-        <span className="question-number">{questionNumber}.</span>
+        <span className="question-number">{questionId}.</span>
         <span className="question-text">{sentenceStart}</span>
       </label>
       <input
@@ -221,8 +225,9 @@ const SentenceCompletion = React.memo(({ questionNumber, questionData, wordLimit
 
 const ShortAnswer = React.memo(({ questionNumber, questionData, wordLimit, userAnswers, onAnswerChange }) => {
   if (!questionData || typeof questionData !== 'object') return null;
+  const questionId = questionData.questionId || questionNumber;
   const questionText = questionData.question || "Question not available.";
-  const name = `q${questionNumber}`;
+  const name = `q${questionId}`;
 
   const handleChange = (e) => {
     onAnswerChange(e.target.name, e.target.value);
@@ -231,7 +236,7 @@ const ShortAnswer = React.memo(({ questionNumber, questionData, wordLimit, userA
   return (
     <div className="question short-answer">
       <label htmlFor={name}>
-        <span className="question-number">{questionNumber}.</span>
+        <span className="question-number">{questionId}.</span>
         <span className="question-text">{questionText}</span>
         {wordLimit && <span className="word-limit-note">({wordLimit})</span>}
       </label>
@@ -276,12 +281,12 @@ const MatchingHeadingsNew = React.memo(({ questionNumberStart, questionData, use
         </ul>
       </div>
       {paragraphs.map((para, index) => {
-        const qNum = questionNumberStart + index;
-        const name = `q${qNum}`;
+        const questionId = para.questionId || (questionNumberStart + index);
+        const name = `q${questionId}`;
         const paraIdentifier = para.text;
         return (
           <div key={`p-${index}`} className="matching-item">
-            <label htmlFor={name}> <span className="question-number">{qNum}.</span> {paraIdentifier} </label>
+            <label htmlFor={name}> <span className="question-number">{questionId}.</span> {paraIdentifier} </label>
             <select
               id={name}
               name={name}
@@ -321,11 +326,11 @@ const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, 
   return (
     <div className="question matching-information-new">
       {statements.map((statement, index) => {
-        const qNum = questionNumberStart + index;
-        const name = `q${qNum}`;
+        const questionId = statement.questionId || (questionNumberStart + index);
+        const name = `q${questionId}`;
         return (
           <div key={`stmt-${index}`} className="matching-item" style={{ alignItems: 'start' }}>
-            <label htmlFor={name} style={{ marginRight: '10px', flexShrink: 0 }}> <span className="question-number">{qNum}.</span> </label>
+            <label htmlFor={name} style={{ marginRight: '10px', flexShrink: 0 }}> <span className="question-number">{questionId}.</span> </label>
             <div style={{ flexGrow: 1 }}>
               <span className="question-text">{statement.text}</span>
               <select
@@ -670,6 +675,18 @@ const ReadingExam = () => {
     return wordCount > numericLimit;
   };
 
+  // Function to normalize answer values (e.g., NOT_GIVEN and NOT GIVEN are equivalent)
+  const normalizeAnswer = (answer) => {
+    if (!answer) return '';
+    
+    // Handle NOT_GIVEN and NOT GIVEN as equivalent
+    if (answer === 'NOT_GIVEN' || answer === 'NOT GIVEN') {
+      return 'NOT_GIVEN';
+    }
+    
+    return answer;
+  };
+
   // Function to calculate score by comparing user answers with correct answers
   const calculateScore = (testData, userAnswers) => {
     if (!testData || !userAnswers) return { score: 0, detailedResults: [] };
@@ -715,19 +732,23 @@ const ReadingExam = () => {
           case 'MATCHING_HEADINGS': {
             const paragraphs = questionsInBlock.filter(q => q?.type === 'paragraph');
             paragraphs.forEach((paragraph, index) => {
-              const qNum = globalQuestionCounter + index;
-              const questionName = `q${qNum}`;
+              const questionId = paragraph.questionId || (globalQuestionCounter + index);
+              const questionName = `q${questionId}`;
               const userAnswer = userAnswers[questionName];
               const correctAnswer = paragraph.answer;
+// Normalize answers before comparison
+const normalizedUserAnswer = normalizeAnswer(userAnswer);
+const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
-              // Direct comparison without normalization
-              const isCorrect = userAnswer && correctAnswer &&
-                                userAnswer === correctAnswer;
+// Compare normalized answers
+const isCorrect = userAnswer && correctAnswer &&
+                  normalizedUserAnswer === normalizedCorrectAnswer;
+
 
               if (isCorrect) score++;
 
               detailedResults.push({
-                questionNumber: qNum,
+                questionNumber: questionId,
                 userAnswer,
                 correctAnswer,
                 isCorrect,
@@ -741,19 +762,23 @@ const ReadingExam = () => {
           case 'PARAGRAPH_MATCHING': {
             const statements = questionsInBlock.filter(q => q?.type === 'statement');
             statements.forEach((statement, index) => {
-              const qNum = globalQuestionCounter + index;
-              const questionName = `q${qNum}`;
+              const questionId = statement.questionId || (globalQuestionCounter + index);
+              const questionName = `q${questionId}`;
               const userAnswer = userAnswers[questionName];
               const correctAnswer = statement.answer;
+// Normalize answers before comparison
+const normalizedUserAnswer = normalizeAnswer(userAnswer);
+const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
-              // Direct comparison without normalization
-              const isCorrect = userAnswer && correctAnswer &&
-                                userAnswer === correctAnswer;
+// Compare normalized answers
+const isCorrect = userAnswer && correctAnswer &&
+                  normalizedUserAnswer === normalizedCorrectAnswer;
+
 
               if (isCorrect) score++;
 
               detailedResults.push({
-                questionNumber: qNum,
+                questionNumber: questionId,
                 userAnswer,
                 correctAnswer,
                 isCorrect,
@@ -767,8 +792,8 @@ const ReadingExam = () => {
           case 'SENTENCE_COMPLETION':
           case 'SHORT_ANSWER': {
             questionsInBlock.forEach((qData, index) => {
-              const qNum = globalQuestionCounter + index;
-              const questionName = `q${qNum}`;
+              const questionId = qData.questionId || (globalQuestionCounter + index);
+              const questionName = `q${questionId}`;
               const userAnswer = userAnswers[questionName];
               const correctAnswer = qData.answer;
 
@@ -779,14 +804,18 @@ const ReadingExam = () => {
               // Direct case-sensitive comparison of trimmed strings
               const trimmedUserAnswer = userAnswer ? userAnswer.trim() : '';
               const trimmedCorrectAnswer = correctAnswer ? correctAnswer.trim() : '';
+// Normalize answers before comparison
+const normalizedUserAnswer = normalizeAnswer(trimmedUserAnswer);
+const normalizedCorrectAnswer = normalizeAnswer(trimmedCorrectAnswer);
 
-              const isCorrect = !limitExceeded && userAnswer && correctAnswer &&
-                               trimmedUserAnswer === trimmedCorrectAnswer;
+const isCorrect = !limitExceeded && userAnswer && correctAnswer &&
+                 normalizedUserAnswer === normalizedCorrectAnswer;
+
 
               if (isCorrect) score++;
 
               detailedResults.push({
-                questionNumber: qNum,
+                questionNumber: questionId,
                 userAnswer,
                 correctAnswer,
                 isCorrect,
@@ -802,19 +831,23 @@ const ReadingExam = () => {
           case 'IDENTIFYING_VIEWS_CLAIMS':
           case 'MULTIPLE_CHOICE': {
             questionsInBlock.forEach((qData, index) => {
-              const qNum = globalQuestionCounter + index;
-              const questionName = `q${qNum}`;
+              const questionId = qData.questionId || (globalQuestionCounter + index);
+              const questionName = `q${questionId}`;
               const userAnswer = userAnswers[questionName];
               const correctAnswer = qData.answer;
 
-              // Direct comparison without normalization
+              // Normalize answers before comparison
+              const normalizedUserAnswer = normalizeAnswer(userAnswer);
+              const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
+
+              // Compare normalized answers
               const isCorrect = userAnswer && correctAnswer &&
-                               userAnswer === correctAnswer;
+                               normalizedUserAnswer === normalizedCorrectAnswer;
 
               if (isCorrect) score++;
 
               detailedResults.push({
-                questionNumber: qNum,
+                questionNumber: questionId,
                 userAnswer,
                 correctAnswer,
                 isCorrect,

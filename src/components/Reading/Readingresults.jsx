@@ -8,33 +8,10 @@ const ReadingResults = ({
   onReset,
   onExit
 }) => {
-  // Calculate total possible score
+  // Calculate total possible score - fixed at 40 questions for IELTS Reading
   const calculateTotalPossibleScore = () => {
-    if (!testData || !testData.sections) return 0;
-
-    let totalQuestions = 0;
-    testData.sections.forEach(section => {
-      if (!section || !Array.isArray(section.texts)) return;
-
-      section.texts.forEach(textBlock => {
-        if (!textBlock || !textBlock.questionType || !Array.isArray(textBlock.questions)) return;
-
-        const { questionType, questions } = textBlock;
-        switch (questionType) {
-          case 'MATCHING_HEADINGS':
-            totalQuestions += questions.filter(q => q?.type === 'paragraph').length;
-            break;
-          case 'PARAGRAPH_MATCHING':
-            totalQuestions += questions.filter(q => q?.type === 'statement').length;
-            break;
-          default:
-            totalQuestions += questions.length;
-            break;
-        }
-      });
-    });
-
-    return totalQuestions;
+    // The total number of questions in IELTS Reading is fixed at 40
+    return 40;
   };
 
   // Calculate estimated IELTS band score based on correct answers
