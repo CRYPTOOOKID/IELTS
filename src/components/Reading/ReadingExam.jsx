@@ -406,9 +406,35 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
 
     if (numberOfQuestionsInBlock <= 0) { return; }
 
-    const startNum = globalQuestionCounter;
-    const endNum = startNum + numberOfQuestionsInBlock - 1;
-    const title = `Questions ${startNum}${endNum > startNum ? `-${endNum}` : ''}`;
+    // Get the actual question IDs from the questions
+    let questionIds = [];
+    switch (questionType) {
+      case 'MATCHING_HEADINGS':
+        questionIds = questionsInBlock.filter(q => q?.type === 'paragraph').map(q => q.questionId || 0);
+        break;
+      case 'PARAGRAPH_MATCHING':
+        questionIds = questionsInBlock.filter(q => q?.type === 'statement').map(q => q.questionId || 0);
+        break;
+      default:
+        questionIds = questionsInBlock.map(q => q.questionId || 0);
+        break;
+    }
+
+    // Filter out any zero values (fallbacks) and sort numerically
+    questionIds = questionIds.filter(id => id > 0).sort((a, b) => a - b);
+    
+    // If we have valid question IDs, use them for the title
+    let title;
+    if (questionIds.length > 0) {
+      const startId = questionIds[0];
+      const endId = questionIds[questionIds.length - 1];
+      title = `Questions ${startId}${endId > startId ? `-${endId}` : ''}`;
+    } else {
+      // Fallback to the old method if no valid question IDs
+      const startNum = globalQuestionCounter;
+      const endNum = startNum + numberOfQuestionsInBlock - 1;
+      title = `Questions ${startNum}${endNum > startNum ? `-${endNum}` : ''}`;
+    }
     const blockContent = [];
 
     try {
@@ -416,8 +442,8 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
              case 'MATCHING_HEADINGS':
                blockContent.push(
                  <MatchingHeadingsNew
-                   key={`${questionType}-${startNum}`}
-                   questionNumberStart={startNum}
+                   key={`${questionType}-${questionIds.length > 0 ? questionIds[0] : globalQuestionCounter}`}
+                   questionNumberStart={globalQuestionCounter}
                    questionData={textBlock}
                    userAnswers={userAnswers}
                    onAnswerChange={onAnswerChange}
@@ -427,8 +453,8 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
              case 'PARAGRAPH_MATCHING':
                blockContent.push(
                  <MatchingInformationNew
-                   key={`${questionType}-${startNum}`}
-                   questionNumberStart={startNum}
+                   key={`${questionType}-${questionIds.length > 0 ? questionIds[0] : globalQuestionCounter}`}
+                   questionNumberStart={globalQuestionCounter}
                    questionData={textBlock}
                    paragraphLetters={paragraphLetters}
                    userAnswers={userAnswers}
@@ -438,7 +464,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                break;
              case 'SENTENCE_COMPLETION': case 'TRUE_FALSE_NOT_GIVEN': case 'SHORT_ANSWER': case 'IDENTIFYING_VIEWS_CLAIMS': case 'MULTIPLE_CHOICE':
                  questionsInBlock.forEach((qData, index) => {
-                     const qNum = startNum + index;
+                     const qNum = globalQuestionCounter + index;
                      if (!qData || typeof qData !== 'object') { return; }
                      let wordLimit = null;
                      const sourcesToCheck = [textBlock.instructions, qData.question];
@@ -456,7 +482,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                      if (questionType === 'SENTENCE_COMPLETION')
                        blockContent.push(
                          <SentenceCompletion
-                           key={qNum}
+                           key={qData.questionId || qNum}
                            questionNumber={qNum}
                            questionData={qData}
                            wordLimit={wordLimit}
@@ -467,7 +493,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                      else if (questionType === 'TRUE_FALSE_NOT_GIVEN')
                        blockContent.push(
                          <TrueFalseNotGiven
-                           key={qNum}
+                           key={qData.questionId || qNum}
                            questionNumber={qNum}
                            questionData={qData}
                            userAnswers={userAnswers}
@@ -477,7 +503,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                      else if (questionType === 'SHORT_ANSWER')
                        blockContent.push(
                          <ShortAnswer
-                           key={qNum}
+                           key={qData.questionId || qNum}
                            questionNumber={qNum}
                            questionData={qData}
                            wordLimit={wordLimit}
@@ -488,7 +514,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                      else if (questionType === 'IDENTIFYING_VIEWS_CLAIMS')
                        blockContent.push(
                          <YesNoNotGiven
-                           key={qNum}
+                           key={qData.questionId || qNum}
                            questionNumber={qNum}
                            questionData={qData}
                            userAnswers={userAnswers}
@@ -498,7 +524,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                      else if (questionType === 'MULTIPLE_CHOICE')
                        blockContent.push(
                          <MultipleChoiceSingle
-                           key={qNum}
+                           key={qData.questionId || qNum}
                            questionNumber={qNum}
                            questionData={qData}
                            userAnswers={userAnswers}
@@ -509,7 +535,7 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                  break;
              default:
                  console.warn(`Unsupported question type "${questionType}" encountered in section ${section.sectionNumber}.`);
-                 blockContent.push(<div key={`unsupported-${startNum}`} className="question warning">Warning: Unsupported question type "{questionType}".</div>);
+                 blockContent.push(<div key={`unsupported-${textIndex}`} className="question warning">Warning: Unsupported question type "{questionType}".</div>);
                  break;
         }
     } catch (renderError) {
@@ -522,7 +548,10 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
     // For MATCHING_HEADINGS, always use a clean default instruction, ignoring textBlock.instructions
     // to prevent duplicating the list.
     if (questionType === 'MATCHING_HEADINGS') {
-        instructions = `Choose the correct heading for each paragraph (Questions ${startNum}-${endNum}) from the list of headings below.`;
+        // Use the question IDs for the instructions if available
+        const startId = questionIds.length > 0 ? questionIds[0] : startNum;
+        const endId = questionIds.length > 0 ? questionIds[questionIds.length - 1] : endNum;
+        instructions = `Choose the correct heading for each paragraph (Questions ${startId}-${endId}) from the list of headings below.`;
     } else {
         // For other types, use provided instructions or generate default
         instructions = textBlock.instructions || "";
@@ -533,7 +562,12 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
                case 'SHORT_ANSWER': instructions = 'Answer the questions below. Choose <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> from the passage for each answer.'; break;
                // Default for MATCHING_HEADINGS removed here, handled above.
                case 'IDENTIFYING_VIEWS_CLAIMS': instructions = 'Do the following statements agree with the claims of the writer in the passage?<br/>Write:<br/><strong>YES</strong> if the statement agrees with the claims of the writer<br/><strong>NO</strong> if the statement contradicts the claims of the writer<br/><strong>NOT GIVEN</strong> if it is impossible to say what the writer thinks about this'; break;
-               case 'PARAGRAPH_MATCHING': instructions = `Look at the following statements (Questions ${startNum}-${endNum}) and the letters of the paragraphs ${paragraphLetters.length > 0 ? `(${paragraphLetters.join('-')})` : ''} in the reading passage. Match each statement with the correct paragraph.`; break;
+               case 'PARAGRAPH_MATCHING':
+                   // Use the question IDs for the instructions if available
+                   const startId = questionIds.length > 0 ? questionIds[0] : startNum;
+                   const endId = questionIds.length > 0 ? questionIds[questionIds.length - 1] : endNum;
+                   instructions = `Look at the following statements (Questions ${startId}-${endId}) and the letters of the paragraphs ${paragraphLetters.length > 0 ? `(${paragraphLetters.join('-')})` : ''} in the reading passage. Match each statement with the correct paragraph.`;
+                   break;
                case 'MULTIPLE_CHOICE': instructions = 'Choose the correct letter, <strong>A</strong>, <strong>B</strong>, <strong>C</strong> or <strong>D</strong>.'; break;
                default: instructions = `Instructions for ${questionType}.`;
            }
@@ -542,8 +576,11 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
 
 
     if (blockContent.length > 0) {
+        // Use the first question ID for the key if available, otherwise use the index
+        const blockKey = questionIds.length > 0 ? questionIds[0] : textIndex;
+        
         questionBlocksRendered.push(
-            <QuestionBlock key={`block-${textIndex}-${startNum}`} title={title} instructions={instructions}>
+            <QuestionBlock key={`block-${textIndex}-${blockKey}`} title={title} instructions={instructions}>
                 {blockContent}
             </QuestionBlock>
         );
