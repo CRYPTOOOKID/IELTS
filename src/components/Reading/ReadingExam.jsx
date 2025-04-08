@@ -726,7 +726,7 @@ const ReadingExam = () => {
 
   // Function to calculate score by comparing user answers with correct answers
   const calculateScore = (testData, userAnswers) => {
-    if (!testData || !userAnswers) return { score: 0, detailedResults: [] };
+    if (!testData) return { score: 0, detailedResults: [] };
 
     let score = 0;
     const detailedResults = [];
@@ -773,23 +773,24 @@ const ReadingExam = () => {
               const questionName = `q${questionId}`;
               const userAnswer = userAnswers[questionName];
               const correctAnswer = paragraph.answer;
-// Normalize answers before comparison
-const normalizedUserAnswer = normalizeAnswer(userAnswer);
-const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
-// Compare normalized answers
-const isCorrect = userAnswer && correctAnswer &&
-                  normalizedUserAnswer === normalizedCorrectAnswer;
+              // Normalize answers before comparison
+              const normalizedUserAnswer = normalizeAnswer(userAnswer);
+              const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
+              // Compare normalized answers
+              const isCorrect = userAnswer && correctAnswer &&
+                              normalizedUserAnswer === normalizedCorrectAnswer;
 
               if (isCorrect) score++;
 
               detailedResults.push({
                 questionNumber: questionId,
-                userAnswer,
+                userAnswer: userAnswer || null,
                 correctAnswer,
-                isCorrect,
-                questionText: paragraph.text
+                isCorrect: userAnswer ? isCorrect : false,
+                questionText: paragraph.text,
+                isAnswered: !!userAnswer
               });
             });
             globalQuestionCounter += paragraphs.length;
@@ -803,23 +804,24 @@ const isCorrect = userAnswer && correctAnswer &&
               const questionName = `q${questionId}`;
               const userAnswer = userAnswers[questionName];
               const correctAnswer = statement.answer;
-// Normalize answers before comparison
-const normalizedUserAnswer = normalizeAnswer(userAnswer);
-const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
-// Compare normalized answers
-const isCorrect = userAnswer && correctAnswer &&
-                  normalizedUserAnswer === normalizedCorrectAnswer;
+              // Normalize answers before comparison
+              const normalizedUserAnswer = normalizeAnswer(userAnswer);
+              const normalizedCorrectAnswer = normalizeAnswer(correctAnswer);
 
+              // Compare normalized answers
+              const isCorrect = userAnswer && correctAnswer &&
+                              normalizedUserAnswer === normalizedCorrectAnswer;
 
               if (isCorrect) score++;
 
               detailedResults.push({
                 questionNumber: questionId,
-                userAnswer,
+                userAnswer: userAnswer || null,
                 correctAnswer,
-                isCorrect,
-                questionText: statement.text
+                isCorrect: userAnswer ? isCorrect : false,
+                questionText: statement.text,
+                isAnswered: !!userAnswer
               });
             });
             globalQuestionCounter += statements.length;
@@ -841,23 +843,24 @@ const isCorrect = userAnswer && correctAnswer &&
               // Direct case-sensitive comparison of trimmed strings
               const trimmedUserAnswer = userAnswer ? userAnswer.trim() : '';
               const trimmedCorrectAnswer = correctAnswer ? correctAnswer.trim() : '';
-// Normalize answers before comparison
-const normalizedUserAnswer = normalizeAnswer(trimmedUserAnswer);
-const normalizedCorrectAnswer = normalizeAnswer(trimmedCorrectAnswer);
 
-const isCorrect = !limitExceeded && userAnswer && correctAnswer &&
-                 normalizedUserAnswer === normalizedCorrectAnswer;
+              // Normalize answers before comparison
+              const normalizedUserAnswer = normalizeAnswer(trimmedUserAnswer);
+              const normalizedCorrectAnswer = normalizeAnswer(trimmedCorrectAnswer);
 
+              const isCorrect = !limitExceeded && userAnswer && correctAnswer &&
+                              normalizedUserAnswer === normalizedCorrectAnswer;
 
               if (isCorrect) score++;
 
               detailedResults.push({
                 questionNumber: questionId,
-                userAnswer,
+                userAnswer: userAnswer || null,
                 correctAnswer,
-                isCorrect,
+                isCorrect: userAnswer ? isCorrect : false,
                 questionText: qData.question,
-                limitExceeded
+                limitExceeded,
+                isAnswered: !!userAnswer
               });
             });
             globalQuestionCounter += questionsInBlock.length;
@@ -879,16 +882,17 @@ const isCorrect = !limitExceeded && userAnswer && correctAnswer &&
 
               // Compare normalized answers
               const isCorrect = userAnswer && correctAnswer &&
-                               normalizedUserAnswer === normalizedCorrectAnswer;
+                              normalizedUserAnswer === normalizedCorrectAnswer;
 
               if (isCorrect) score++;
 
               detailedResults.push({
                 questionNumber: questionId,
-                userAnswer,
+                userAnswer: userAnswer || null,
                 correctAnswer,
-                isCorrect,
-                questionText: qData.question
+                isCorrect: userAnswer ? isCorrect : false,
+                questionText: qData.question,
+                isAnswered: !!userAnswer
               });
             });
             globalQuestionCounter += questionsInBlock.length;
