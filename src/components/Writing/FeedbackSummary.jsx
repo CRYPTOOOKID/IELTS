@@ -3,6 +3,46 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { ChevronDown, ChevronUp, CheckCircle, AlertCircle, TabletSmartphone, ArrowUpRight, LayoutGrid, Layers, PieChart, BookOpen, Fingerprint, BrainCircuit, Award, Target, Sparkles, TrendingUp, Zap, AlertTriangle } from 'lucide-react';
 
+// Enhanced color scheme for scores - moved outside component for global use
+const getScoreColor = (score) => {
+  if (score >= 8) return { 
+    color: "#0d9488", 
+    gradient: "from-teal-400 to-teal-600", 
+    bg: "bg-gradient-to-r from-teal-500 to-teal-600", 
+    text: "bg-teal-600" 
+  }; // Teal for excellent (8-9)
+  if (score >= 7) return { 
+    color: "#0891b2", 
+    gradient: "from-cyan-400 to-cyan-600",
+    bg: "bg-gradient-to-r from-cyan-500 to-cyan-600", 
+    text: "bg-cyan-600"
+  }; // Cyan for very good (7-7.9)
+  if (score >= 6) return { 
+    color: "#2563eb", 
+    gradient: "from-blue-400 to-blue-600",
+    bg: "bg-gradient-to-r from-blue-500 to-blue-600", 
+    text: "bg-blue-600"
+  }; // Blue for good (6-6.9)
+  if (score >= 5) return { 
+    color: "#7c3aed", 
+    gradient: "from-violet-400 to-violet-600",
+    bg: "bg-gradient-to-r from-violet-500 to-violet-600", 
+    text: "bg-violet-600"
+  }; // Violet for moderate (5-5.9)
+  if (score >= 4) return { 
+    color: "#d97706", 
+    gradient: "from-amber-400 to-amber-600",
+    bg: "bg-gradient-to-r from-amber-500 to-amber-600", 
+    text: "bg-amber-600"
+  }; // Amber for borderline (4-4.9)
+  return { 
+    color: "#dc2626", 
+    gradient: "from-red-400 to-red-600",
+    bg: "bg-gradient-to-r from-red-500 to-red-600", 
+    text: "bg-red-600"
+  }; // Red for weak (0-3.9)
+};
+
 // Component for the score display with circular progress indicator
 const ScoreCircle = ({ score, label, size = "md", animate = false }) => {
   // Calculate the circumference and stroke-dasharray based on the score
@@ -16,7 +56,7 @@ const ScoreCircle = ({ score, label, size = "md", animate = false }) => {
     sm: "w-16 h-16 text-xl"
   };
 
-  const scoreColor = score >= 7 ? "#22c55e" : score >= 6 ? "#3b82f6" : score >= 5 ? "#f59e0b" : "#ef4444";
+  const scoreColorInfo = getScoreColor(score);
   
   return (
     <div className="flex flex-col items-center">
@@ -35,7 +75,7 @@ const ScoreCircle = ({ score, label, size = "md", animate = false }) => {
             cy={radius + 5}
             r={radius}
             fill="none"
-            stroke={scoreColor}
+            stroke={`url(#scoreGradient-${size}-${score.toString().replace('.', '-')})`}
             strokeWidth="5"
             strokeDasharray={circumference}
             strokeDashoffset={circumference - progress}
@@ -43,8 +83,15 @@ const ScoreCircle = ({ score, label, size = "md", animate = false }) => {
             strokeLinecap="round"
             className={animate ? "animate-circle-fill" : ""}
           />
+          {/* Define the gradient */}
+          <defs>
+            <linearGradient id={`scoreGradient-${size}-${score.toString().replace('.', '-')}`} gradientTransform="rotate(90)">
+              <stop offset="0%" stopColor={scoreColorInfo.color} stopOpacity="0.8" />
+              <stop offset="100%" stopColor={scoreColorInfo.color} />
+            </linearGradient>
+          </defs>
         </svg>
-        <div className="absolute font-bold" style={{ color: scoreColor }}>{score.toFixed(1)}</div>
+        <div className="absolute font-bold" style={{ color: scoreColorInfo.color }}>{score.toFixed(1)}</div>
       </div>
       {label && <p className="mt-2 text-center text-sm font-medium text-gray-700">{label}</p>}
     </div>
@@ -53,7 +100,7 @@ const ScoreCircle = ({ score, label, size = "md", animate = false }) => {
 
 // Component for category feedback with score bar and comments
 const CategoryFeedback = ({ title, score, percentage, comments, expanded, onToggle, icon }) => {
-  const scoreColor = score >= 7 ? "bg-green-500" : score >= 6 ? "bg-blue-500" : score >= 5 ? "bg-amber-500" : "bg-red-500";
+  const scoreColorInfo = getScoreColor(score);
   
   return (
     <div className="category-box transition-all duration-300 hover:shadow-md bg-white p-4 rounded-lg shadow-sm">
@@ -63,7 +110,7 @@ const CategoryFeedback = ({ title, score, percentage, comments, expanded, onTogg
           <h4 className="font-medium text-gray-800">{title}</h4>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-white font-bold px-3 py-1 rounded-md" style={{ backgroundColor: score >= 7 ? "#22c55e" : score >= 6 ? "#3b82f6" : score >= 5 ? "#f59e0b" : "#ef4444" }}>
+          <span className={`text-white font-bold px-3 py-1 rounded-md shadow-sm text-xs sm:text-sm ${scoreColorInfo.text}`}>
             {score.toFixed(1)}
           </span>
           <button
@@ -78,7 +125,7 @@ const CategoryFeedback = ({ title, score, percentage, comments, expanded, onTogg
       
       <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-2">
         <div
-          className={`h-full ${scoreColor} rounded-full transition-all duration-1000 ease-out`}
+          className={`h-full ${scoreColorInfo.bg} rounded-full transition-all duration-1000 ease-out`}
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
@@ -89,7 +136,7 @@ const CategoryFeedback = ({ title, score, percentage, comments, expanded, onTogg
             {comments.map((comment, idx) => (
               <li key={idx} className="flex items-start feedback-comment">
                 <span className="mr-3 flex-shrink-0 mt-0.5">
-                  {comment.includes("improvement") || comment.includes("could") ?
+                  {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                     <AlertCircle size={16} className="text-amber-500" /> :
                     <CheckCircle size={16} className="text-green-600" />
                   }
@@ -107,18 +154,34 @@ const CategoryFeedback = ({ title, score, percentage, comments, expanded, onTogg
 // Component for feedback items in a card layout
 const FeedbackCard = ({ item, type, icon }) => {
   const isStrength = type === 'strength';
-  const bgColor = isStrength ? 'bg-gradient-to-r from-green-50 to-emerald-50' : 'bg-gradient-to-r from-amber-50 to-orange-50';
-  const borderColor = isStrength ? 'border-green-200' : 'border-amber-200';
-  const textColor = isStrength ? 'text-green-700' : 'text-amber-700';
-  const iconColor = isStrength ? 'text-green-500' : 'text-amber-500';
+  
+  // Enhanced styling for feedback cards
+  const styles = isStrength 
+    ? { 
+        bg: 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50',
+        border: 'border-teal-200',
+        shadow: 'shadow-sm hover:shadow-teal-100',
+        text: 'text-teal-800',
+        icon: 'text-teal-600'
+      }
+    : {
+        bg: 'bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50',
+        border: 'border-amber-200',
+        shadow: 'shadow-sm hover:shadow-amber-100',
+        text: 'text-amber-800',
+        icon: 'text-amber-600'
+      };
   
   return (
-    <div className={`p-4 rounded-lg shadow-sm ${bgColor} border ${borderColor} hover:shadow-md transition-all duration-300 feedback-card`}>
-      <div className="flex items-start">
-        <span className={`mr-3 flex-shrink-0 mt-1 ${iconColor}`}>
+    <div className={`relative p-4 rounded-lg ${styles.shadow} ${styles.bg} border ${styles.border} hover:shadow-md transition-all duration-300 feedback-card overflow-hidden`}>
+      {/* Add decorative elements */}
+      <div className="absolute top-0 right-0 w-12 h-12 opacity-10 rounded-bl-full bg-current"></div>
+      
+      <div className="flex items-start relative z-10">
+        <span className={`mr-3 flex-shrink-0 mt-1 ${styles.icon}`}>
           {icon || (isStrength ? <CheckCircle size={18} /> : <AlertCircle size={18} />)}
         </span>
-        <p className={`${textColor} font-medium`}>{item}</p>
+        <p className={`${styles.text} font-medium`}>{item}</p>
       </div>
     </div>
   );
@@ -210,20 +273,20 @@ const FeedbackSummary = ({ feedback, onBack }) => {
               <div className="score-section mb-8">
                 <div className="score-item">
                   <div className="score-label">Task 1 Score</div>
-                  <div className="score-value">{feedback.task1.overallScore.toFixed(1)}</div>
-                  <div className="text-xs text-gray-500 mt-1">Graph/Chart Description</div>
+                  <div className="score-value font-bold text-gray-800 text-xl">{feedback.task1.overallScore.toFixed(1)}</div>
+                  <div className="text-sm text-gray-600 mt-1 font-medium">Graph/Chart Description</div>
                 </div>
                 
                 <div className="score-item">
                   <div className="score-label">Overall Band</div>
-                  <div className="score-value text-indigo-600 text-2xl">{feedback.finalScore.toFixed(1)}</div>
-                  <div className="text-xs text-gray-500 mt-1">Final Assessment</div>
+                  <div className="score-value text-indigo-700 text-2xl font-bold">{feedback.finalScore.toFixed(1)}</div>
+                  <div className="text-sm text-gray-600 mt-1 font-medium">Final Assessment</div>
                 </div>
                 
                 <div className="score-item">
                   <div className="score-label">Task 2 Score</div>
-                  <div className="score-value">{feedback.task2.overallScore.toFixed(1)}</div>
-                  <div className="text-xs text-gray-500 mt-1">Essay Writing</div>
+                  <div className="score-value font-bold text-gray-800 text-xl">{feedback.task2.overallScore.toFixed(1)}</div>
+                  <div className="text-sm text-gray-600 mt-1 font-medium">Essay Writing</div>
                 </div>
               </div>
               
@@ -355,17 +418,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Task Achievement</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task1.categories.taskAchievement.score).text}`}>
                         {feedback.task1.categories.taskAchievement.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task1Achievement ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task1Achievement ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task1Achievement ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task1.categories.taskAchievement.score).bg}`}
                           style={{width: `${feedback.task1.categories.taskAchievement.percentage}%`}}
                         ></div>
                       </div>
@@ -396,17 +461,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Coherence & Cohesion</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task1.categories.coherenceCohesion.score).text}`}>
                         {feedback.task1.categories.coherenceCohesion.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task1Coherence ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task1Coherence ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task1Coherence ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task1.categories.coherenceCohesion.score).bg}`}
                           style={{width: `${feedback.task1.categories.coherenceCohesion.percentage}%`}}
                         ></div>
                       </div>
@@ -437,17 +504,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Lexical Resource</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task1.categories.lexicalResource.score).text}`}>
                         {feedback.task1.categories.lexicalResource.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task1Lexical ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task1Lexical ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task1Lexical ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task1.categories.lexicalResource.score).bg}`}
                           style={{width: `${feedback.task1.categories.lexicalResource.percentage}%`}}
                         ></div>
                       </div>
@@ -455,7 +524,7 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                         {feedback.task1.categories.lexicalResource.comments.map((comment, idx) => (
                           <li key={idx} className="flex items-start">
                             <span className="mr-2 mt-1">
-                              {comment.includes("improvement") || comment.includes("could") ?
+                              {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                                 <AlertCircle size={14} className="text-amber-500" /> :
                                 <CheckCircle size={14} className="text-green-600" />
                               }
@@ -478,17 +547,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Grammatical Range & Accuracy</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task1.categories.grammaticalRange.score).text}`}>
                         {feedback.task1.categories.grammaticalRange.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task1Grammar ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task1Grammar ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task1Grammar ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task1.categories.grammaticalRange.score).bg}`}
                           style={{width: `${feedback.task1.categories.grammaticalRange.percentage}%`}}
                         ></div>
                       </div>
@@ -496,7 +567,7 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                         {feedback.task1.categories.grammaticalRange.comments.map((comment, idx) => (
                           <li key={idx} className="flex items-start">
                             <span className="mr-2 mt-1">
-                              {comment.includes("improvement") || comment.includes("could") ?
+                              {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                                 <AlertCircle size={14} className="text-amber-500" /> :
                                 <CheckCircle size={14} className="text-green-600" />
                               }
@@ -574,17 +645,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Task Achievement</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task2.categories.taskAchievement.score).text}`}>
                         {feedback.task2.categories.taskAchievement.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task2Achievement ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task2Achievement ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task2Achievement ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task2.categories.taskAchievement.score).bg}`}
                           style={{width: `${feedback.task2.categories.taskAchievement.percentage}%`}}
                         ></div>
                       </div>
@@ -592,7 +665,7 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                         {feedback.task2.categories.taskAchievement.comments.map((comment, idx) => (
                           <li key={idx} className="flex items-start">
                             <span className="mr-2 mt-1">
-                              {comment.includes("improvement") || comment.includes("could") ?
+                              {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                                 <AlertCircle size={14} className="text-amber-500" /> :
                                 <CheckCircle size={14} className="text-green-600" />
                               }
@@ -615,17 +688,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Coherence & Cohesion</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task2.categories.coherenceCohesion.score).text}`}>
                         {feedback.task2.categories.coherenceCohesion.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task2Coherence ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task2Coherence ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task2Coherence ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task2.categories.coherenceCohesion.score).bg}`}
                           style={{width: `${feedback.task2.categories.coherenceCohesion.percentage}%`}}
                         ></div>
                       </div>
@@ -633,7 +708,7 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                         {feedback.task2.categories.coherenceCohesion.comments.map((comment, idx) => (
                           <li key={idx} className="flex items-start">
                             <span className="mr-2 mt-1">
-                              {comment.includes("improvement") || comment.includes("could") ?
+                              {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                                 <AlertCircle size={14} className="text-amber-500" /> :
                                 <CheckCircle size={14} className="text-green-600" />
                               }
@@ -656,17 +731,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Lexical Resource</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task2.categories.lexicalResource.score).text}`}>
                         {feedback.task2.categories.lexicalResource.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task2Lexical ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task2Lexical ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task2Lexical ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task2.categories.lexicalResource.score).bg}`}
                           style={{width: `${feedback.task2.categories.lexicalResource.percentage}%`}}
                         ></div>
                       </div>
@@ -674,7 +751,7 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                         {feedback.task2.categories.lexicalResource.comments.map((comment, idx) => (
                           <li key={idx} className="flex items-start">
                             <span className="mr-2 mt-1">
-                              {comment.includes("improvement") || comment.includes("could") ?
+                              {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                                 <AlertCircle size={14} className="text-amber-500" /> :
                                 <CheckCircle size={14} className="text-green-600" />
                               }
@@ -697,17 +774,19 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                       <span className="ml-2 font-medium">Grammatical Range & Accuracy</span>
                     </div>
                     <div className="flex items-center">
-                      <span className="bg-indigo-600 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center mr-2">
+                      <span className={`text-white text-sm font-bold rounded-md px-3 py-1 shadow-sm ${getScoreColor(feedback.task2.categories.grammaticalRange.score).text}`}>
                         {feedback.task2.categories.grammaticalRange.score.toFixed(1)}
                       </span>
-                      {expandedCategories.task2Grammar ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <button className="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 focus:outline-none">
+                        {expandedCategories.task2Grammar ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
                     </div>
                   </div>
                   <div className={`collapsed-content ${expandedCategories.task2Grammar ? 'expanded' : ''}`}>
                     <div className="p-4 bg-gray-50 rounded-md mt-2">
                       <div className="h-2 bg-gray-200 rounded-full mb-4">
                         <div
-                          className="h-full bg-indigo-600 rounded-full"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${getScoreColor(feedback.task2.categories.grammaticalRange.score).bg}`}
                           style={{width: `${feedback.task2.categories.grammaticalRange.percentage}%`}}
                         ></div>
                       </div>
@@ -715,7 +794,7 @@ const FeedbackSummary = ({ feedback, onBack }) => {
                         {feedback.task2.categories.grammaticalRange.comments.map((comment, idx) => (
                           <li key={idx} className="flex items-start">
                             <span className="mr-2 mt-1">
-                              {comment.includes("improvement") || comment.includes("could") ?
+                              {comment.includes("improvement") || comment.includes("could") || comment.includes("should") || comment.includes("need") ?
                                 <AlertCircle size={14} className="text-amber-500" /> :
                                 <CheckCircle size={14} className="text-green-600" />
                               }
