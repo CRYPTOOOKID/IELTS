@@ -312,7 +312,14 @@ const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, 
       console.error("Invalid data received for MatchingInformationNew:", questionData);
       return <div className="question error">Error: Invalid data for Matching Information.</div>;
   }
-   if (!Array.isArray(paragraphLetters)) { paragraphLetters = []; }
+  
+  // Ensure we have paragraph letters
+  if (!Array.isArray(paragraphLetters) || paragraphLetters.length === 0) { 
+    // If no paragraph letters are provided, create default A-G
+    paragraphLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G']; 
+    console.log("Using default paragraph letters A-G in MatchingInformationNew component");
+  }
+  
   const statements = questionData.questions.filter(q => q?.type === 'statement' && typeof q.text === 'string');
   if (statements.length === 0) {
     console.warn("MatchingInformationNew missing statements:", questionData);
@@ -340,9 +347,9 @@ const MatchingInformationNew = React.memo(({ questionNumberStart, questionData, 
                 value={userAnswers && userAnswers[name] ? userAnswers[name] : ''}
                 onChange={handleChange}
               >
-                <option value="">Select Para...</option>
+                <option value="">Select Paragraph</option>
                 {paragraphLetters.map(letter => (
-                  <option key={letter} value={letter}>{letter}</option>
+                  <option key={letter} value={letter}>Paragraph {letter}</option>
                 ))}
               </select>
             </div>
@@ -381,8 +388,36 @@ const QuestionArea = React.memo(({ section, userAnswers, onAnswerChange }) => {
   let paragraphLetters = [];
   const firstTextContent = section.texts[0]?.text;
   if (typeof firstTextContent === 'string') {
-      const potentialMarkers = firstTextContent.match(/^[A-Z]\.\s|^[A-Z]\.$/gm);
-      if (potentialMarkers) { paragraphLetters = potentialMarkers.map(m => m.charAt(0)); }
+    // First try to find explicitly labeled paragraphs (A, B, C, etc.)
+    const paragraphMarkerPattern = /^([A-Z])[.\s]/gm;
+    const matches = [...firstTextContent.matchAll(paragraphMarkerPattern)];
+    
+    if (matches && matches.length > 0) {
+      // Use the explicitly labeled paragraphs if available
+      paragraphLetters = matches.map(match => match[1]);
+      console.log("Found labeled paragraph letters:", paragraphLetters);
+    } else {
+      // If no explicit labels, count paragraphs and create letter sequence
+      // Split by double newline to identify paragraphs
+      const paragraphs = firstTextContent.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+      // Create letters A, B, C, etc. based on paragraph count
+      if (paragraphs.length > 0) {
+        paragraphLetters = Array.from({ length: paragraphs.length }, (_, i) => 
+          String.fromCharCode(65 + i) // 65 = 'A' in ASCII
+        );
+        console.log(`Created ${paragraphLetters.length} paragraph letters based on paragraph count`);
+      } else {
+        console.warn("No paragraphs detected in the text content");
+      }
+    }
+    
+    // If still no paragraphs found (unlikely), use fallback but limit to a reasonable number
+    if (paragraphLetters.length === 0) {
+      console.warn("No paragraph markers or structure found. Using default fallback.");
+      paragraphLetters = ['A', 'B', 'C', 'D'];
+    }
+    
+    console.log("Final paragraph letters:", paragraphLetters);
   }
 
   let globalQuestionCounter = 1;
@@ -954,9 +989,10 @@ const ReadingExam = () => {
 
   return (
     <div className="reading-exam-container">
-      <div className="reading-test-header">
+      {/* Remove the blue header below */}
+      {/* <div className="reading-test-header">
         <h1>{testData.testTitle || "IELTS Reading Practice"}</h1>
-      </div>
+      </div> */}
 
       {isSubmitted ? (
         <ReadingResults
@@ -990,17 +1026,17 @@ const ReadingExam = () => {
               userAnswers={userAnswers}
               onAnswerChange={handleAnswerChange}
             />
-            <div className="p-4 text-center sticky bottom-0 bg-white border-t border-gray-200 shadow-md">
+            <div className="exam-buttons-container">
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg mt-2 mr-4 font-medium"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
               >
                 Submit Exam
               </button>
               <button
                 type="button"
                 onClick={goToHomePage}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg mt-2 font-medium"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium"
               >
                 Exit Exam
               </button>
