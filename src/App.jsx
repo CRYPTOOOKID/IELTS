@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 
 import './App.css';
@@ -8,7 +8,7 @@ import LoginPage from './components/Auth/LoginPage.jsx';
 import WritingHome from './components/Writing/WritingHome.jsx';
 
 // Import Auth context
-import { AuthProvider } from './components/Auth/AuthContext.jsx';
+import { AuthProvider, useAuth } from './components/Auth/AuthContext.jsx';
 
 // Import Speaking section
 import { SpeakingProvider } from './components/Speaking/SpeakingContext.jsx';
@@ -20,9 +20,25 @@ import ReadingExam from './components/Reading/ReadingExam.jsx';
 // HomePage component for the skills selection page
 const HomePage = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
   
   const handleSkillSelection = (skill) => {
     navigate(`/${skill.toLowerCase()}`);
+  };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setShowLogoutSuccess(true);
+      
+      // Redirect to landing page after 2 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
   
   return (
@@ -32,8 +48,24 @@ const HomePage = () => {
         <div className="header-content">
           <h1>IELTS Practice</h1>
           <div className="header-line"></div>
+          <button 
+            onClick={handleLogout}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 right-4"
+          >
+            Logout
+          </button>
         </div>
       </header>
+
+      {/* Logout Success Toast */}
+      {showLogoutSuccess && (
+        <div className="fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-md flex items-center space-x-2 animate-fadeIn z-50">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>Successfully logged out</span>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="landing-main">

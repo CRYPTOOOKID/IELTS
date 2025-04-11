@@ -32,10 +32,8 @@ export const AuthProvider = ({ children }) => {
       setError(null);
     } catch (err) {
       setUser(null);
-      // Don't set error if user is just not authenticated
-      if (err.message !== 'The user is not authenticated') {
-        setError(err.message);
-      }
+      // Don't set error at all for unauthenticated users - this is an expected state
+      // for new users or logged out users
     } finally {
       setLoading(false);
     }

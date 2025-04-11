@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('signin');
+  const [activeTab, setActiveTab] = useState('signup');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -12,7 +13,11 @@ const LoginPage = () => {
     confirmPassword: '',
     code: ''
   });
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [displayError, setDisplayError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   
   // Use the auth context
   const { user, loading, error, signIn, signUp, confirmSignUp, resendConfirmationCode } = useAuth();
@@ -33,12 +38,14 @@ const LoginPage = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    setDisplayError(null);
     
     try {
       await signIn(formData.email, formData.password);
       // Navigation will happen automatically in the useEffect when user state changes
     } catch (error) {
       console.error('Error signing in:', error);
+      setDisplayError(error.message);
       if (error.code === 'UserNotConfirmedException') {
         setShowConfirmation(true);
       }
@@ -47,9 +54,10 @@ const LoginPage = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setDisplayError(null);
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setDisplayError('Passwords do not match');
       return;
     }
 
@@ -58,49 +66,58 @@ const LoginPage = () => {
       
       // If sign up requires confirmation, show confirmation form
       if (result && result.nextStep && result.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
-        setShowConfirmation(true);
+        setSuccessMessage('Account created successfully! Please check your email for verification code.');
+        setTimeout(() => {
+          setShowConfirmation(true);
+          setSuccessMessage(null);
+        }, 2000);
       }
     } catch (error) {
       console.error('Error signing up:', error);
+      setDisplayError(error.message);
     }
   };
 
   const handleConfirmSignUp = async (e) => {
     e.preventDefault();
+    setDisplayError(null);
     
     try {
       const result = await confirmSignUp(formData.email, formData.code);
       
       // If confirmation is complete, try to sign in
       if (result && result.isSignUpComplete) {
+        setSuccessMessage('Account confirmed successfully!');
         try {
           await signIn(formData.email, formData.password);
           // Navigation will happen automatically in the useEffect when user state changes
         } catch (signInError) {
-          alert('Confirmation successful. Please sign in.');
+          setDisplayError('Confirmation successful. Please sign in.');
           setShowConfirmation(false);
           setActiveTab('signin');
         }
       }
     } catch (error) {
       console.error('Error confirming sign up:', error);
+      setDisplayError(error.message);
     }
   };
 
   const handleResendCode = async () => {
     try {
       await resendConfirmationCode(formData.email);
-      alert('Confirmation code resent successfully');
+      setSuccessMessage('Confirmation code resent successfully');
     } catch (error) {
       console.error('Error resending code:', error);
+      setDisplayError(error.message);
     }
   };
 
   // Render confirmation form
   if (showConfirmation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-xl">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               Confirm Your Account
@@ -109,35 +126,49 @@ const LoginPage = () => {
               We've sent a confirmation code to your email
             </p>
           </div>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <span className="block sm:inline">{error}</span>
+          
+          {successMessage && (
+            <div className="bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
+              <CheckCircle size={18} className="mr-2 text-green-500" />
+              <span className="block sm:inline">{successMessage}</span>
             </div>
           )}
+          
+          {displayError && (
+            <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
+              <AlertTriangle size={18} className="mr-2 text-red-500" />
+              <span className="block sm:inline">{displayError}</span>
+            </div>
+          )}
+          
           <form className="mt-8 space-y-6" onSubmit={handleConfirmSignUp}>
             <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="email" className="sr-only">Email address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-t-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={handleChange}
                 />
               </div>
-              <div>
-                <label htmlFor="code" className="sr-only">Confirmation Code</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="code"
                   name="code"
                   type="text"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-b-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Confirmation Code"
                   value={formData.code}
                   onChange={handleChange}
@@ -150,8 +181,9 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className="font-medium text-blue-600 hover:text-blue-500"
+                  className="font-medium text-blue-600 hover:text-blue-500 inline-flex items-center"
                 >
+                  <Mail size={16} className="mr-1" />
                   Resend confirmation code
                 </button>
               </div>
@@ -161,7 +193,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
               >
                 {loading ? 'Confirming...' : 'Confirm Account'}
               </button>
@@ -173,8 +205,8 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-xl">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             IELTS Mastery
@@ -185,9 +217,9 @@ const LoginPage = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 mb-4">
           <button
-            className={`flex-1 py-2 px-4 text-center ${
+            className={`flex-1 py-3 px-4 text-center font-medium text-base transition-all duration-200 ${
               activeTab === 'signin'
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-gray-500 hover:text-gray-700'
@@ -197,7 +229,7 @@ const LoginPage = () => {
             Sign In
           </button>
           <button
-            className={`flex-1 py-2 px-4 text-center ${
+            className={`flex-1 py-3 px-4 text-center font-medium text-base transition-all duration-200 ${
               activeTab === 'signup'
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-gray-500 hover:text-gray-700'
@@ -208,9 +240,17 @@ const LoginPage = () => {
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span className="block sm:inline">{error}</span>
+        {successMessage && (
+          <div className="bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
+            <CheckCircle size={18} className="mr-2 text-green-500" />
+            <span className="block sm:inline">{successMessage}</span>
+          </div>
+        )}
+
+        {displayError && (
+          <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
+            <AlertTriangle size={18} className="mr-2 text-red-500" />
+            <span className="block sm:inline">{displayError}</span>
           </div>
         )}
 
@@ -218,33 +258,48 @@ const LoginPage = () => {
         {activeTab === 'signin' && (
           <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
             <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="email" className="sr-only">Email address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-t-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={handleChange}
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="sr-only">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showSignInPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-b-lg relative block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowSignInPassword(!showSignInPassword)}
+                >
+                  {showSignInPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -252,7 +307,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
@@ -264,57 +319,76 @@ const LoginPage = () => {
         {activeTab === 'signup' && (
           <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
             <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="name" className="sr-only">Full Name</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="name"
                   name="name"
                   type="text"
                   autoComplete="name"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-t-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Full Name"
                   value={formData.name}
                   onChange={handleChange}
                 />
               </div>
-              <div>
-                <label htmlFor="email" className="sr-only">Email address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={handleChange}
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="sr-only">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showSignUpPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none relative block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                >
+                  {showSignUpPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  )}
+                </button>
               </div>
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-b-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Confirm Password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -322,11 +396,15 @@ const LoginPage = () => {
               </div>
             </div>
 
+            <div className="text-sm text-gray-600">
+              <p>Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.</p>
+            </div>
+
             <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>

@@ -25,6 +25,8 @@
 
 .header-content {
   display: inline-block;
+  position: relative;
+  width: 100%;
 }
 
 .landing-header h1 {
@@ -340,6 +342,10 @@
 
 .slide-up {
   animation: slideUp 0.6s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
 }
 
 @keyframes fadeIn {

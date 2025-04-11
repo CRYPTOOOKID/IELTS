@@ -36,7 +36,7 @@ const IELTSLandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleGetStarted = () => {
+  const handleLogin = () => {
     navigate('/login');
   };
 
@@ -62,10 +62,10 @@ const IELTSLandingPage = () => {
             
             <div className="hidden md:block">
               <button 
-                onClick={handleGetStarted}
+                onClick={handleLogin}
                 className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200"
               >
-                Get Started
+                Login
               </button>
             </div>
             
@@ -90,10 +90,10 @@ const IELTSLandingPage = () => {
               <a href="#testimonials" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Testimonials</a>
               <a href="#pricing" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Pricing</a>
               <button 
-                onClick={handleGetStarted}
+                onClick={handleLogin}
                 className="mt-2 w-full bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700"
               >
-                Get Started
+                Login
               </button>
             </div>
           </div>
@@ -114,7 +114,7 @@ const IELTSLandingPage = () => {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button 
-                    onClick={handleGetStarted}
+                    onClick={handleLogin}
                     className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-medium"
                   >
                     Get Started
@@ -370,10 +370,10 @@ const IELTSLandingPage = () => {
                 </div>
                 
                 <button 
-                  onClick={handleGetStarted}
+                  onClick={handleLogin}
                   className="mt-8 bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-medium inline-flex items-center"
                 >
-                  Get Started
+                  Login
                   <ArrowRight size={18} className="ml-2" />
                 </button>
               </div>
@@ -608,9 +608,9 @@ const IELTSLandingPage = () => {
               
               <div className="flex justify-center">
                 <button 
-                  onClick={handleGetStarted}
+                  onClick={handleLogin}
                   className="bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition duration-200 text-lg font-medium">
-                  Get Started
+                  Login
                 </button>
               </div>
             </div>
