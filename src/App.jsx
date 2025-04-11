@@ -3,8 +3,12 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 
 import './App.css';
 import LandingPage from './components/LandingPage.jsx';
+import LoginPage from './components/Auth/LoginPage.jsx';
 // Import other sections
 import WritingHome from './components/Writing/WritingHome.jsx';
+
+// Import Auth context
+import { AuthProvider } from './components/Auth/AuthContext.jsx';
 
 // Import Speaking section
 import { SpeakingProvider } from './components/Speaking/SpeakingContext.jsx';
@@ -115,19 +119,22 @@ const ListeningPlaceholder = () => {
 function App() {
   console.log('App component mounting');
   return (
-    <SpeakingProvider>
-      <div className="app-container">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/skills" element={<HomePage />} />
-          <Route path="/writing" element={<WritingHome />} />
-          <Route path="/speaking" element={<SpeakingHome />} />
-          <Route path="/listening" element={<ListeningPlaceholder />} />
-          <Route path="/reading" element={<ReadingHome />} />
-          <Route path="/reading/exam" element={<ReadingExam />} />
-        </Routes>
-      </div>
-    </SpeakingProvider>
+    <AuthProvider>
+      <SpeakingProvider>
+        <div className="app-container">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/skills" element={<HomePage />} />
+            <Route path="/writing" element={<WritingHome />} />
+            <Route path="/speaking" element={<SpeakingHome />} />
+            <Route path="/listening" element={<ListeningPlaceholder />} />
+            <Route path="/reading" element={<ReadingHome />} />
+            <Route path="/reading/exam" element={<ReadingExam />} />
+          </Routes>
+        </div>
+      </SpeakingProvider>
+    </AuthProvider>
   );
 }
 

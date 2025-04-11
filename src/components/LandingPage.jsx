@@ -37,7 +37,7 @@ const IELTSLandingPage = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/skills');
+    navigate('/login');
   };
 
   return (

@@ -10,6 +10,11 @@
       "StackName": "amplify-ieltsreact-dev-c05e6",
       "StackId": "arn:aws:cloudformation:us-east-1:440744215515:stack/amplify-ieltsreact-dev-c05e6/633821c0-fb3b-11ef-8321-1249ad34c09d",
       "AmplifyAppId": "d114p1ftp5bpu"
+    },
+    "categories": {
+      "auth": {
+        "ieltsreact5fb611e3": {}
+      }
     }
   }
 }
