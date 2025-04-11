@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 
 import './App.css';
-
+import LandingPage from './components/LandingPage.jsx';
 // Import other sections
 import WritingHome from './components/Writing/WritingHome.jsx';
 
@@ -13,7 +13,7 @@ import SpeakingHome from './components/Speaking/SpeakingHome.jsx';
 import ReadingHome from './components/Reading/ReadingHome.jsx';
 import ReadingExam from './components/Reading/ReadingExam.jsx';
 
-// HomePage component for the landing page
+// HomePage component for the skills selection page
 const HomePage = () => {
   const navigate = useNavigate();
   
@@ -118,7 +118,8 @@ function App() {
     <SpeakingProvider>
       <div className="app-container">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/skills" element={<HomePage />} />
           <Route path="/writing" element={<WritingHome />} />
           <Route path="/speaking" element={<SpeakingHome />} />
           <Route path="/listening" element={<ListeningPlaceholder />} />
