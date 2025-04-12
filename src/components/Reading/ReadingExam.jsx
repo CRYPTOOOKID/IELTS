@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ReadingExam.css'; // Ensure your CSS file is correctly linked
 import ReadingResults from './ReadingResults'; // Import the ReadingResults component
+import { useTimer } from '../../lib/TimerContext';
+import TimeUpModal from '../ui/TimeUpModal';
+import ExamContainer from '../ui/ExamContainer';
 
 //----------------------------------------------------------------------
 // Helper Components
@@ -670,8 +673,10 @@ const ReadingExam = () => {
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [finalScore, setFinalScore] = useState(null);
-  const [resultsFeedback, setResultsFeedback] = useState(null);
+  const [finalScore, setFinalScore] = useState(0);
+  const [resultsFeedback, setResultsFeedback] = useState([]);
+  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  const { startTimer, resetTimer, timeRemaining } = useTimer();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -707,13 +712,29 @@ const ReadingExam = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const goToHomePage = () => { navigate('/reading'); };
+  useEffect(() => {
+    if (timeRemaining === 0 && !isSubmitted) {
+      setShowTimeUpModal(true);
+    }
+    
+    // Reset timer when component unmounts
+    return () => {
+      if (isSubmitted) {
+        resetTimer();
+      }
+    };
+  }, [timeRemaining, isSubmitted, resetTimer]);
+
+  const goToHomePage = () => { 
+    resetTimer();
+    navigate('/reading'); 
+  };
 
   const resetExam = () => {
-    setIsSubmitted(false);
+    resetTimer();
     setUserAnswers({});
-    setFinalScore(null);
-    setResultsFeedback(null);
+    setIsSubmitted(false);
+    setActiveSectionIndex(0);
   };
 
   // Helper function to extract word limit from instructions or question text
@@ -960,17 +981,22 @@ const ReadingExam = () => {
     setActiveSectionIndex(newIndex);
   };
 
+  const handleTimeUp = () => {
+    setShowTimeUpModal(false);
+    handleSubmit({ preventDefault: () => {} });
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Use the current userAnswers state directly - no need to collect form data
-    // since all answers are already stored in the state
 
     // Calculate score using userAnswers
     const results = calculateScore(testData, userAnswers);
     setFinalScore(results.score);
     setResultsFeedback(results.detailedResults);
 
+    // Reset timer when exam is submitted
+    resetTimer();
+    
     // Set submitted state
     setIsSubmitted(true);
 
@@ -988,63 +1014,63 @@ const ReadingExam = () => {
   if (!currentSection) { return <div className="error-message">Internal Error: Could not load section data.</div> }
 
   return (
-    <div className="reading-exam-container">
-      {/* Remove the blue header below */}
-      {/* <div className="reading-test-header">
-        <h1>{testData.testTitle || "IELTS Reading Practice"}</h1>
-      </div> */}
+    <ExamContainer>
+      <div className="reading-exam-container">
+        {/* Show time up modal if time expired */}
+        {showTimeUpModal && <TimeUpModal onSubmit={handleTimeUp} />}
 
-      {isSubmitted ? (
-        <ReadingResults
-          testData={testData}
-          finalScore={finalScore}
-          resultsFeedback={resultsFeedback}
-          onReset={resetExam}
-          onExit={goToHomePage}
-        />
-      ) : (
-        <>
-          <div className="tab-navigation">
-            {sections.map((section, index) => {
-              if (!section || typeof section.sectionNumber !== 'number') { return null; }
-              const sectionIdentifier = section.sectionNumber;
-              const tabTitle = `Section ${sectionIdentifier}`;
-              return (
-                <button
-                  key={`tab-${sectionIdentifier}`}
-                  className={`tab-button ${index === activeSectionIndex ? 'active' : ''}`}
-                  onClick={() => handleTabChange(index)}
-                >
-                  {tabTitle}
-                </button>
-              );
-            })}
-          </div>
-          <form onSubmit={handleSubmit}>
-            <ReadingTestSection
-              testSection={currentSection}
-              userAnswers={userAnswers}
-              onAnswerChange={handleAnswerChange}
-            />
-            <div className="exam-buttons-container">
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
-              >
-                Submit Exam
-              </button>
-              <button
-                type="button"
-                onClick={goToHomePage}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium"
-              >
-                Exit Exam
-              </button>
+        {isSubmitted ? (
+          <ReadingResults
+            testData={testData}
+            finalScore={finalScore}
+            resultsFeedback={resultsFeedback}
+            onReset={resetExam}
+            onExit={goToHomePage}
+          />
+        ) : (
+          <>
+            <div className="tab-navigation">
+              {sections.map((section, index) => {
+                if (!section || typeof section.sectionNumber !== 'number') { return null; }
+                const sectionIdentifier = section.sectionNumber;
+                const tabTitle = `Section ${sectionIdentifier}`;
+                return (
+                  <button
+                    key={`tab-${sectionIdentifier}`}
+                    className={`tab-button ${index === activeSectionIndex ? 'active' : ''}`}
+                    onClick={() => handleTabChange(index)}
+                  >
+                    {tabTitle}
+                  </button>
+                );
+              })}
             </div>
-          </form>
-        </>
-      )}
-    </div>
+            <form onSubmit={handleSubmit}>
+              <ReadingTestSection
+                testSection={currentSection}
+                userAnswers={userAnswers}
+                onAnswerChange={handleAnswerChange}
+              />
+              <div className="exam-buttons-container">
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                >
+                  Submit Exam
+                </button>
+                <button
+                  type="button"
+                  onClick={goToHomePage}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium"
+                >
+                  Exit Exam
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </ExamContainer>
   );
 };
 

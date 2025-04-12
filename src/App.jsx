@@ -17,13 +17,19 @@ import SpeakingHome from './components/Speaking/SpeakingHome.jsx';
 import ReadingHome from './components/Reading/ReadingHome.jsx';
 import ReadingExam from './components/Reading/ReadingExam.jsx';
 
+// Import Timer context
+import { TimerProvider, useTimer } from './lib/TimerContext.jsx';
+import TimerDisplay from './components/ui/TimerDisplay.jsx';
+
 // HomePage component for the skills selection page
 const HomePage = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { resetTimer } = useTimer();
   const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
   
   const handleSkillSelection = (skill) => {
+    resetTimer();
     navigate(`/${skill.toLowerCase()}`);
   };
   
@@ -153,18 +159,20 @@ function App() {
   return (
     <AuthProvider>
       <SpeakingProvider>
-        <div className="app-container">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/skills" element={<HomePage />} />
-            <Route path="/writing" element={<WritingHome />} />
-            <Route path="/speaking" element={<SpeakingHome />} />
-            <Route path="/listening" element={<ListeningPlaceholder />} />
-            <Route path="/reading" element={<ReadingHome />} />
-            <Route path="/reading/exam" element={<ReadingExam />} />
-          </Routes>
-        </div>
+        <TimerProvider>
+          <div className="app-container">
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/skills" element={<HomePage />} />
+              <Route path="/writing" element={<WritingHome />} />
+              <Route path="/speaking" element={<SpeakingHome />} />
+              <Route path="/listening" element={<ListeningPlaceholder />} />
+              <Route path="/reading" element={<ReadingHome />} />
+              <Route path="/reading/exam" element={<ReadingExam />} />
+            </Routes>
+          </div>
+        </TimerProvider>
       </SpeakingProvider>
     </AuthProvider>
   );

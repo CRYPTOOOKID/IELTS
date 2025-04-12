@@ -63,11 +63,14 @@ body { /* Apply base font to body for better inheritance */
     background-color: var(--content-background);
     border-bottom: 1px solid var(--border-color);
     padding: 0 30px;
-    position: fixed; /* Change from sticky to fixed */
-    top: 0; /* Updated: Position at top of page instead of below header */
-    z-index: 90; /* High z-index but below buttons */
+    position: fixed; /* Keep fixed */
+    top: 0; /* Position at top of page */
+    z-index: 90; /* High, but lower than timer */
     width: 100%; /* Ensure it spans full width */
     left: 0; /* Align to left edge */
+    padding-right: 120px; /* Add padding to prevent overlap with timer */
+    height: 53px; /* Fixed height for better alignment with timer */
+    align-items: center; /* Center items vertically */
 }
 .tab-button {
     padding: 16px 25px; /* Increased from 14px 20px */

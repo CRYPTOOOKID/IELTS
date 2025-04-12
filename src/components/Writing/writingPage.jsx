@@ -5,6 +5,9 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { generateIeltsPrompt } from './ieltsPrompt';
 import FeedbackSummary from './FeedbackSummary';
+import { useTimer } from '../../lib/TimerContext';
+import TimeUpModal from '../ui/TimeUpModal';
+import ExamContainer from '../ui/ExamContainer';
 
 const WritingPage = ({ onBackToStart }) => {
   const [currentTask, setCurrentTask] = useState('task1');
@@ -33,6 +36,10 @@ const WritingPage = ({ onBackToStart }) => {
   const [currentTip, setCurrentTip] = useState(0);
   const [writingQuestions, setWritingQuestions] = useState([]);
   const [fetchingQuestions, setFetchingQuestions] = useState(true);
+  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+
+  // Get timer context
+  const { startTimer, resetTimer, timeRemaining } = useTimer();
 
   // Loading stages
   const loadingStages = [
@@ -176,6 +183,26 @@ const WritingPage = ({ onBackToStart }) => {
       setLoadingProgress(0);
     }
   }, [isLoading, loadingStages.length]);
+
+  // Monitor time remaining and show modal when time is up
+  useEffect(() => {
+    if (timeRemaining === 0 && !showFeedback) {
+      setShowTimeUpModal(true);
+    }
+    
+    // Clean up function to reset timer when component unmounts
+    return () => {
+      if (showFeedback) {
+        resetTimer();
+      }
+    };
+  }, [timeRemaining, showFeedback, resetTimer]);
+  
+  // Handle time up event
+  const handleTimeUp = () => {
+    setShowTimeUpModal(false);
+    generateCombinedFeedback();
+  };
 
   const handleResponseChange = (e) => {
     if (currentTask === 'task1') {
@@ -615,6 +642,7 @@ const WritingPage = ({ onBackToStart }) => {
     } else if (currentTask === 'task2') {
       setCurrentTask('task1');
     } else {
+      resetTimer();
       onBackToStart();
     }
   };
@@ -683,6 +711,9 @@ const WritingPage = ({ onBackToStart }) => {
 
     return (
       <div className="writing-container">
+        {showTimeUpModal && <TimeUpModal onSubmit={handleTimeUp} />}
+        {showWordCountWarning && renderWordCountWarningModal()}
+        
         <div className="mb-8">
           <Button onClick={handleBack} className="back-button mb-4">Back</Button>
           <h2 className="text-2xl font-bold mb-5 text-gray-800">
@@ -820,24 +851,24 @@ const WritingPage = ({ onBackToStart }) => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {showWordCountWarning && renderWordCountWarningModal()}
-      
-      {isLoading
-        ? renderLoading()
-        : showFeedback
-          ? <FeedbackSummary
-              feedback={feedback}
-              onBack={() => {
-                setShowFeedback(false);
-                setCurrentTask('task1');
-                setTask1Response('');
-                setTask2Response('');
-              }}
-            />
-          : renderWritingTask()
-      }
-    </div>
+    <ExamContainer>
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        {isLoading
+          ? renderLoading()
+          : showFeedback
+            ? <FeedbackSummary
+                feedback={feedback}
+                onBack={() => {
+                  setShowFeedback(false);
+                  setCurrentTask('task1');
+                  setTask1Response('');
+                  setTask2Response('');
+                }}
+              />
+            : renderWritingTask()
+        }
+      </div>
+    </ExamContainer>
   );
 };
 

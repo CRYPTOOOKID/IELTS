@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('signup');
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const tabParam = queryParams.get('tab');
+  
+  const [activeTab, setActiveTab] = useState(tabParam === 'signin' ? 'signin' : 'signup');
   const [formData, setFormData] = useState({
     email: '',
     password: '',

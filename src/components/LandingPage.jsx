@@ -37,7 +37,11 @@ const IELTSLandingPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    navigate('/login');
+    navigate('/login?tab=signin');
+  };
+
+  const handleGetStarted = () => {
+    navigate('/login?tab=signup');
   };
 
   return (
@@ -114,7 +118,7 @@ const IELTSLandingPage = () => {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button 
-                    onClick={handleLogin}
+                    onClick={handleGetStarted}
                     className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-medium"
                   >
                     Get Started
@@ -370,10 +374,10 @@ const IELTSLandingPage = () => {
                 </div>
                 
                 <button 
-                  onClick={handleLogin}
+                  onClick={handleGetStarted}
                   className="mt-8 bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-medium inline-flex items-center"
                 >
-                  Login
+                  Get Started
                   <ArrowRight size={18} className="ml-2" />
                 </button>
               </div>
