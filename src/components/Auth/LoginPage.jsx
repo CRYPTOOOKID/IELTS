@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -120,88 +120,108 @@ const LoginPage = () => {
   // Render confirmation form
   if (showConfirmation) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-xl">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Confirm Your Account
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+              Verify Your Account
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              We've sent a confirmation code to your email
+            <p className="mt-3 text-base text-gray-600">
+              We've sent a verification code to your email
             </p>
           </div>
           
           {successMessage && (
-            <div className="bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
-              <CheckCircle size={18} className="mr-2 text-green-500" />
-              <span className="block sm:inline">{successMessage}</span>
+            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
+              <CheckCircle size={20} className="text-green-500 mr-3 flex-shrink-0" />
+              <span className="text-green-700">{successMessage}</span>
             </div>
           )}
           
           {displayError && (
-            <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
-              <AlertTriangle size={18} className="mr-2 text-red-500" />
-              <span className="block sm:inline">{displayError}</span>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
+              <AlertTriangle size={20} className="text-red-500 mr-3 flex-shrink-0" />
+              <span className="text-red-700">{displayError}</span>
             </div>
           )}
           
           <form className="mt-8 space-y-6" onSubmit={handleConfirmSignUp}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Your email address"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none rounded-t-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              
+              <div>
+                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
+                  Verification Code
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="code"
+                    name="code"
+                    type="text"
+                    required
+                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Enter verification code"
+                    value={formData.code}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="code"
-                  name="code"
-                  type="text"
-                  required
-                  className="appearance-none rounded-b-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirmation Code"
-                  value={formData.code}
-                  onChange={handleChange}
-                />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  className="font-medium text-blue-600 hover:text-blue-500 inline-flex items-center"
-                >
-                  <Mail size={16} className="mr-1" />
-                  Resend confirmation code
-                </button>
-              </div>
-            </div>
-
-            <div>
+            <div className="flex items-center justify-end">
               <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+                type="button"
+                onClick={handleResendCode}
+                className="text-blue-600 hover:text-blue-800 inline-flex items-center font-medium text-sm transition duration-150"
               >
-                {loading ? 'Confirming...' : 'Confirm Account'}
+                <Mail size={16} className="mr-2" />
+                Resend code
               </button>
             </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Verifying...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  Verify Account
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </button>
           </form>
         </div>
       </div>
@@ -209,34 +229,34 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-xl">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
             IELTS Mastery
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-3 text-base text-gray-600">
             {activeTab === 'signin' ? 'Sign in to your account' : 'Create a new account'}
           </p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 mb-4">
+        <div className="mt-8 flex rounded-lg border border-gray-200 p-1 bg-gray-50">
           <button
-            className={`flex-1 py-3 px-4 text-center font-medium text-base transition-all duration-200 ${
+            className={`flex-1 py-2.5 px-4 text-center font-medium text-sm rounded-md transition-all duration-200 ${
               activeTab === 'signin'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
             onClick={() => setActiveTab('signin')}
           >
             Sign In
           </button>
           <button
-            className={`flex-1 py-3 px-4 text-center font-medium text-base transition-all duration-200 ${
+            className={`flex-1 py-2.5 px-4 text-center font-medium text-sm rounded-md transition-all duration-200 ${
               activeTab === 'signup'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
             onClick={() => setActiveTab('signup')}
           >
@@ -245,174 +265,229 @@ const LoginPage = () => {
         </div>
 
         {successMessage && (
-          <div className="bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
-            <CheckCircle size={18} className="mr-2 text-green-500" />
-            <span className="block sm:inline">{successMessage}</span>
+          <div className="mt-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
+            <CheckCircle size={20} className="text-green-500 mr-3 flex-shrink-0" />
+            <span className="text-green-700">{successMessage}</span>
           </div>
         )}
-
+        
         {displayError && (
-          <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
-            <AlertTriangle size={18} className="mr-2 text-red-500" />
-            <span className="block sm:inline">{displayError}</span>
+          <div className="mt-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
+            <AlertTriangle size={20} className="text-red-500 mr-3 flex-shrink-0" />
+            <span className="text-red-700">{displayError}</span>
           </div>
         )}
 
-        {/* Sign In Form */}
-        {activeTab === 'signin' && (
+        {activeTab === 'signin' ? (
           <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="signinEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="signinEmail"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Your email address"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none rounded-t-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              
+              <div>
+                <label htmlFor="signinPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="signinPassword"
+                    name="password"
+                    type={showSignInPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    className="appearance-none block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowSignInPassword(!showSignInPassword)}
+                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showSignInPassword ? (
+                        <EyeOff className="h-5 w-5" aria-hidden="true" />
+                      ) : (
+                        <Eye className="h-5 w-5" aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showSignInPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  className="appearance-none rounded-b-lg relative block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowSignInPassword(!showSignInPassword)}
-                >
-                  {showSignInPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  )}
-                </button>
               </div>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
-              >
-                {loading ? 'Signing in...' : 'Sign in'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  Sign in
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </button>
           </form>
-        )}
-
-        {/* Sign Up Form */}
-        {activeTab === 'signup' && (
+        ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="signupName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="signupName"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Your full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  className="appearance-none rounded-t-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              
+              <div>
+                <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="signupEmail"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Your email address"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              
+              <div>
+                <label htmlFor="signupPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="signupPassword"
+                    name="password"
+                    type={showSignUpPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    className="appearance-none block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Create a password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showSignUpPassword ? (
+                        <EyeOff className="h-5 w-5" aria-hidden="true" />
+                      ) : (
+                        <Eye className="h-5 w-5" aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showSignUpPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none relative block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                >
-                  {showSignUpPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                  )}
-                </button>
+                <p className="mt-1 text-xs text-gray-500">
+                  Password must be at least 8 characters and include lowercase, uppercase, numbers and symbols
+                </p>
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showSignUpPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none rounded-b-lg relative block w-full pl-10 px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
               </div>
             </div>
 
-            <div className="text-sm text-gray-600">
-              <p>Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.</p>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
-              >
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating account...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  Create account
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </button>
           </form>
         )}
       </div>

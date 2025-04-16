@@ -80,7 +80,19 @@ export const Part1 = () => {
   };
   
   // Get the questions from the test data
-  const questions = testData?.testData?.Part1 || [];
+  const questions = testData?.Part1 || [];
+  
+  // Validate data before rendering
+  if (!Array.isArray(questions) || questions.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
+          <h2 className="text-xl font-semibold text-yellow-700 mb-2">No Questions Available</h2>
+          <p className="text-yellow-600">Could not load Part 1 questions. Please try restarting the test.</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="max-w-5xl mx-auto">
@@ -226,11 +238,23 @@ export const Part2 = () => {
   };
   
   // Get the Part 2 data from the test data
-  const part2Data = testData?.testData?.Part2 || {
+  const part2Data = testData?.Part2 || {
     title: "No topic available",
     cues: [],
     final_question: ""
   };
+  
+  // Validate data before rendering
+  if (!part2Data.title || !Array.isArray(part2Data.cues) || part2Data.cues.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
+          <h2 className="text-xl font-semibold text-yellow-700 mb-2">Invalid Data</h2>
+          <p className="text-yellow-600">Could not load Part 2 question data. Please try restarting the test.</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="max-w-5xl mx-auto">
@@ -394,7 +418,19 @@ export const Part3 = () => {
   };
   
   // Get the questions from the test data
-  const questions = testData?.testData?.Part3 || [];
+  const questions = testData?.Part3 || [];
+  
+  // Validate data before rendering
+  if (!Array.isArray(questions) || questions.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
+          <h2 className="text-xl font-semibold text-yellow-700 mb-2">No Questions Available</h2>
+          <p className="text-yellow-600">Could not load Part 3 questions. Please try restarting the test.</p>
+        </div>
+      </div>
+    );
+  }
   
   const hasSpoken = () => {
     return transcriptions.part1.some(text => text.trim() !== "") || 

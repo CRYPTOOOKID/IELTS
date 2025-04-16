@@ -1,97 +1,120 @@
 import React from 'react';
 import { useSpeakingContext } from './SpeakingContext';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '../ui/button';
 import './speaking.css';
 
 const SpeakingInstructions = () => {
-  const { startTest, fetchTestData, loading, setLoading, setError } = useSpeakingContext();
-  const navigate = useNavigate();
+  const { startTest, fetchTestData, loading, loadingMessage, setLoading, setError, error, resetError } = useSpeakingContext();
   
   const handleStartTest = async () => {
     try {
-      // Show loading state
       setLoading(true);
+      setError(null);
       
       // Fetch test data
+      console.log("Attempting to fetch test data");
       await fetchTestData();
       
       // Start the test
+      console.log("Starting test with fetched data");
       startTest();
     } catch (error) {
-      console.error('Error starting test:', error);
-      setError('Failed to load test data. Using fallback test content instead.');
-      // Even if there's an error, still start the test with fallback data
+      console.error("Error in handleStartTest:", error);
+      setError(`Error starting test: ${error.message}. Using fallback questions.`);
+      
+      // Still start the test even if there was an error, since we have fallback data
       startTest();
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mb-6">
-        <button 
-          onClick={() => navigate('/')}
-          className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-        >
-          <span className="material-icons mr-1">arrow_back</span>
-          Home
-        </button>
-      </div>
-      
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">IELTS Speaking Practice</h1>
+    <div className="max-w-3xl mx-auto px-4 md:px-0 py-12">
+      <div className="text-center mb-10">
+        <h1 className="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+          IELTS Speaking Test
+        </h1>
+        <p className="text-lg text-gray-600 leading-relaxed">
+          This practice test simulates the IELTS Speaking section of the exam.
+        </p>
         
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-          <h1 className="text-3xl font-bold text-center text-blue-800 mb-6">IELTS Speaking Test Instructions</h1>
-          
-          <div className="space-y-6 text-gray-700">
-            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-              <h2 className="text-xl font-semibold text-blue-800 mb-2">Overview</h2>
-              <p>The IELTS Speaking test assesses your ability to communicate in English using an interactive interface. You will be presented with questions across three parts.</p>
-            </div>
-            
-            <div>
-              <h2 className="text-xl font-semibold text-blue-800 mb-2">Test Format</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Part 1: Introduction and interview (4-5 minutes)</li>
-                <li>Part 2: Individual long turn (3-4 minutes)</li>
-                <li>Part 3: Two-way discussion (4-5 minutes)</li>
-                <li>Use the microphone button to record your responses</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h2 className="text-xl font-semibold text-blue-800 mb-2">Tips for Success</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Speak clearly and naturally at a comfortable pace</li>
-                <li>Use a range of vocabulary to express your ideas</li>
-                <li>Develop your answers with examples and details</li>
-                <li>Stay calm and confident throughout the test</li>
-                <li>Test your microphone before starting</li>
-              </ul>
-            </div>
-            
-            <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-              <h2 className="text-xl font-semibold text-yellow-700 mb-2">Important Notes</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>You can record and re-record your responses as needed</li>
-                <li>Take time to think before responding to complex questions</li>
-                <li>Aim to speak for the full time allocated in Part 2</li>
-              </ul>
-            </div>
+        {loadingMessage && (
+          <div className="mt-4 p-3 bg-blue-50 text-blue-700 rounded-lg animate-fade-in">
+            {loadingMessage}
           </div>
-          
-          <div className="mt-8 text-center">
+        )}
+        
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg animate-fade-in">
+            {error}
             <button 
-              onClick={handleStartTest}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition duration-200 shadow-md hover:shadow-lg"
+              onClick={resetError} 
+              className="ml-2 text-sm text-red-800 underline"
             >
-              {loading ? 'Loading Test...' : 'Start Test'}
+              Dismiss
             </button>
           </div>
+        )}
+      </div>
+      
+      <div className="bg-white shadow-xl rounded-xl p-8 mb-10">
+        <h2 className="text-2xl font-semibold mb-4 text-indigo-700">Test Format</h2>
+        <p className="mb-4 text-gray-700">
+          The IELTS Speaking test is a face-to-face interview divided into three parts:
+        </p>
+        <ul className="list-disc list-inside space-y-4 mb-6 text-gray-700">
+          <li>
+            <span className="font-medium">Part 1 (Introduction and Interview):</span> 
+            <span className="block ml-6 mt-1">
+              Answer questions about yourself and familiar topics (4-5 minutes)
+            </span>
+          </li>
+          <li>
+            <span className="font-medium">Part 2 (Individual Long Turn):</span>
+            <span className="block ml-6 mt-1">
+              Speak about a particular topic using a task card (3-4 minutes including 1 minute preparation)
+            </span>
+          </li>
+          <li>
+            <span className="font-medium">Part 3 (Two-way Discussion):</span>
+            <span className="block ml-6 mt-1">
+              Answer questions connected to the topic in Part 2 (4-5 minutes)
+            </span>
+          </li>
+        </ul>
+      </div>
+      
+      <div className="bg-white shadow-xl rounded-xl p-8 mb-10">
+        <h2 className="text-2xl font-semibold mb-4 text-indigo-700">Instructions</h2>
+        <ul className="list-disc list-inside space-y-4 mb-6 text-gray-700">
+          <li>Click the microphone button to start and stop recording your answers</li>
+          <li>Speak clearly and naturally</li>
+          <li>Try to give detailed responses, but stay on topic</li>
+          <li>Your responses will be transcribed automatically</li>
+          <li>At the end, you'll receive AI-generated feedback on your performance</li>
+        </ul>
+        
+        <div className="mt-6 bg-blue-50 p-3 rounded-lg text-sm text-blue-700">
+          <strong>Note:</strong> This is a practice test environment. Your responses will be evaluated by an AI assistant to provide instant feedback.
         </div>
+      </div>
+      
+      <div className="text-center mt-12">
+        <Button 
+          onClick={handleStartTest} 
+          disabled={loading} 
+          className="start-test-button px-10 py-5 text-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <>
+              <span className="animate-spin mr-2">⟳</span>
+              Loading Test...
+            </>
+          ) : (
+            'Start Speaking Test'
+          )}
+        </Button>
       </div>
     </div>
   );

@@ -1,30 +1,28 @@
 // Fallback data for IELTS Speaking test in case API calls fail
 const fallbackData = {
-  testId: "SPEAKING_TEST_001",
-  testData: {
-    Part1: [
-      "Tell me about where you live. Do you like living there?",
-      "What kind of work or study do you do? Why did you choose this field?",
-      "Do you have any hobbies or interests? How did you become interested in them?",
-      "How often do you use public transportation? What do you think about it?"
+  "testId": "speaking_gt_2",
+  "Part1": [
+    "Let's talk about your accommodation. What kind of home do you live in?",
+    "Do you plan to live there for a long time? Why or why not?",
+    "What is your favourite room in your home? Why?",
+    "How could your home be improved?"
+  ],
+  "Part2": {
+    "title": "Describe a time when you were very pleased with a service you received from a company or business.",
+    "cues": [
+      "What service did you receive?",
+      "When and where did you receive this service?",
+      "What exactly did the person or company do that pleased you?",
+      "And explain why you were so satisfied with the service."
     ],
-    Part2: {
-      title: "Describe a skill you would like to learn",
-      cues: [
-        "What this skill is",
-        "How you would learn it",
-        "How long it would take to learn",
-        "Why you want to learn this skill"
-      ],
-      final_question: "Explain why this skill would be useful to you in the future."
-    },
-    Part3: [
-      "What skills do you think are most important for young people to learn today?",
-      "How has technology changed the way people learn new skills?",
-      "Do you think schools should focus more on practical skills or academic knowledge?",
-      "How do you think the skills people need will change in the future?"
-    ]
-  }
+    "final_question": "And say if you have used this service again since then."
+  },
+  "Part3": [
+    "What are the most important aspects of good customer service, in your opinion?",
+    "How has customer service changed in recent years compared to the past?",
+    "In what ways can companies ensure they provide excellent service to all their customers?",
+    "Do you think that good customer service is more important for some types of businesses than others? Why?"
+  ]
 };
 
 export default fallbackData;

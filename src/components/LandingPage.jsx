@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   AlertCircle, 
@@ -34,7 +34,27 @@ const AlertDescription = ({ className, children }) => {
 
 const IELTSLandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
   const navigate = useNavigate();
+
+  // Check for logout success message
+  useEffect(() => {
+    const hasLoggedOut = sessionStorage.getItem('showLogoutSuccess');
+    
+    if (hasLoggedOut === 'true') {
+      setShowLogoutSuccess(true);
+      
+      // Clear the session storage flag
+      sessionStorage.removeItem('showLogoutSuccess');
+      
+      // Hide the message after 3 seconds
+      const timer = setTimeout(() => {
+        setShowLogoutSuccess(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleLogin = () => {
     navigate('/login?tab=signin');
@@ -46,6 +66,14 @@ const IELTSLandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
+      {/* Logout Success Toast */}
+      {showLogoutSuccess && (
+        <div className="fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded-lg shadow-md flex items-center space-x-2 animate-fadeIn z-50">
+          <CheckCircle2 size={20} className="text-green-500" />
+          <span>Successfully logged out</span>
+        </div>
+      )}
+      
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

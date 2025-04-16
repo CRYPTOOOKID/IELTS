@@ -58,7 +58,7 @@ const WritingPage = ({ onBackToStart }) => {
         console.log("Fetching writing test data...");
         
         // Test ID to fetch
-        const testIdToFetch = "IELTS_WRITING_TEST_001";
+        const testIdToFetch = "writing_gt_1";
         const apiUrl = `https://yeo707lcq4.execute-api.us-east-1.amazonaws.com/writingtest/${testIdToFetch}`;
         
         console.log(`Fetching writing test data from: ${apiUrl}`);

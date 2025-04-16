@@ -21,12 +21,16 @@ import ReadingExam from './components/Reading/ReadingExam.jsx';
 import { TimerProvider, useTimer } from './lib/TimerContext.jsx';
 import TimerDisplay from './components/ui/TimerDisplay.jsx';
 
+import LearnHome from './components/PlayZone/Learnhome.jsx';
+import GamesHome from './components/PlayZone/Gameshome.jsx';
+import LearnTopics from './components/PlayZone/learntopics.jsx';
+
 // HomePage component for the skills selection page
 const HomePage = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { resetTimer } = useTimer();
-  const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const handleSkillSelection = (skill) => {
     resetTimer();
@@ -34,16 +38,20 @@ const HomePage = () => {
   };
   
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+    
     try {
-      await signOut();
-      setShowLogoutSuccess(true);
+      setIsLoggingOut(true);
       
-      // Redirect to landing page after 2 seconds
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+      // Store logout intent in sessionStorage
+      sessionStorage.setItem('showLogoutSuccess', 'true');
+      
+      // Sign out and immediately navigate
+      await signOut();
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
+      setIsLoggingOut(false);
     }
   };
   
@@ -56,33 +64,48 @@ const HomePage = () => {
           <div className="header-line"></div>
           <button 
             onClick={handleLogout}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 right-4"
+            disabled={isLoggingOut}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 right-4 flex items-center shadow-md"
           >
-            Logout
+            {isLoggingOut ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Logging out...
+              </>
+            ) : (
+              <>
+                <span className="material-icons text-sm mr-1">logout</span>
+                Logout
+              </>
+            )}
           </button>
         </div>
       </header>
 
-      {/* Logout Success Toast */}
-      {showLogoutSuccess && (
-        <div className="fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-md flex items-center space-x-2 animate-fadeIn z-50">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <span>Successfully logged out</span>
-        </div>
-      )}
-
       {/* Main Content */}
       <main className="landing-main">
         <div className="skills-container">
-          <h2 className="skills-title">Choose a section to practice</h2>
+          <h2 className="skills-title fade-in">Choose a section to practice</h2>
+          
+          <div className="text-center mb-6 fade-in">
+            <button 
+              className="play-zone-button"
+              onClick={() => navigate('/play-zone')}
+            >
+              <span className="material-icons">sports_esports</span>
+              <span>Play Zone</span>
+            </button>
+          </div>
           
           <div className="skills-grid">
             {/* Reading Card */}
             <div 
-              className="skill-tile"
+              className="skill-tile slide-up"
               onClick={() => handleSkillSelection('reading')}
+              style={{animationDelay: '0.1s'}}
             >
               <div className="skill-icon">
                 <span className="material-icons">menu_book</span>
@@ -93,8 +116,9 @@ const HomePage = () => {
 
             {/* Writing Card */}
             <div 
-              className="skill-tile"
+              className="skill-tile slide-up"
               onClick={() => handleSkillSelection('writing')}
+              style={{animationDelay: '0.2s'}}
             >
               <div className="skill-icon">
                 <span className="material-icons">edit_note</span>
@@ -105,8 +129,9 @@ const HomePage = () => {
 
             {/* Listening Card */}
             <div 
-              className="skill-tile"
+              className="skill-tile slide-up"
               onClick={() => handleSkillSelection('listening')}
+              style={{animationDelay: '0.3s'}}
             >
               <div className="skill-icon">
                 <span className="material-icons">headphones</span>
@@ -117,8 +142,9 @@ const HomePage = () => {
 
             {/* Speaking Card */}
             <div 
-              className="skill-tile"
+              className="skill-tile slide-up"
               onClick={() => handleSkillSelection('speaking')}
+              style={{animationDelay: '0.4s'}}
             >
               <div className="skill-icon">
                 <span className="material-icons">record_voice_over</span>
@@ -130,7 +156,7 @@ const HomePage = () => {
         </div>
       </main>
       
-      <footer className="landing-footer">
+      <footer className="landing-footer fade-in">
         <p>Designed for focused IELTS preparation</p>
       </footer>
     </div>
@@ -154,6 +180,65 @@ const ListeningPlaceholder = () => {
   );
 };
 
+// Placeholder for Play Zone section
+const PlayZonePlaceholder = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="landing-page">
+      <header className="landing-header">
+        <div className="header-content">
+          <h1>IELTS Practice</h1>
+          <div className="header-line"></div>
+          <button 
+            onClick={() => navigate('/skills')}
+            className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 left-4 flex items-center shadow-md"
+          >
+            <span className="material-icons text-sm mr-1">arrow_back</span>
+            Back
+          </button>
+        </div>
+      </header>
+      
+      <main className="landing-main">
+        <div className="instructions-panel max-w-3xl fade-in">
+          <div className="instructions-header">Play Zone</div>
+          <div className="instructions-section">
+            <div className="text-center mb-8">
+              <span className="material-icons" style={{fontSize: '4rem', color: '#6930c3'}}>sports_esports</span>
+            </div>
+            <p className="text-lg text-gray-700 mb-8 text-center">
+              Welcome to the Play Zone! Choose an option below to enhance your IELTS preparation.
+            </p>
+            
+            <div className="play-zone-options">
+              <button 
+                onClick={() => navigate('/play-zone/learn')}
+                className="play-zone-option-button learn-button"
+              >
+                <span className="material-icons">school</span>
+                <span>Learn</span>
+              </button>
+              
+              <button 
+                onClick={() => navigate('/play-zone/games')}
+                className="play-zone-option-button games-button"
+              >
+                <span className="material-icons">videogame_asset</span>
+                <span>Play Games</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <footer className="landing-footer fade-in">
+        <p>Designed for focused IELTS preparation</p>
+      </footer>
+    </div>
+  );
+};
+
 function App() {
   console.log('App component mounting');
   return (
@@ -170,6 +255,10 @@ function App() {
               <Route path="/listening" element={<ListeningPlaceholder />} />
               <Route path="/reading" element={<ReadingHome />} />
               <Route path="/reading/exam" element={<ReadingExam />} />
+              <Route path="/play-zone" element={<PlayZonePlaceholder />} />
+              <Route path="/play-zone/learn" element={<LearnHome />} />
+              <Route path="/play-zone/learn/:topicId" element={<LearnTopics />} />
+              <Route path="/play-zone/games" element={<GamesHome />} />
             </Routes>
           </div>
         </TimerProvider>

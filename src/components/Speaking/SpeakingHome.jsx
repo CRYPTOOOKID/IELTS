@@ -3,99 +3,117 @@ import { useSpeakingContext } from './SpeakingContext';
 import SpeakingInstructions from './SpeakingInstructions';
 import { Part1, Part2, Part3 } from './SpeakingParts';
 import SpeakingFeedback from './SpeakingFeedback';
-import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 import './speaking.css';
 
 const SpeakingHome = () => {
   const {
     testData,
     loading,
+    loadingMessage,
     error,
-    setError,
+    resetError,
     showInstructions,
     currentPart,
-    usingFallback,
-    showFeedback
+    showFeedback,
+    resetTest
   } = useSpeakingContext();
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[80vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
-          <p className="text-xl text-slate-600">Loading test data...</p>
-        </div>
-      </div>
-    );
-  }
-
+  
+  const handleReturnToInstructions = () => {
+    resetError();
+    resetTest();
+  };
+  
+  // Display error message if there's an error
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[80vh]">
-        <Card className="max-w-md w-full p-6 bg-red-50 border-red-200">
-          <h2 className="text-2xl font-bold text-red-700 mb-4">Error</h2>
-          <p className="text-red-600 mb-6">{error}</p>
-          <div className="flex flex-col space-y-3">
-            <button 
-              onClick={() => setError(null)}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Back to Instructions
-            </button>
-          </div>
-        </Card>
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6">
+          <h2 className="text-xl font-semibold text-red-700 mb-2">Error</h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button 
+            onClick={handleReturnToInstructions}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+          >
+            Return to Instructions
+          </Button>
+        </div>
       </div>
     );
-  }
-
-  // Show feedback if available
-  if (showFeedback) {
-    return <SpeakingFeedback />;
-  }
-
-  // Always show instructions first if no test is in progress
-  if (showInstructions) {
-    return <SpeakingInstructions />;
   }
   
-  // If we're not showing instructions but don't have test data yet, show loading
-  if (!testData) {
+  // Display loading state while fetching test data
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[80vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
-          <p className="text-xl text-slate-600">Loading test data...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen p-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
+        <p className="text-xl text-slate-600">{loadingMessage || 'Loading test data...'}</p>
       </div>
     );
   }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {usingFallback ? (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded mb-4 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          <div>
-            <span className="font-medium">API Authentication Failed:</span> Using pre-loaded test data instead. 
-            <span className="block mt-1 text-sm">The API key may have expired or been revoked. Contact administrator for assistance.</span>
-          </div>
+  
+  // Display a toast-like notification for loading message when not in loading state
+  const renderLoadingMessage = () => {
+    if (loadingMessage && !loading) {
+      return (
+        <div className="fixed top-4 right-4 bg-blue-50 text-blue-700 p-3 rounded-lg shadow-md animate-fade-in z-50">
+          {loadingMessage}
         </div>
+      );
+    }
+    return null;
+  };
+  
+  // Function to check if test data is valid when we need it
+  const hasValidTestData = () => {
+    return testData && 
+           testData.testId && 
+           Array.isArray(testData.Part1) && 
+           testData.Part2 && 
+           typeof testData.Part2 === 'object' &&
+           testData.Part2.title &&
+           Array.isArray(testData.Part2.cues) &&
+           testData.Part2.final_question &&
+           Array.isArray(testData.Part3);
+  };
+  
+  return (
+    <div className="speaking-container min-h-screen">
+      {renderLoadingMessage()}
+      
+      {/* First step: Show instructions */}
+      {showInstructions ? (
+        <SpeakingInstructions />
+      ) : showFeedback ? (
+        /* Third step: Show feedback after test completion */
+        <SpeakingFeedback />
       ) : (
-        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-4 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <span>
-            Successfully loaded test data.
-          </span>
+        /* Second step: Show the actual test after clicking Start */
+        <div className="p-4 md:p-8">
+          {/* Check if we have valid test data when needed */}
+          {!hasValidTestData() ? (
+            <div className="max-w-5xl mx-auto">
+              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
+                <h2 className="text-xl font-semibold text-yellow-700 mb-2">Test Not Loaded</h2>
+                <p className="text-yellow-600 mb-4">There was a problem loading the test data. Please return to the instructions page and try again.</p>
+                <Button 
+                  onClick={handleReturnToInstructions}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+                >
+                  Return to Instructions
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Show the appropriate test part */
+            <>
+              {currentPart === 1 && <Part1 />}
+              {currentPart === 2 && <Part2 />}
+              {currentPart === 3 && <Part3 />}
+            </>
+          )}
         </div>
       )}
-      
-      {currentPart === 1 && <Part1 />}
-      {currentPart === 2 && <Part2 />}
-      {currentPart === 3 && <Part3 />}
     </div>
   );
 };

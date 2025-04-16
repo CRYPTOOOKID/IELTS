@@ -19,6 +19,7 @@ export const SpeakingProvider = ({ children }) => {
   const [testData, setTestData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentPart, setCurrentPart] = useState(1); // 1, 2, or 3
   const [usingFallback, setUsingFallback] = useState(false);
@@ -45,61 +46,49 @@ export const SpeakingProvider = ({ children }) => {
   const fetchTestData = async () => {
     setLoading(true);
     setError(null);
+    setLoadingMessage('Loading speaking test data...');
     setUsingFallback(false);
     
-    console.log("Loading speaking test data");
+    console.log("Preparing speaking test data");
     
     try {
-      // The actual endpoint https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/1
-      // is blocked by CSP, so we'll use our hardcoded data structure directly
+      // Use the correct endpoint for speaking test
+      const testIdToFetch = "speaking_gt_2";
+      const apiUrl = `https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testIdToFetch}`;
       
-      // This is the data structure that matches what would be returned from the API
-      const data = {
-        id: 1,
-        Part1: [
-          "Where are you from?",
-          "Do you live in a house or an apartment?",
-          "What do you enjoy doing in your free time?",
-          "Do you often use public transportation?"
-        ],
-        Part2: {
-          title: "Describe a popular park or garden in your city that you enjoy visiting.",
-          cues: [
-            "Where is this park or garden located?",
-            "What do people usually do there?",
-            "Why do you enjoy spending time in this place?",
-            "How often do you visit this park or garden?"
-          ],
-          final_question: "Explain why this park or garden is important to the people in your city."
-        },
-        Part3: [
-          "What are the benefits of having parks and gardens in urban areas?",
-          "How do you think parks and gardens will change in the future?",
-          "In your opinion, who should be responsible for maintaining public parks and gardens?",
-          "Do you believe that governments should invest more in creating green spaces in cities? Why or why not?"
-        ]
-      };
+      console.log(`Fetching speaking test data from: ${apiUrl}`);
       
-      console.log("Using speaking test data that matches the intended endpoint");
-      
-      // Transform the data to match our expected format
-      setTestData({
-        testId: `SPEAKING_TEST_${data.id}`,
-        testData: {
-          Part1: data.Part1,
-          Part2: {
-            title: data.Part2.title,
-            cues: data.Part2.cues,
-            final_question: data.Part2.final_question
-          },
-          Part3: data.Part3
-        }
+      const response = await fetch(apiUrl, { 
+        method: 'GET', 
+        headers: { 'Accept': 'application/json' }
       });
+      
+      if (!response.ok) {
+        let errorPayload = null; 
+        try { errorPayload = await response.json(); } catch (e) {}
+        const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
+        throw new Error(errorMsg);
+      }
+      
+      const data = await response.json();
+      console.log("Successfully fetched speaking test data:", data);
+      
+      // Set the data
+      setTestData(data);
+      
+      setLoadingMessage('Successfully loaded test data');
       console.log('Successfully loaded test data');
+      
+      // Clear the success message after 3 seconds
+      setTimeout(() => {
+        setLoadingMessage('');
+      }, 3000);
     } catch (err) {
-      console.error(`Error preparing test data:`, err);
-      console.log('Using fallback data due to error');
-      setError(`Error preparing test data: ${err.message}. Using pre-loaded test data instead.`);
+      console.error(`Error fetching test data from API:`, err);
+      setError(`Error loading test data: ${err.message}. Using fallback data.`);
+      console.log("Using fallback data due to error");
+      
+      // Use fallback data
       setTestData(fallbackData);
       setUsingFallback(true);
     } finally {
@@ -211,14 +200,14 @@ export const SpeakingProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Prepare the data to send to the AI
-      const part1Questions = testData.testData.Part1;
+      // The API now returns data directly in the structure we need
+      const part1Questions = testData.Part1;
       const part2Question = {
-        title: testData.testData.Part2.title,
-        cues: testData.testData.Part2.cues,
-        final_question: testData.testData.Part2.final_question
+        title: testData.Part2.title,
+        cues: testData.Part2.cues,
+        final_question: testData.Part2.final_question
       };
-      const part3Questions = testData.testData.Part3;
+      const part3Questions = testData.Part3;
       
       // Combine questions and answers
       const part1Data = part1Questions.map((question, index) => ({
@@ -370,6 +359,11 @@ export const SpeakingProvider = ({ children }) => {
     return transcriptions.part1.some(text => text.trim() !== "") || transcriptions.part2.trim() !== "" || transcriptions.part3.some(text => text.trim() !== "");
   };
 
+  // Reset error state
+  const resetError = () => {
+    setError(null);
+  };
+
   // Value object to be provided by the context
   const value = {
     testData,
@@ -377,6 +371,8 @@ export const SpeakingProvider = ({ children }) => {
     setLoading,
     error,
     setError,
+    resetError,
+    loadingMessage,
     showInstructions,
     currentPart,
     usingFallback,
