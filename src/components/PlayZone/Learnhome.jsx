@@ -147,10 +147,12 @@ const LearnHome = () => {
           <div className="header-line"></div>
           <button 
             onClick={() => navigate('/play-zone')}
-            className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 left-4 flex items-center shadow-md"
+            className="absolute top-8 left-8 flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors text-blue-700 font-medium"
           >
-            <span className="material-icons text-sm mr-1">arrow_back</span>
-            Back
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            Back to Play Zone
           </button>
         </div>
       </header>

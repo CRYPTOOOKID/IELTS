@@ -12,7 +12,8 @@ import {
   X,
   Star,
   Clock,
-  BarChart
+  BarChart,
+  Gamepad
 } from 'lucide-react';
 
 // Simple Alert components implementation
@@ -87,8 +88,8 @@ const IELTSLandingPage = () => {
               <ul className="flex space-x-8">
                 <li><a href="#features" className="text-gray-600 hover:text-blue-600 transition duration-200">Features</a></li>
                 <li><a href="#skills" className="text-gray-600 hover:text-blue-600 transition duration-200">Skills</a></li>
+                <li><a href="#playzone" className="text-gray-600 hover:text-blue-600 transition duration-200">Play & Learn</a></li>
                 <li><a href="#testimonials" className="text-gray-600 hover:text-blue-600 transition duration-200">Testimonials</a></li>
-                <li><a href="#pricing" className="text-gray-600 hover:text-blue-600 transition duration-200">Pricing</a></li>
               </ul>
             </nav>
             
@@ -119,8 +120,8 @@ const IELTSLandingPage = () => {
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               <a href="#features" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Features</a>
               <a href="#skills" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Skills</a>
+              <a href="#playzone" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Play & Learn</a>
               <a href="#testimonials" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Testimonials</a>
-              <a href="#pricing" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Pricing</a>
               <button 
                 onClick={handleLogin}
                 className="mt-2 w-full bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700"
@@ -266,6 +267,116 @@ const IELTSLandingPage = () => {
                 <div className="flex items-center text-amber-600 font-medium hover:text-amber-800 cursor-pointer">
                   <span>Learn More</span>
                   <ChevronRight size={16} className="ml-1" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PlayZone Section */}
+        <section id="playzone" className="py-16 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row items-center lg:space-x-12">
+              <div className="lg:w-1/2 mb-10 lg:mb-0 text-center lg:text-left">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                  <span className="text-indigo-600">Play</span> Your Way to Fluency
+                </h2>
+                <p className="text-xl text-gray-700 mb-8">
+                  Our interactive games make learning English grammar and vocabulary fun and engaging. Build your language foundation through play!
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
+                    <Gamepad className="text-indigo-500 mt-1" />
+                    <div>
+                      <h3 className="font-bold text-gray-800">Interactive Games</h3>
+                      <p className="text-gray-600 text-sm">Engaging activities that reinforce learning</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="text-indigo-500 w-6 h-6 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12" />
+                      <circle cx="17" cy="7" r="5" />
+                    </svg>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Vocabulary Builder</h3>
+                      <p className="text-gray-600 text-sm">Expand your word bank while having fun</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="text-indigo-500 w-6 h-6 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <path d="M8 13h2" />
+                      <path d="M8 17h2" />
+                      <path d="M14 13h2" />
+                      <path d="M14 17h2" />
+                    </svg>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Grammar Practice</h3>
+                      <p className="text-gray-600 text-sm">Master grammar rules through creative challenges</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="text-indigo-500 w-6 h-6 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m8 18 3-3-3-3" />
+                      <path d="m13 12 3-3-3-3" />
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                    </svg>
+                    <div>
+                      <h3 className="font-bold text-gray-800">Progress Tracking</h3>
+                      <p className="text-gray-600 text-sm">See your improvement as you play</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <button className="bg-indigo-600 text-white px-8 py-3 rounded-lg shadow hover:bg-indigo-700 transition duration-300">
+                  Explore Games
+                </button>
+              </div>
+              
+              <div className="lg:w-1/2">
+                <div className="relative">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
+                      <div className="bg-indigo-600 h-2"></div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-800">CrossRoads</h3>
+                        <p className="text-gray-600 text-sm">Master conditional sentences through interactive road crossing challenges</p>
+                        <div className="mt-4 bg-indigo-100 rounded p-2 text-xs text-indigo-800">Grammar • Conditionals</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
+                      <div className="bg-purple-600 h-2"></div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-800">WordTile</h3>
+                        <p className="text-gray-600 text-sm">Arrange word tiles to form grammatically correct sentences</p>
+                        <div className="mt-4 bg-purple-100 rounded p-2 text-xs text-purple-800">Vocabulary • Sentence Structure</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
+                      <div className="bg-blue-600 h-2"></div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-800">DragZilla</h3>
+                        <p className="text-gray-600 text-sm">Drag and drop words to their correct grammatical positions</p>
+                        <div className="mt-4 bg-blue-100 rounded p-2 text-xs text-blue-800">Parts of Speech • Word Order</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
+                      <div className="bg-amber-600 h-2"></div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-800">TalkToMe</h3>
+                        <p className="text-gray-600 text-sm">Practice speaking with interactive conversation scenarios</p>
+                        <div className="mt-4 bg-amber-100 rounded p-2 text-xs text-amber-800">Speaking • Fluency</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -534,7 +645,7 @@ const IELTSLandingPage = () => {
                   </div>
                   <div className="ml-4">
                     <h4 className="text-lg font-bold">Sarah K.</h4>
-                    <p className="text-gray-600">Band 7.5 | Canada</p>
+                    <p className="text-gray-600">Band 7.5</p>
                   </div>
                 </div>
                 <div className="flex mb-3">
@@ -557,7 +668,7 @@ const IELTSLandingPage = () => {
                   </div>
                   <div className="ml-4">
                     <h4 className="text-lg font-bold">Raj P.</h4>
-                    <p className="text-gray-600">Band 8.0 | Australia</p>
+                    <p className="text-gray-600">Band 8.0</p>
                   </div>
                 </div>
                 <div className="flex mb-3">
@@ -580,7 +691,7 @@ const IELTSLandingPage = () => {
                   </div>
                   <div className="ml-4">
                     <h4 className="text-lg font-bold">Elena M.</h4>
-                    <p className="text-gray-600">Band 7.0 | UK</p>
+                    <p className="text-gray-600">Band 7.0</p>
                   </div>
                 </div>
                 <div className="flex mb-3">
@@ -732,6 +843,7 @@ const IELTSLandingPage = () => {
                 <li><a href="#" className="hover:text-white">Home</a></li>
                 <li><a href="#features" className="hover:text-white">Features</a></li>
                 <li><a href="#skills" className="hover:text-white">Skills</a></li>
+                <li><a href="#playzone" className="hover:text-white">Play & Learn</a></li>
                 <li><a href="#testimonials" className="hover:text-white">Testimonials</a></li>
                 <li><a href="#faq" className="hover:text-white">FAQ</a></li>
               </ul>
