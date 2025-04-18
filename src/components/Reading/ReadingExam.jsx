@@ -676,12 +676,31 @@ const ReadingExam = () => {
   const [finalScore, setFinalScore] = useState(0);
   const [resultsFeedback, setResultsFeedback] = useState([]);
   const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(true);
+  const [countdownNumber, setCountdownNumber] = useState(3);
   const { startTimer, resetTimer, timeRemaining } = useTimer();
   const navigate = useNavigate();
 
+  // Countdown animation effect
+  useEffect(() => {
+    if (showCountdown && !loading) {
+      if (countdownNumber > 0) {
+        const timer = setTimeout(() => {
+          setCountdownNumber(countdownNumber - 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // When countdown reaches 0, hide countdown and show the exam
+        setShowCountdown(false);
+      }
+    }
+  }, [countdownNumber, showCountdown, loading]);
+
   useEffect(() => {
     const fetchTestData = async () => {
-      setLoading(true); setError(null); setTestData(null);
+      setLoading(true); 
+      setError(null); 
+      setTestData(null);
       console.log("Fetching test data..."); // ADDED: Log start of fetch
       // Using new naming convention: reading_gt_1, reading_gt_2, etc.
       const testIdToFetch = "reading_gt_1"; // Make dynamic if needed
@@ -706,8 +725,11 @@ const ReadingExam = () => {
         setTestData(finalTestData);
       } catch (err) {
         console.error("Error during test data fetch or processing:", err);
-        setError(err.message || "An unexpected error occurred loading the exam."); setTestData(null);
-      } finally { setLoading(false); }
+        setError(err.message || "An unexpected error occurred loading the exam."); 
+        setTestData(null);
+      } finally { 
+        setLoading(false);
+      }
     };
     fetchTestData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1005,9 +1027,165 @@ const ReadingExam = () => {
     console.log("Score results:", results);
   };
 
-  if (loading) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50"> <div className="text-center"> <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div> <p className="text-lg text-gray-700">Loading exam data...</p> </div> </div> ); }
-  if (error) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6"> <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full"> <div className="text-red-600 mb-4 text-center"> <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> </div> <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Error Loading Exam</h2> <p className="text-gray-600 mb-6 text-center">{error}</p> <div className="text-center"> <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button> </div> </div> </div> ); }
-  if (!testData?.sections?.length) { return ( <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6"> <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center"> <p className="text-gray-700 mb-6">No valid exam data is available to display.</p> <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button> </div> </div> ); }
+  // Render the countdown animation
+  const renderCountdown = () => {
+    // Calculate positions for dots and sparkles
+    const getRandomPosition = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+    
+    // Create array of dots for the rings
+    const createDots = (count) => {
+      const dots = [];
+      const radius = 110; // Ring radius
+      
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * 2 * Math.PI;
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+        
+        dots.push({ x, y });
+      }
+      
+      return dots;
+    };
+    
+    // Create array of random sparkle positions
+    const createSparkles = (count) => {
+      const sparkles = [];
+      
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = getRandomPosition(60, 160);
+        const x = distance * Math.cos(angle);
+        const y = distance * Math.sin(angle);
+        
+        sparkles.push({ x, y });
+      }
+      
+      return sparkles;
+    };
+    
+    const dots = createDots(8);
+    const sparkles = createSparkles(6);
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col justify-center items-center h-[600px] text-center">
+          {/* Main heading */}
+          <h2 className="text-4xl font-bold text-primary-color-dark mb-12">
+            <span className="breath-text">Take a deep breath</span>
+          </h2>
+          
+          {/* Countdown animation container */}
+          <div className="countdown-animation">
+            {/* Rotating rings with dots */}
+            <div className="countdown-ring countdown-ring-1">
+              {dots.map((dot, index) => (
+                <div 
+                  key={`dot1-${index}`}
+                  className="countdown-dot"
+                  style={{ 
+                    left: `calc(50% + ${dot.x}px)`, 
+                    top: `calc(50% + ${dot.y}px)`,
+                    opacity: 0.8,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                />
+              ))}
+            </div>
+            
+            <div className="countdown-ring countdown-ring-2">
+              {dots.map((dot, index) => (
+                <div 
+                  key={`dot2-${index}`}
+                  className="countdown-dot"
+                  style={{ 
+                    left: `calc(50% + ${dot.x}px)`, 
+                    top: `calc(50% + ${dot.y}px)`,
+                    opacity: 0.5,
+                    transform: 'translate(-50%, -50%) scale(0.7)'
+                  }}
+                />
+              ))}
+            </div>
+            
+            {/* Random sparkles */}
+            {sparkles.map((sparkle, index) => (
+              <div
+                key={`sparkle-${index}`}
+                className="countdown-sparkle"
+                style={{
+                  left: `calc(50% + ${sparkle.x}px)`,
+                  top: `calc(50% + ${sparkle.y}px)`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+            ))}
+            
+            {/* Main countdown number */}
+            <div className="countdown-number">
+              {countdownNumber > 0 ? countdownNumber : (
+                <div className="countdown-go">Go!</div>
+              )}
+            </div>
+          </div>
+          
+          {/* Message that changes based on countdown state */}
+          <div className="countdown-message" style={{ animationDelay: '0.3s' }}>
+            {countdownNumber > 0 
+              ? "Prepare your thoughts..."
+              : "Your exam is ready!"
+            }
+          </div>
+          
+          {/* Show arrow icon when countdown finishes */}
+          {countdownNumber === 0 && (
+            <div className="mt-16" style={{ animation: 'fadeInUp 0.5s ease-out 0.7s both' }}>
+              <svg className="w-14 h-14 mx-auto text-primary-color animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              </svg>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Show countdown and load test data simultaneously
+  if (loading && error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <div className="text-red-600 mb-4 text-center">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Error Loading Exam</h2>
+          <p className="text-gray-600 mb-6 text-center">{error}</p>
+          <div className="text-center">
+            <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show countdown animation while data is loading or during countdown
+  if (loading || showCountdown) {
+    return renderCountdown();
+  }
+
+  // Handle case when there's no test data
+  if (!testData?.sections?.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+          <p className="text-gray-700 mb-6">No valid exam data is available to display.</p>
+          <button onClick={goToHomePage} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Return to Instructions</button>
+        </div>
+      </div>
+    );
+  }
 
   const sections = testData.sections;
   const currentSectionIndex = Math.max(0, Math.min(activeSectionIndex, sections.length - 1));

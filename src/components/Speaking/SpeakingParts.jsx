@@ -292,7 +292,7 @@ export const Part2 = () => {
           <div className="flex justify-center mt-10">
             <Button
               onClick={toggleRecordingHandler}
-              className={`flex items-center justify-center rounded-full w-24 h-24 ${
+              className={`flex items-center justify-center rounded-full w-24 h-24 mic-button-large ${
                 isRecording.part2
                   ? 'recording'
                   : ''
@@ -312,7 +312,7 @@ export const Part2 = () => {
             </Button>
           </div>
           <p className="text-center text-indigo-600 font-medium mt-4">
-            {isRecording.part2 ? "Click to stop recording" : "Click to start recording your response"}
+            {isRecording.part2 ? "Recording in progress..." : "Click the microphone to begin speaking"}
           </p>
         </Card>
       </div>

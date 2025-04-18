@@ -88,7 +88,14 @@ const SpeakingInstructions = () => {
       <div className="bg-white shadow-xl rounded-xl p-8 mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-indigo-700">Instructions</h2>
         <ul className="list-disc list-inside space-y-4 mb-6 text-gray-700">
-          <li>Click the microphone button to start and stop recording your answers</li>
+          <li className="flex items-start">
+            <span className="flex-shrink-0 h-5 w-5 text-indigo-600 mr-2 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </span>
+            <span>Click the microphone button to start and stop recording your answers</span>
+          </li>
           <li>Speak clearly and naturally</li>
           <li>Try to give detailed responses, but stay on topic</li>
           <li>Your responses will be transcribed automatically</li>

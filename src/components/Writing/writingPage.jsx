@@ -37,6 +37,8 @@ const WritingPage = ({ onBackToStart }) => {
   const [writingQuestions, setWritingQuestions] = useState([]);
   const [fetchingQuestions, setFetchingQuestions] = useState(true);
   const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(true);
+  const [countdownNumber, setCountdownNumber] = useState(3);
 
   // Get timer context
   const { startTimer, resetTimer, timeRemaining } = useTimer();
@@ -122,6 +124,21 @@ const WritingPage = ({ onBackToStart }) => {
     
     fetchQuestions();
   }, []);
+
+  // Countdown animation effect
+  useEffect(() => {
+    if (showCountdown && !fetchingQuestions) {
+      if (countdownNumber > 0) {
+        const timer = setTimeout(() => {
+          setCountdownNumber(countdownNumber - 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // When countdown reaches 0, hide countdown and show the exam
+        setShowCountdown(false);
+      }
+    }
+  }, [countdownNumber, showCountdown, fetchingQuestions]);
 
   // Update word count whenever response changes
   useEffect(() => {
@@ -681,8 +698,134 @@ const WritingPage = ({ onBackToStart }) => {
     </div>
   );
 
+  // Render the countdown animation
+  const renderCountdown = () => {
+    // Calculate positions for dots and sparkles
+    const getRandomPosition = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+    
+    // Create array of dots for the rings
+    const createDots = (count) => {
+      const dots = [];
+      const radius = 110; // Ring radius
+      
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * 2 * Math.PI;
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+        
+        dots.push({ x, y });
+      }
+      
+      return dots;
+    };
+    
+    // Create array of random sparkle positions
+    const createSparkles = (count) => {
+      const sparkles = [];
+      
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = getRandomPosition(60, 160);
+        const x = distance * Math.cos(angle);
+        const y = distance * Math.sin(angle);
+        
+        sparkles.push({ x, y });
+      }
+      
+      return sparkles;
+    };
+    
+    const dots = createDots(8);
+    const sparkles = createSparkles(6);
+    
+    return (
+      <div className="flex flex-col justify-center items-center h-[600px] text-center">
+        {/* Main heading */}
+        <h2 className="text-4xl font-bold text-primary-deep mb-12">
+          <span className="breath-text">Take a deep breath</span>
+        </h2>
+        
+        {/* Countdown animation container */}
+        <div className="countdown-animation">
+          {/* Rotating rings with dots */}
+          <div className="countdown-ring countdown-ring-1">
+            {dots.map((dot, index) => (
+              <div 
+                key={`dot1-${index}`}
+                className="countdown-dot"
+                style={{ 
+                  left: `calc(50% + ${dot.x}px)`, 
+                  top: `calc(50% + ${dot.y}px)`,
+                  opacity: 0.8,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+            ))}
+          </div>
+          
+          <div className="countdown-ring countdown-ring-2">
+            {dots.map((dot, index) => (
+              <div 
+                key={`dot2-${index}`}
+                className="countdown-dot"
+                style={{ 
+                  left: `calc(50% + ${dot.x}px)`, 
+                  top: `calc(50% + ${dot.y}px)`,
+                  opacity: 0.5,
+                  transform: 'translate(-50%, -50%) scale(0.7)'
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Random sparkles */}
+          {sparkles.map((sparkle, index) => (
+            <div
+              key={`sparkle-${index}`}
+              className="countdown-sparkle"
+              style={{
+                left: `calc(50% + ${sparkle.x}px)`,
+                top: `calc(50% + ${sparkle.y}px)`,
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+          ))}
+          
+          {/* Main countdown number */}
+          <div className="countdown-number">
+            {countdownNumber > 0 ? countdownNumber : (
+              <div className="countdown-go">Go!</div>
+            )}
+          </div>
+        </div>
+        
+        {/* Message that changes based on countdown state */}
+        <div className="countdown-message" style={{ animationDelay: '0.3s' }}>
+          {countdownNumber > 0 
+            ? "Prepare your thoughts..."
+            : "Your exam is ready!"
+          }
+        </div>
+        
+        {/* Show arrow icon when countdown finishes */}
+        {countdownNumber === 0 && (
+          <div className="mt-16" style={{ animation: 'fadeInUp 0.5s ease-out 0.7s both' }}>
+            <svg className="w-14 h-14 mx-auto text-primary animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderWritingTask = () => {
-    // If still fetching questions, show loading indicator
+    // Show countdown animation if in countdown mode
+    if (showCountdown) {
+      return renderCountdown();
+    }
+    
+    // If still fetching questions, hide the spinner since we'll handle this with the countdown
     if (fetchingQuestions) {
       return (
         <div className="flex justify-center items-center h-64">
