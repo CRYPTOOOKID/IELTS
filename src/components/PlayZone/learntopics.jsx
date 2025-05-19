@@ -226,10 +226,16 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
                 ? feedback.isCorrect
                   ? 'border-green-500 bg-green-50 text-black pr-10'
                   : 'border-red-500 bg-red-50 text-black pr-10'
-                : 'border-gray-200 focus:border-blue-400 text-gray-800'
+                : 'border-gray-200 focus:border-blue-400 bg-white text-black'
             }`}
             disabled={feedback !== null}
-            style={{ fontWeight: 500 }} /* Ensure text is bold enough to be visible */
+            style={{ 
+              fontWeight: 500,
+              color: 'black',
+              '::placeholder': {
+                color: '#666'
+              }
+            }}
           />
           
           {/* Status icon */}

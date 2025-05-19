@@ -24,6 +24,7 @@ import TimerDisplay from './components/ui/TimerDisplay.jsx';
 import LearnHome from './components/PlayZone/Learnhome.jsx';
 import GamesHome from './components/PlayZone/Gameshome.jsx';
 import LearnTopics from './components/PlayZone/learntopics.jsx';
+import FlashCards from './components/PlayZone/FlashCards.jsx';
 
 // HomePage component for the skills selection page
 const HomePage = () => {
@@ -227,6 +228,14 @@ const PlayZonePlaceholder = () => {
                 <span className="material-icons">videogame_asset</span>
                 <span>Play Games</span>
               </button>
+
+              <button 
+                onClick={() => navigate('/play-zone/flashcards')}
+                className="play-zone-option-button flashcards-button"
+              >
+                <span className="material-icons">style</span>
+                <span>Flash Cards</span>
+              </button>
             </div>
           </div>
         </div>
@@ -259,6 +268,7 @@ function App() {
               <Route path="/play-zone/learn" element={<LearnHome />} />
               <Route path="/play-zone/learn/:topicId" element={<LearnTopics />} />
               <Route path="/play-zone/games" element={<GamesHome />} />
+              <Route path="/play-zone/flashcards" element={<FlashCards />} />
             </Routes>
           </div>
         </TimerProvider>

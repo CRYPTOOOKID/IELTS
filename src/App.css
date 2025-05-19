@@ -665,6 +665,10 @@
   background: linear-gradient(135deg, #fb8500, #f72585);
 }
 
+.flashcards-button {
+  background: linear-gradient(135deg, #06a77d, #38b000);
+}
+
 @media (max-width: 640px) {
   .play-zone-options {
     flex-direction: column;
