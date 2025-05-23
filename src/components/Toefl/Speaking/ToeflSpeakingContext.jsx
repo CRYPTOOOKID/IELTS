@@ -77,9 +77,7 @@ export const useToeflSpeakingContext = () => {
 export const ToeflSpeakingProvider = ({ children }) => {
   // Initialize with mock data to ensure we have something to display immediately
   const [testData, setTestData] = useState(mockToeflSpeakingData);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [loadingMessage, setLoadingMessage] = useState('');
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [usingFallback, setUsingFallback] = useState(true);
@@ -88,7 +86,8 @@ export const ToeflSpeakingProvider = ({ children }) => {
   const [feedback, setFeedback] = useState(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [loadingExam, setLoadingExam] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdownNumber, setCountdownNumber] = useState(3);
 
   // Initialize transcriptions based on test data
   useEffect(() => {
@@ -106,10 +105,25 @@ export const ToeflSpeakingProvider = ({ children }) => {
     }
   }, [testData]);
 
+  // Countdown animation effect
+  useEffect(() => {
+    if (showCountdown) {
+      if (countdownNumber > 0) {
+        const timer = setTimeout(() => {
+          setCountdownNumber(countdownNumber - 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // When countdown reaches 0, hide countdown and show the exam
+        setShowCountdown(false);
+        setShowInstructions(false);
+        setCurrentTaskIndex(0);
+      }
+    }
+  }, [countdownNumber, showCountdown]);
+
   // Function to fetch test data from HTTP API with fallback
   const fetchTestData = async () => {
-    setLoadingExam(true);
-    setLoadingMessage('Loading speaking test data...');
     setError(null);
     
     try {
@@ -135,32 +149,24 @@ export const ToeflSpeakingProvider = ({ children }) => {
       setTestData(data);
       setUsingFallback(false);
       
-      setLoadingMessage('Successfully loaded test data');
       console.log('Successfully loaded test data');
-      
-      // Start the test after successful loading
-      setTimeout(() => {
-        setLoadingExam(false);
-        setShowInstructions(false);
-        setCurrentTaskIndex(0);
-      }, 1500);
       
     } catch (err) {
       console.error(`Error fetching test data from API:`, err);
       console.log("Using mock data due to error");
       
-      // Start the test with mock data
-      setTimeout(() => {
-        setLoadingExam(false);
-        setShowInstructions(false);
-        setCurrentTaskIndex(0);
-      }, 1500);
+      // Keep using mock data
+      setUsingFallback(true);
     }
   };
 
   // Start the test - only called when clicking on Start button in instructions
   const startTest = () => {
-    // Fetch data when user clicks Start Speaking Test
+    // Start countdown animation immediately
+    setShowCountdown(true);
+    setCountdownNumber(3);
+    
+    // Fetch data in background while countdown plays
     fetchTestData();
   };
 
@@ -209,12 +215,19 @@ export const ToeflSpeakingProvider = ({ children }) => {
   // Reset the test state
   const resetTest = () => {
     setShowInstructions(true);
+    setShowFeedback(false);
     setCurrentTaskIndex(0);
     setTranscriptions({});
     setIsRecording(false);
     setFeedback(null);
-    setShowFeedback(false);
-    stopRecording();
+    setFeedbackLoading(false);
+    setError(null);
+    setShowCountdown(false);
+    setCountdownNumber(3);
+    
+    // Keep using mock data as fallback
+    setTestData(mockToeflSpeakingData);
+    setUsingFallback(true);
   };
 
   // Get feedback from AI
@@ -417,12 +430,9 @@ Please provide a JSON output with the following structure:
   // Value object to be provided by the context
   const value = {
     testData,
-    loading,
-    setLoading,
     error,
     setError,
     resetError,
-    loadingMessage,
     showInstructions,
     currentTaskIndex,
     usingFallback,
@@ -431,7 +441,8 @@ Please provide a JSON output with the following structure:
     feedback,
     feedbackLoading,
     showFeedback,
-    loadingExam,
+    showCountdown,
+    countdownNumber,
     fetchTestData,
     startTest,
     nextTask,

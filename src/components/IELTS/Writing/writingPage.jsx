@@ -859,62 +859,106 @@ const WritingPage = ({ onBackToStart }) => {
         
         <div className="mb-8">
           <Button onClick={handleBack} className="back-button mb-4">Back</Button>
-          <h2 className="text-2xl font-bold mb-5 text-gray-800">
-            {currentTask === 'task1' ? 'Writing Task 1' : 'Writing Task 2'}
-          </h2>
           
-          {/* Task container with improved styling */}
-          <div className="prompt-container bg-white rounded-lg shadow-md mb-6 overflow-hidden p-6">
-            {/* Task 1 Content */}
-            {currentTask === 'task1' && (
-              <>
-                {/* Situation */}
-                {currentTaskData.situation && (
-                  <div className="mb-5">
-                    <p className="text-lg text-gray-800 leading-relaxed">{currentTaskData.situation}</p>
-                  </div>
-                )}
-                
-                {/* Instructions */}
-                {currentTaskData.instructions && (
-                  <div className="mb-4">
-                    <p className="text-md text-gray-700 font-medium">{currentTaskData.instructions}</p>
-                  </div>
-                )}
-                
-                {/* Bullet Points */}
-                {currentTaskData.bulletPoints && currentTaskData.bulletPoints.length > 0 && (
-                  <div className="mb-4 ml-2">
-                    <ul className="space-y-3">
-                      {currentTaskData.bulletPoints.map((point, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-600 mr-3 mt-0.5 flex-shrink-0">•</span>
-                          <span className="text-gray-700 text-base">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </>
-            )}
+          {/* Task Header */}
+          <div className="task-header-container mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-l-4 border-blue-500">
+            <h2 className="text-2xl font-bold text-blue-800 mb-2">
+              {currentTask === 'task1' ? 'IELTS Writing Task 1' : 'IELTS Writing Task 2'}
+            </h2>
+            <p className="text-gray-700 text-lg">
+              {currentTask === 'task1' 
+                ? 'Describe visual information in at least 150 words' 
+                : 'Write an essay response in at least 250 words'
+              }
+            </p>
+            <div className="flex items-center mt-3 text-base text-gray-700 font-medium">
+              <span className="flex items-center mr-4">
+                <span className="material-icons text-blue-500 text-base mr-1">schedule</span>
+                <strong>Recommended Time:</strong> <span className="font-bold ml-1">{currentTask === 'task1' ? '20 min' : '40 min'}</span>
+              </span>
+              <span className="flex items-center mr-4">
+                <span className="material-icons text-blue-500 text-base mr-1">text_format</span>
+                <strong>Min Words:</strong> <span className="font-bold ml-1">{currentTask === 'task1' ? '150' : '250'}</span>
+              </span>
+              <span className="flex items-center">
+                <span className="material-icons text-blue-500 text-base mr-1">star</span>
+                <strong>Weight:</strong> <span className="font-bold ml-1">{currentTask === 'task1' ? '33%' : '67%'}</span>
+              </span>
+            </div>
+          </div>
+          
+          {/* Task Content Container */}
+          <div className="task-content-container bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+            {/* Task Instructions Header */}
+            <div className="task-instructions-header bg-gradient-to-r from-slate-50 to-blue-50 p-4 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                <span className="material-icons text-blue-600 mr-2">info</span>
+                Task Instructions
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Read the prompt carefully and ensure you address all requirements in your response.
+              </p>
+            </div>
             
-            {/* Task 2 Content */}
-            {currentTask === 'task2' && (
-              <div className="mb-4">
-                <p className="text-lg text-gray-800 leading-relaxed">{currentTaskData.text}</p>
-              </div>
-            )}
-            
-            {/* Word count information banner at bottom */}
-            <div className="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r">
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-                <p className="text-sm text-blue-700">
-                  You should write <span className="font-bold">at least {currentTask === 'task1' ? '150' : '250'} words</span> for this task.
-                </p>
-              </div>
+            {/* Task Content */}
+            <div className="task-content p-6">
+              {/* Task 1 Content */}
+              {currentTask === 'task1' && (
+                <div className="space-y-4">
+                  {/* Situation */}
+                  {currentTaskData.situation && (
+                    <div className="situation-section p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center">
+                        <span className="material-icons text-sm mr-1">description</span>
+                        Situation
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">{currentTaskData.situation}</p>
+                    </div>
+                  )}
+                  
+                  {/* Instructions */}
+                  {currentTaskData.instructions && (
+                    <div className="instructions-section p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                      <h4 className="font-semibold text-green-800 mb-2 flex items-center">
+                        <span className="material-icons text-sm mr-1">task_alt</span>
+                        Instructions
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed font-medium">{currentTaskData.instructions}</p>
+                    </div>
+                  )}
+                  
+                  {/* Bullet Points */}
+                  {currentTaskData.bulletPoints && currentTaskData.bulletPoints.length > 0 && (
+                    <div className="bullet-points-section p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                      <h4 className="font-semibold text-yellow-800 mb-3 flex items-center">
+                        <span className="material-icons text-sm mr-1">format_list_bulleted</span>
+                        Key Points to Address
+                      </h4>
+                      <ul className="space-y-2">
+                        {currentTaskData.bulletPoints.map((point, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-yellow-200 text-yellow-800 mr-3 mt-0.5 flex-shrink-0 text-sm font-bold">
+                              {index + 1}
+                            </span>
+                            <span className="text-gray-700 text-sm leading-relaxed">{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Task 2 Content */}
+              {currentTask === 'task2' && (
+                <div className="task2-content p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400">
+                  <h4 className="font-semibold text-purple-800 mb-3 flex items-center">
+                    <span className="material-icons text-sm mr-1">edit</span>
+                    Essay Prompt
+                  </h4>
+                  <p className="text-gray-700 text-lg leading-relaxed">{currentTaskData.text}</p>
+                </div>
+              )}
             </div>
           </div>
           

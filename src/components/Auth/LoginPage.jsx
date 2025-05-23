@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle, ArrowRight, GraduationCap } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -120,40 +120,54 @@ const LoginPage = () => {
   // Render confirmation form
   if (showConfirmation) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        {/* Animated Background */}
+        <div className="fixed inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+          <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        </div>
+
+        <div className="relative z-10 max-w-md w-full space-y-8 bg-white/10 backdrop-blur-lg p-10 rounded-3xl shadow-2xl border border-white/20">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+            <div className="flex items-center justify-center space-x-2 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
+            </div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">
               Verify Your Account
             </h2>
-            <p className="mt-3 text-base text-gray-600">
+            <p className="mt-3 text-base text-white/70">
               We've sent a verification code to your email
             </p>
           </div>
           
           {successMessage && (
-            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
-              <CheckCircle size={20} className="text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-green-700">{successMessage}</span>
+            <div className="bg-green-500/20 border border-green-500/30 p-4 rounded-xl flex items-center shadow-sm animate-fadeIn backdrop-blur-sm" role="alert">
+              <CheckCircle size={20} className="text-green-400 mr-3 flex-shrink-0" />
+              <span className="text-green-200">{successMessage}</span>
             </div>
           )}
           
           {displayError && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
-              <AlertTriangle size={20} className="text-red-500 mr-3 flex-shrink-0" />
-              <span className="text-red-700">{displayError}</span>
+            <div className="bg-red-500/20 border border-red-500/30 p-4 rounded-xl flex items-center shadow-sm animate-fadeIn backdrop-blur-sm" role="alert">
+              <AlertTriangle size={20} className="text-red-400 mr-3 flex-shrink-0" />
+              <span className="text-red-200">{displayError}</span>
             </div>
           )}
           
           <form className="mt-8 space-y-6" onSubmit={handleConfirmSignUp}>
             <div className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-1">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Mail className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="email"
@@ -161,7 +175,7 @@ const LoginPage = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Your email address"
                     value={formData.email}
                     onChange={handleChange}
@@ -170,19 +184,19 @@ const LoginPage = () => {
               </div>
               
               <div>
-                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="code" className="block text-sm font-medium text-white/80 mb-1">
                   Verification Code
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Lock className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="code"
                     name="code"
                     type="text"
                     required
-                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Enter verification code"
                     value={formData.code}
                     onChange={handleChange}
@@ -195,7 +209,7 @@ const LoginPage = () => {
               <button
                 type="button"
                 onClick={handleResendCode}
-                className="text-blue-600 hover:text-blue-800 inline-flex items-center font-medium text-sm transition duration-150"
+                className="text-blue-300 hover:text-blue-200 inline-flex items-center font-medium text-sm transition duration-150"
               >
                 <Mail size={16} className="mr-2" />
                 Resend code
@@ -205,7 +219,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 shadow-xl transform transition-all duration-150 hover:shadow-2xl hover:-translate-y-0.5"
             >
               {loading ? (
                 <span className="flex items-center">
@@ -229,34 +243,48 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="relative z-10 max-w-md w-full bg-white/10 backdrop-blur-lg p-10 rounded-3xl shadow-2xl border border-white/20">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-            IELTS Mastery
+          <div className="flex items-center justify-center space-x-2 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
+          </div>
+          <h2 className="text-3xl font-bold text-white tracking-tight">
+            Welcome Back
           </h2>
-          <p className="mt-3 text-base text-gray-600">
+          <p className="mt-3 text-base text-white/70">
             {activeTab === 'signin' ? 'Sign in to your account' : 'Create a new account'}
           </p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="mt-8 flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+        <div className="mt-8 flex rounded-xl border border-white/20 p-1 bg-white/5 backdrop-blur-sm">
           <button
-            className={`flex-1 py-2.5 px-4 text-center font-medium text-sm rounded-md transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 text-center font-medium text-sm rounded-lg transition-all duration-200 ${
               activeTab === 'signin'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
+                : 'text-white/70 hover:text-white'
             }`}
             onClick={() => setActiveTab('signin')}
           >
             Sign In
           </button>
           <button
-            className={`flex-1 py-2.5 px-4 text-center font-medium text-sm rounded-md transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 text-center font-medium text-sm rounded-lg transition-all duration-200 ${
               activeTab === 'signup'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
+                : 'text-white/70 hover:text-white'
             }`}
             onClick={() => setActiveTab('signup')}
           >
@@ -265,16 +293,16 @@ const LoginPage = () => {
         </div>
 
         {successMessage && (
-          <div className="mt-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
-            <CheckCircle size={20} className="text-green-500 mr-3 flex-shrink-0" />
-            <span className="text-green-700">{successMessage}</span>
+          <div className="mt-6 bg-green-500/20 border border-green-500/30 p-4 rounded-xl flex items-center shadow-sm animate-fadeIn backdrop-blur-sm" role="alert">
+            <CheckCircle size={20} className="text-green-400 mr-3 flex-shrink-0" />
+            <span className="text-green-200">{successMessage}</span>
           </div>
         )}
         
         {displayError && (
-          <div className="mt-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-center shadow-sm animate-fadeIn" role="alert">
-            <AlertTriangle size={20} className="text-red-500 mr-3 flex-shrink-0" />
-            <span className="text-red-700">{displayError}</span>
+          <div className="mt-6 bg-red-500/20 border border-red-500/30 p-4 rounded-xl flex items-center shadow-sm animate-fadeIn backdrop-blur-sm" role="alert">
+            <AlertTriangle size={20} className="text-red-400 mr-3 flex-shrink-0" />
+            <span className="text-red-200">{displayError}</span>
           </div>
         )}
 
@@ -282,12 +310,12 @@ const LoginPage = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
             <div className="space-y-5">
               <div>
-                <label htmlFor="signinEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="signinEmail" className="block text-sm font-medium text-white/80 mb-1">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Mail className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="signinEmail"
@@ -295,7 +323,7 @@ const LoginPage = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Your email address"
                     value={formData.email}
                     onChange={handleChange}
@@ -304,12 +332,12 @@ const LoginPage = () => {
               </div>
               
               <div>
-                <label htmlFor="signinPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="signinPassword" className="block text-sm font-medium text-white/80 mb-1">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Lock className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="signinPassword"
@@ -317,7 +345,7 @@ const LoginPage = () => {
                     type={showSignInPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    className="appearance-none block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 pr-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Your password"
                     value={formData.password}
                     onChange={handleChange}
@@ -326,7 +354,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowSignInPassword(!showSignInPassword)}
-                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                      className="text-white/50 hover:text-white/70 focus:outline-none"
                     >
                       {showSignInPassword ? (
                         <EyeOff className="h-5 w-5" aria-hidden="true" />
@@ -342,7 +370,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 shadow-xl transform transition-all duration-150 hover:shadow-2xl hover:-translate-y-0.5"
             >
               {loading ? (
                 <span className="flex items-center">
@@ -364,12 +392,12 @@ const LoginPage = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
             <div className="space-y-5">
               <div>
-                <label htmlFor="signupName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="signupName" className="block text-sm font-medium text-white/80 mb-1">
                   Full Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <User className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="signupName"
@@ -377,7 +405,7 @@ const LoginPage = () => {
                     type="text"
                     autoComplete="name"
                     required
-                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Your full name"
                     value={formData.name}
                     onChange={handleChange}
@@ -386,12 +414,12 @@ const LoginPage = () => {
               </div>
               
               <div>
-                <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="signupEmail" className="block text-sm font-medium text-white/80 mb-1">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Mail className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="signupEmail"
@@ -399,7 +427,7 @@ const LoginPage = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Your email address"
                     value={formData.email}
                     onChange={handleChange}
@@ -408,12 +436,12 @@ const LoginPage = () => {
               </div>
               
               <div>
-                <label htmlFor="signupPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="signupPassword" className="block text-sm font-medium text-white/80 mb-1">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Lock className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="signupPassword"
@@ -421,7 +449,7 @@ const LoginPage = () => {
                     type={showSignUpPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
-                    className="appearance-none block w-full pl-10 pr-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 pr-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Create a password"
                     value={formData.password}
                     onChange={handleChange}
@@ -430,7 +458,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                      className="text-white/50 hover:text-white/70 focus:outline-none"
                     >
                       {showSignUpPassword ? (
                         <EyeOff className="h-5 w-5" aria-hidden="true" />
@@ -440,18 +468,18 @@ const LoginPage = () => {
                     </button>
                   </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-white/50">
                   Password must be at least 8 characters and include lowercase, uppercase, numbers and symbols
                 </p>
               </div>
               
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/80 mb-1">
                   Confirm Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <Lock className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
                     id="confirmPassword"
@@ -459,7 +487,7 @@ const LoginPage = () => {
                     type={showSignUpPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
-                    className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+                    className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
@@ -471,7 +499,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transform transition-all duration-150 hover:shadow-lg hover:-translate-y-0.5"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 shadow-xl transform transition-all duration-150 hover:shadow-2xl hover:-translate-y-0.5"
             >
               {loading ? (
                 <span className="flex items-center">

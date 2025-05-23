@@ -23,6 +23,8 @@ import UnderConstructionPage from './components/Toefl/UnderConstructionPage.jsx'
 import ToeflWritingHome from './components/Toefl/Writing/WritingHome.jsx';
 // Import Toefl Speaking component
 import ToeflSpeakingHome from './components/Toefl/Speaking/ToeflSpeakingHome.jsx';
+// Import Toefl Reading component
+import ToeflReadingHome from './components/Toefl/Reading/ToeflReadingHome.jsx';
 
 // Import Timer context
 import { TimerProvider, useTimer } from './lib/TimerContext.jsx';
@@ -38,6 +40,7 @@ const ExamTypePage = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [hoveredExam, setHoveredExam] = useState(null);
   
   const handleExamSelection = (examType) => {
     navigate(`/${examType.toLowerCase()}-skills`);
@@ -61,84 +64,202 @@ const ExamTypePage = () => {
     }
   };
 
+  const examTypes = [
+    {
+      id: 'ielts',
+      name: 'IELTS',
+      fullName: 'International English Language Testing System',
+      icon: 'school',
+      description: 'Globally recognized English proficiency test',
+      color: 'from-cyan-500 to-cyan-700',
+      iconBg: 'bg-cyan-600',
+      delay: '0.1s',
+      features: ['Academic & General', '4 Skills Assessment', 'Band Score 0-9']
+    },
+    {
+      id: 'toefl',
+      name: 'TOEFL',
+      fullName: 'Test of English as a Foreign Language',
+      icon: 'language',
+      description: 'Premier test for academic English assessment',
+      color: 'from-blue-500 to-purple-700',
+      iconBg: 'bg-blue-600',
+      delay: '0.2s',
+      features: ['Academic Focus', 'iBT Format', 'Score 0-120']
+    }
+  ];
+
   return (
-    <div className="landing-page">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
       {/* Header */}
-      <header className="landing-header">
-        <div className="header-content">
-          <h1>English Proficiency Practice</h1>
-          <div className="header-line"></div>
-          <button 
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 right-4 flex items-center shadow-md"
-          >
-            {isLoggingOut ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging out...
-              </>
-            ) : (
-              <>
-                <span className="material-icons text-sm mr-1">logout</span>
-                Logout
-              </>
-            )}
-          </button>
+      <header className="relative z-10 bg-white/10 backdrop-blur-lg border-b border-white/20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and Brand */}
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="material-icons text-white text-lg">graduation_cap</span>
+              </div>
+              <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
+            </div>
+            
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <span className="text-white/80 font-medium">Choose Your Test</span>
+            </nav>
+            
+            {/* User Actions */}
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="group flex items-center space-x-2 bg-white/10 backdrop-blur-sm text-white/80 px-4 py-2 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-300 border border-white/20"
+              >
+                {isLoggingOut ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-sm">Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <span className="text-sm font-medium">Logout</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="landing-main">
-        <div className="skills-container">
-          <h2 className="skills-title fade-in">Choose an Exam Type</h2>
-          
-          <div className="text-center mb-6 fade-in">
+      <main className="relative z-10 px-6 pb-12 pt-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl mb-8 shadow-2xl">
+              <span className="material-icons text-white text-4xl">school</span>
+            </div>
+            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                English
+              </span>
+              <br />
+              <span className="text-white/90">Proficiency Hub</span>
+            </h1>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed mb-8">
+              Choose your path to English proficiency success. Master the world's most trusted 
+              English language assessments with our AI-powered practice platform.
+            </p>
+            
+            {/* Key Features */}
+            <div className="flex justify-center mb-12 space-x-12">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-400">2</div>
+                <div className="text-sm text-white/60">Tests</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400">AI</div>
+                <div className="text-sm text-white/60">Powered</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-emerald-400">∞</div>
+                <div className="text-sm text-white/60">Practice</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Play Zone Button */}
+          <div className="text-center mb-16">
             <button 
-              className="play-zone-button"
               onClick={() => navigate('/play-zone')}
+              className="group inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-8 py-4 rounded-2xl hover:from-emerald-600 hover:to-cyan-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
-              <span className="material-icons">sports_esports</span>
-              <span>Play Zone</span>
+              <span className="material-icons text-2xl group-hover:rotate-12 transition-transform duration-300">sports_esports</span>
+              <span className="text-lg font-semibold">Play Zone</span>
+              <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
             </button>
           </div>
-          
-          <div className="skills-grid">
-            {/* IELTS Card */}
-            <div 
-              className="skill-tile slide-up"
-              onClick={() => handleExamSelection('ielts')}
-              style={{animationDelay: '0.1s'}}
-            >
-              <div className="skill-icon">
-                <span className="material-icons">school</span>
-              </div>
-              <h2>IELTS</h2>
-              <p>International English Language Testing System</p>
-            </div>
 
-            {/* TOEFL Card */}
-            <div 
-              className="skill-tile slide-up"
-              onClick={() => handleExamSelection('toefl')}
-              style={{animationDelay: '0.2s'}}
-            >
-              <div className="skill-icon">
-                <span className="material-icons">language</span>
+          {/* Exam Type Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {examTypes.map((exam) => (
+              <div
+                key={exam.id}
+                className="group cursor-pointer transform transition-all duration-500 hover:scale-105"
+                onClick={() => handleExamSelection(exam.id)}
+                onMouseEnter={() => setHoveredExam(exam.id)}
+                onMouseLeave={() => setHoveredExam(null)}
+                style={{animationDelay: exam.delay}}
+              >
+                <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:bg-white/20 h-full">
+                  {/* Floating icon */}
+                  <div className={`inline-flex items-center justify-center w-20 h-20 ${exam.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-3 group-hover:shadow-xl`}>
+                    <span className="material-icons text-white text-3xl">{exam.icon}</span>
+                  </div>
+                  
+                  {/* Content */}
+                  <h3 className="text-3xl font-bold text-white mb-2 group-hover:text-white">
+                    {exam.name}
+                  </h3>
+                  <h4 className="text-lg font-medium text-white/70 mb-4 group-hover:text-white/80">
+                    {exam.fullName}
+                  </h4>
+                  <p className="text-white/70 mb-6 leading-relaxed group-hover:text-white/80">
+                    {exam.description}
+                  </p>
+                  
+                  {/* Features */}
+                  <div className="space-y-3 mb-6">
+                    {exam.features.map((feature, index) => (
+                      <div key={index} className="flex items-center text-sm text-white/70">
+                        <span className="material-icons text-green-400 text-lg mr-3">check_circle</span>
+                        <span className="font-medium">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Action indicator */}
+                  <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20">
+                    <span className="font-medium">Choose {exam.name}</span>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+                  </div>
+                  
+                  {/* Progress bar simulation */}
+                  <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden mt-4">
+                    <div 
+                      className={`h-full bg-gradient-to-r ${exam.color} rounded-full transition-all duration-1000 ${hoveredExam === exam.id ? 'w-full' : 'w-0'}`}
+                    ></div>
+                  </div>
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                </div>
               </div>
-              <h2>TOEFL</h2>
-              <p>Test of English as a Foreign Language</p>
+            ))}
+          </div>
+          
+          {/* Call to action */}
+          <div className="text-center mt-16">
+            <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
+              <span className="material-icons text-blue-400">bolt</span>
+              <span className="font-medium">Ready to start your English proficiency journey?</span>
+              <span className="material-icons text-green-400 animate-pulse">star</span>
             </div>
           </div>
         </div>
       </main>
-      
-      <footer className="landing-footer fade-in">
-        <p>Designed for focused English proficiency exam preparation</p>
-      </footer>
     </div>
   );
 };
@@ -149,6 +270,7 @@ const SkillsPage = ({ examType }) => {
   const { signOut } = useAuth();
   const { resetTimer } = useTimer();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [hoveredSkill, setHoveredSkill] = useState(null);
   
   const handleSkillSelection = (skill) => {
     resetTimer();
@@ -179,107 +301,192 @@ const SkillsPage = ({ examType }) => {
   
   const examName = examType === 'ielts' ? 'IELTS' : 'TOEFL';
   
+  const skills = [
+    {
+      id: 'reading',
+      name: 'Reading',
+      icon: 'menu_book',
+      description: 'Master comprehension with authentic passages',
+      color: 'from-cyan-500 to-cyan-700',
+      bgColor: 'bg-cyan-50',
+      hoverColor: 'group-hover:bg-cyan-100',
+      iconBg: 'bg-cyan-600',
+      delay: '0.1s',
+      stats: examType === 'toefl' ? '2-3 passages • 35 minutes' : '3 passages • 60 minutes'
+    },
+    {
+      id: 'writing',
+      name: 'Writing',
+      icon: 'edit_note',
+      description: 'Craft compelling essays and responses',
+      color: 'from-emerald-500 to-emerald-700',
+      bgColor: 'bg-emerald-50',
+      hoverColor: 'group-hover:bg-emerald-100',
+      iconBg: 'bg-emerald-600',
+      delay: '0.2s',
+      stats: examType === 'toefl' ? '2 tasks • 50 minutes' : '2 tasks • 60 minutes'
+    },
+    {
+      id: 'listening',
+      name: 'Listening',
+      icon: 'headphones',
+      description: 'Sharpen your audio comprehension skills',
+      color: 'from-blue-500 to-blue-700',
+      bgColor: 'bg-blue-50',
+      hoverColor: 'group-hover:bg-blue-100',
+      iconBg: 'bg-blue-600',
+      delay: '0.3s',
+      stats: examType === 'toefl' ? '3-4 lectures • 41-57 minutes' : '4 sections • 30 minutes'
+    },
+    {
+      id: 'speaking',
+      name: 'Speaking',
+      icon: 'record_voice_over',
+      description: 'Build confidence through practice',
+      color: 'from-purple-500 to-purple-700',
+      bgColor: 'bg-purple-50',
+      hoverColor: 'group-hover:bg-purple-100',
+      iconBg: 'bg-purple-600',
+      delay: '0.4s',
+      stats: examType === 'toefl' ? '4 tasks • 17 minutes' : '3 parts • 11-14 minutes'
+    }
+  ];
+  
   return (
-    <div className="landing-page">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
       {/* Header */}
-      <header className="landing-header">
-        <div className="header-content">
-          <h1>{examName} Practice</h1>
-          <div className="header-line"></div>
-          <button 
-            onClick={handleBack}
-            className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 left-4 flex items-center shadow-md"
-          >
-            <span className="material-icons text-sm mr-1">arrow_back</span>
-            Back
-          </button>
-          <button 
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 right-4 flex items-center shadow-md"
-          >
-            {isLoggingOut ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging out...
-              </>
-            ) : (
-              <>
-                <span className="material-icons text-sm mr-1">logout</span>
-                Logout
-              </>
-            )}
-          </button>
+      <header className="relative z-10 bg-white/10 backdrop-blur-lg border-b border-white/20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and Brand */}
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="material-icons text-white text-lg">graduation_cap</span>
+              </div>
+              <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
+            </div>
+            
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <button 
+                onClick={handleBack}
+                className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
+              >
+                <span className="material-icons text-sm">arrow_back</span>
+                <span>Home</span>
+              </button>
+              <div className="text-white/60">|</div>
+              <span className="text-white/80 font-medium">{examName} Practice</span>
+            </nav>
+            
+            {/* User Actions */}
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="group flex items-center space-x-2 bg-white/10 backdrop-blur-sm text-white/80 px-4 py-2 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-300 border border-white/20"
+              >
+                {isLoggingOut ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-sm">Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <span className="text-sm font-medium">Logout</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="landing-main">
-        <div className="skills-container">
-          <h2 className="skills-title fade-in">Choose a section to practice</h2>
-                    
-          <div className="skills-grid">
-            {/* Reading Card */}
-            <div 
-              className="skill-tile slide-up"
-              onClick={() => handleSkillSelection('reading')}
-              style={{animationDelay: '0.1s'}}
-            >
-              <div className="skill-icon">
-                <span className="material-icons">menu_book</span>
-              </div>
-              <h2>Reading</h2>
-              <p>Enhance your comprehension skills with {examName}-style passages</p>
+      <main className="relative z-10 px-6 pb-12 pt-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl mb-6 shadow-xl">
+              <span className="material-icons text-white text-3xl">school</span>
             </div>
+            <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                {examName}
+              </span>
+              <br />
+              <span className="text-white/90">Practice Hub</span>
+            </h1>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+              Master all four essential skills with our AI-powered practice platform. 
+              Choose your skill below and start your journey to exam success.
+            </p>
+            
+            {/* Progress indicators */}
+            <div className="flex justify-center mt-8 space-x-8">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-400">4</div>
+                <div className="text-sm text-white/60">Skills</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">AI</div>
+                <div className="text-sm text-white/60">Powered</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-emerald-400">∞</div>
+                <div className="text-sm text-white/60">Practice</div>
+              </div>
+            </div>
+          </div>
 
-            {/* Writing Card */}
-            <div 
-              className="skill-tile slide-up"
-              onClick={() => handleSkillSelection('writing')}
-              style={{animationDelay: '0.2s'}}
-            >
-              <div className="skill-icon">
-                <span className="material-icons">edit_note</span>
+          {/* Skills Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {skills.map((skill) => (
+              <div
+                key={skill.id}
+                className="group cursor-pointer transform transition-all duration-500 hover:scale-105"
+                onClick={() => handleSkillSelection(skill.id)}
+                onMouseEnter={() => setHoveredSkill(skill.id)}
+                onMouseLeave={() => setHoveredSkill(null)}
+                style={{animationDelay: skill.delay}}
+              >
+                <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl`}>
+                  {/* Floating icon */}
+                  <div className={`inline-flex items-center justify-center w-16 h-16 ${skill.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
+                    <span className="material-icons text-white text-2xl">{skill.icon}</span>
+                  </div>
+                  
+                  {/* Content */}
+                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-white">
+                    {skill.name}
+                  </h3>
+                  <p className="text-white/70 mb-4 leading-relaxed group-hover:text-white/80">
+                    {skill.description}
+                  </p>
+                  <div className="text-sm text-white/50 group-hover:text-white/60">
+                    {skill.stats}
+                  </div>
+                  
+                  {/* Hover effect overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </div>
               </div>
-              <h2>Writing</h2>
-              <p>Master writing tasks with guided practice</p>
-            </div>
-
-            {/* Listening Card */}
-            <div 
-              className="skill-tile slide-up"
-              onClick={() => handleSkillSelection('listening')}
-              style={{animationDelay: '0.3s'}}
-            >
-              <div className="skill-icon">
-                <span className="material-icons">headphones</span>
-              </div>
-              <h2>Listening</h2>
-              <p>Practice with authentic audio exercises</p>
-            </div>
-
-            {/* Speaking Card */}
-            <div 
-              className="skill-tile slide-up"
-              onClick={() => handleSkillSelection('speaking')}
-              style={{animationDelay: '0.4s'}}
-            >
-              <div className="skill-icon">
-                <span className="material-icons">record_voice_over</span>
-              </div>
-              <h2>Speaking</h2>
-              <p>Build fluency with structured speaking exercises</p>
-            </div>
+            ))}
           </div>
         </div>
       </main>
-      
-      <footer className="landing-footer fade-in">
-        <p>Designed for focused {examName} preparation</p>
-      </footer>
     </div>
   );
 };
@@ -310,66 +517,208 @@ const ListeningPlaceholder = () => {
 // Placeholder for Play Zone section
 const PlayZonePlaceholder = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+    
+    try {
+      setIsLoggingOut(true);
+      
+      // Store logout intent in sessionStorage
+      sessionStorage.setItem('showLogoutSuccess', 'true');
+      
+      // Sign out and immediately navigate
+      await signOut();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
+
+  const playZoneOptions = [
+    {
+      id: 'learn',
+      name: 'Learn',
+      icon: 'school',
+      description: 'Master grammar and vocabulary with interactive lessons',
+      color: 'from-cyan-500 to-cyan-600',
+      iconBg: 'bg-cyan-600',
+      delay: '0.1s',
+      path: '/play-zone/learn'
+    },
+    {
+      id: 'games',
+      name: 'Play Games',
+      icon: 'videogame_asset',
+      description: 'Fun and engaging games to boost your English skills',
+      color: 'from-blue-500 to-blue-600',
+      iconBg: 'bg-blue-600',
+      delay: '0.2s',
+      path: '/play-zone/games'
+    },
+    {
+      id: 'flashcards',
+      name: 'Flash Cards',
+      icon: 'style',
+      description: 'Quick vocabulary and grammar review sessions',
+      color: 'from-emerald-500 to-emerald-600',
+      iconBg: 'bg-emerald-600',
+      delay: '0.3s',
+      path: '/play-zone/flashcards'
+    }
+  ];
   
   return (
-    <div className="landing-page">
-      <header className="landing-header">
-        <div className="header-content">
-          <h1>English Proficiency Practice</h1>
-          <div className="header-line"></div>
-          <button 
-            onClick={() => navigate('/skills')}
-            className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition duration-200 absolute top-4 left-4 flex items-center shadow-md"
-          >
-            <span className="material-icons text-sm mr-1">arrow_back</span>
-            Back
-          </button>
-        </div>
-      </header>
-      
-      <main className="landing-main">
-        <div className="instructions-panel max-w-3xl fade-in">
-          <div className="instructions-header">Play Zone</div>
-          <div className="instructions-section">
-            <div className="text-center mb-8">
-              <span className="material-icons" style={{fontSize: '4rem', color: '#6930c3'}}>sports_esports</span>
-            </div>
-            <p className="text-lg text-gray-700 mb-8 text-center">
-              Welcome to the Play Zone! Choose an option below to enhance your exam preparation.
-            </p>
-            
-            <div className="play-zone-options">
-              <button 
-                onClick={() => navigate('/play-zone/learn')}
-                className="play-zone-option-button learn-button"
-              >
-                <span className="material-icons">school</span>
-                <span>Learn</span>
-              </button>
-              
-              <button 
-                onClick={() => navigate('/play-zone/games')}
-                className="play-zone-option-button games-button"
-              >
-                <span className="material-icons">videogame_asset</span>
-                <span>Play Games</span>
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
 
+      {/* Header */}
+      <header className="relative z-10 bg-white/10 backdrop-blur-lg border-b border-white/20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and Brand */}
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="material-icons text-white text-lg">graduation_cap</span>
+              </div>
+              <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
+            </div>
+            
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
               <button 
-                onClick={() => navigate('/play-zone/flashcards')}
-                className="play-zone-option-button flashcards-button"
+                onClick={() => navigate('/skills')}
+                className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
               >
-                <span className="material-icons">style</span>
-                <span>Flash Cards</span>
+                <span className="material-icons text-sm">arrow_back</span>
+                <span>Home</span>
+              </button>
+              <div className="text-white/60">|</div>
+              <span className="text-white/80 font-medium">Play Zone</span>
+            </nav>
+            
+            {/* User Actions */}
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="group flex items-center space-x-2 bg-white/10 backdrop-blur-sm text-white/80 px-4 py-2 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-300 border border-white/20"
+              >
+                {isLoggingOut ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-sm">Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <span className="text-sm font-medium">Logout</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-10 px-6 pb-12 pt-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-3xl mb-8 shadow-2xl">
+              <span className="material-icons text-white text-4xl">sports_esports</span>
+            </div>
+            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                Play Zone
+              </span>
+            </h1>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed mb-8">
+              Make learning fun with interactive games, flashcards, and engaging activities. 
+              Enhance your English skills through play-based learning experiences.
+            </p>
+            
+            {/* Key Features */}
+            <div className="flex justify-center mb-12 space-x-12">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-emerald-400">Fun</div>
+                <div className="text-sm text-white/60">Learning</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-400">Interactive</div>
+                <div className="text-sm text-white/60">Games</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400">Progress</div>
+                <div className="text-sm text-white/60">Tracking</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Play Zone Options */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {playZoneOptions.map((option) => (
+              <div
+                key={option.id}
+                className="group cursor-pointer transform transition-all duration-500 hover:scale-105"
+                onClick={() => navigate(option.path)}
+                style={{animationDelay: option.delay}}
+              >
+                <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:bg-white/20 h-full">
+                  {/* Floating icon */}
+                  <div className={`inline-flex items-center justify-center w-20 h-20 ${option.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-3 group-hover:shadow-xl`}>
+                    <span className="material-icons text-white text-3xl">{option.icon}</span>
+                  </div>
+                  
+                  {/* Content */}
+                  <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-white">
+                    {option.name}
+                  </h3>
+                  <p className="text-white/70 mb-6 leading-relaxed group-hover:text-white/80">
+                    {option.description}
+                  </p>
+                  
+                  {/* Action indicator */}
+                  <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20">
+                    <span className="font-medium">Explore {option.name}</span>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+                  </div>
+                  
+                  {/* Progress bar simulation */}
+                  <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden mt-4">
+                    <div className={`h-full bg-gradient-to-r ${option.color} rounded-full transition-all duration-1000 group-hover:w-full w-0`}></div>
+                  </div>
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Call to action */}
+          <div className="text-center mt-16">
+            <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
+              <span className="material-icons text-emerald-400">star</span>
+              <span className="font-medium">Ready to make learning fun and interactive?</span>
+              <span className="material-icons text-cyan-400 animate-pulse">gamepad</span>
+            </div>
+          </div>
+        </div>
       </main>
-      
-      <footer className="landing-footer fade-in">
-        <p>Designed for focused exam preparation</p>
-      </footer>
     </div>
   );
 };
@@ -398,9 +747,9 @@ function App() {
               {/* TOEFL Routes */}
               <Route path="/toefl/writing" element={<ToeflWritingHome />} />
               <Route path="/toefl/speaking" element={<ToeflSpeakingHome />} />
+              <Route path="/toefl/reading" element={<ToeflReadingHome />} />
               <Route path="/toefl/listening" element={<UnderConstructionPage examType="Listening" />} />
-              <Route path="/toefl/reading" element={<UnderConstructionPage examType="Reading" />} />
-              <Route path="/toefl/reading/exam" element={<UnderConstructionPage examType="Reading Exam" />} />
+              <Route path="/toefl/reading/exam" element={<ToeflReadingHome />} />
               
               {/* Play Zone Routes (common for both exam types) */}
               <Route path="/play-zone" element={<PlayZonePlaceholder />} />

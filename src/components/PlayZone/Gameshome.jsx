@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../Auth/AuthContext';
 import TalkToMe from './Games/TalkToMe';
 import WordTile from './Games/WordTile';
 import WordDrop from './Games/WordDrop';
@@ -9,7 +10,27 @@ import MarkTheWords from './Games/MarkTheWords';
 
 const GamesHome = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [activeGame, setActiveGame] = useState(null);
+  
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+    
+    try {
+      setIsLoggingOut(true);
+      
+      // Store logout intent in sessionStorage
+      sessionStorage.setItem('showLogoutSuccess', 'true');
+      
+      // Sign out and immediately navigate
+      await signOut();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
   
   const games = [
     {
@@ -17,42 +38,42 @@ const GamesHome = () => {
       title: "Talk To Me",
       icon: "record_voice_over",
       description: "Practice speaking skills by answering questions and get AI feedback to improve fluency and accuracy.",
-      color: "#7209b7"
+      color: "from-purple-500 to-violet-500"
     },
     {
       id: 'wordtile',
       title: "Word Tile",
       icon: "grid_view",
       description: "Arrange word tiles in the correct order to form grammatically correct sentences and improve structure.",
-      color: "#0091ad"
+      color: "from-cyan-500 to-blue-500"
     },
     {
       id: 'worddrop',
       title: "Word Drop",
       icon: "arrow_downward",
       description: "Catch falling words that match the given category to build vocabulary and improve recognition speed.",
-      color: "#ff9e00"
+      color: "from-amber-500 to-orange-500"
     },
     {
       id: 'dragzilla',
       title: "DragZilla",
       icon: "drag_indicator",
       description: "Drag and drop words to match definitions, synonyms, or antonyms and expand your vocabulary.",
-      color: "#38b000"
+      color: "from-emerald-500 to-teal-500"
     },
     {
       id: 'crossroads',
       title: "Crossroads",
       icon: "grid_3x3",
       description: "Find the intersection of words by solving word clues and identifying common letters in crossword-style puzzles.",
-      color: "#5e60ce"
+      color: "from-indigo-500 to-purple-500"
     },
     {
       id: 'markthewords',
       title: "Mark The Words",
       icon: "highlight_alt",
       description: "Identify specific parts of speech in sentences to improve your grammar recognition and understanding.",
-      color: "#06a77d"
+      color: "from-teal-500 to-cyan-500"
     }
   ];
   
@@ -76,84 +97,144 @@ const GamesHome = () => {
   }
   
   return (
-    <div className="landing-page">
-      <header className="landing-header">
-        <div className="header-content">
-          <h1>IELTS Practice</h1>
-          <div className="header-line"></div>
-          <button 
-            onClick={() => navigate('/play-zone')}
-            className="absolute top-8 left-8 flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors text-blue-700 font-medium"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
-            Back to Play Zone
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 bg-white/10 backdrop-blur-lg border-b border-white/20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and Brand */}
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="material-icons text-white text-lg">graduation_cap</span>
+              </div>
+              <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
+            </div>
+            
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <button 
+                onClick={() => navigate('/play-zone')}
+                className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
+              >
+                <span className="material-icons text-sm">arrow_back</span>
+                <span>Play Zone</span>
+              </button>
+              <div className="text-white/60">|</div>
+              <span className="text-white/80 font-medium">Games</span>
+            </nav>
+            
+            {/* User Actions */}
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="group flex items-center space-x-2 bg-white/10 backdrop-blur-sm text-white/80 px-4 py-2 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-300 border border-white/20"
+              >
+                {isLoggingOut ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-sm">Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <span className="text-sm font-medium">Logout</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
-      
-      <main className="landing-main">
-        <div className="games-container fade-in">
-          <h2 className="learn-title">Games & Activities</h2>
-          
-          <div className="games-grid">
+
+      <main className="relative z-10 px-6 pb-12 pt-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl mb-6 shadow-xl">
+              <span className="material-icons text-white text-3xl">videogame_asset</span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
+              <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                Games & Activities
+              </span>
+            </h1>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+              Make learning fun with interactive games designed to boost your English skills through engaging gameplay.
+            </p>
+          </div>
+
+          {/* Games Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {games.map((game, index) => (
-              <div 
+              <div
                 key={index}
-                className="game-card"
-                style={{
-                  animationDelay: `${0.1 * (index + 1)}s`,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
+                className="group cursor-pointer transform transition-all duration-500 hover:scale-105"
+                onClick={() => setActiveGame(game.id)}
+                style={{animationDelay: `${0.1 * (index + 1)}s`}}
               >
-                <div 
-                  className="game-icon" 
-                  style={{
-                    background: `linear-gradient(135deg, ${game.color}22, ${game.color}44)`,
-                    boxShadow: `0 8px 20px ${game.color}22`
-                  }}
-                >
-                  <span 
-                    className="material-icons"
-                    style={{
-                      color: game.color,
-                      fontSize: '2.5rem'
-                    }}
+                <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:bg-white/20 h-full flex flex-col">
+                  {/* Floating icon */}
+                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${game.color} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-3 group-hover:shadow-xl`}>
+                    <span className="material-icons text-white text-2xl">{game.icon}</span>
+                  </div>
+                  
+                  {/* Content */}
+                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-white">
+                    {game.title}
+                  </h3>
+                  <p className="text-white/70 mb-6 leading-relaxed group-hover:text-white/80 flex-grow">
+                    {game.description}
+                  </p>
+                  
+                  {/* Play button */}
+                  <button 
+                    className={`w-full bg-gradient-to-r ${game.color} text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center group-hover:scale-105`}
                   >
-                    {game.icon}
-                  </span>
+                    Play Now
+                    <span className="material-icons ml-2 text-lg group-hover:translate-x-1 transition-transform duration-300">play_arrow</span>
+                  </button>
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                 </div>
-                <h3 className="game-title">{game.title}</h3>
-                <p className="game-description" style={{ flexGrow: 1 }}>{game.description}</p>
-                <button 
-                  className="play-game-button"
-                  style={{
-                    background: `linear-gradient(to right, ${game.color}, ${game.color}cc)`,
-                    color: 'white',
-                    fontWeight: 'bold',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '8px',
-                    boxShadow: `0 4px 15px ${game.color}33`,
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    marginTop: 'auto'
-                  }}
-                  onClick={() => setActiveGame(game.id)}
-                >
-                  Play Now
-                </button>
               </div>
             ))}
           </div>
         </div>
       </main>
       
-      <footer className="landing-footer fade-in">
-        <p>Designed for focused IELTS preparation</p>
+      <footer className="relative z-10 border-t border-white/20 bg-black/20 backdrop-blur-lg py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-cyan-400 font-medium mb-4 md:mb-0">Designed for focused IELTS preparation</p>
+            <div className="flex space-x-4">
+              <span className="text-white/60 flex items-center">
+                <span className="material-icons text-lg mr-1">sports_esports</span>
+                Play
+              </span>
+              <span className="text-white/60 flex items-center">
+                <span className="material-icons text-lg mr-1">star</span>
+                Learn
+              </span>
+              <span className="text-white/60 flex items-center">
+                <span className="material-icons text-lg mr-1">emoji_events</span>
+                Master
+              </span>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );

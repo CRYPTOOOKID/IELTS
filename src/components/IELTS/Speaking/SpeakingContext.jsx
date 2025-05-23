@@ -23,6 +23,8 @@ export const SpeakingProvider = ({ children }) => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentPart, setCurrentPart] = useState(1); // 1, 2, or 3
   const [usingFallback, setUsingFallback] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdownNumber, setCountdownNumber] = useState(3);
   const [transcriptions, setTranscriptions] = useState({
     part1: ["", "", "", ""],
     part2: "",
@@ -42,9 +44,25 @@ export const SpeakingProvider = ({ children }) => {
     resetTest();
   }, []);
 
+  // Countdown animation effect
+  useEffect(() => {
+    if (showCountdown) {
+      if (countdownNumber > 0) {
+        const timer = setTimeout(() => {
+          setCountdownNumber(countdownNumber - 1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // When countdown reaches 0, hide countdown and show the test
+        setShowCountdown(false);
+        setShowInstructions(false);
+        setCurrentPart(1);
+      }
+    }
+  }, [countdownNumber, showCountdown]);
+
   // Function to fetch test data from HTTP API with fallback
   const fetchTestData = async () => {
-    setLoading(true);
     setError(null);
     setLoadingMessage('Loading speaking test data...');
     setUsingFallback(false);
@@ -91,18 +109,17 @@ export const SpeakingProvider = ({ children }) => {
       // Use fallback data
       setTestData(fallbackData);
       setUsingFallback(true);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Start the test by hiding instructions
+  // Start the test by showing countdown first
   const startTest = () => {
     // Stop any active recordings when starting the test
     stopAllRecordings();
     
-    setShowInstructions(false);
-    setCurrentPart(1);
+    // Start countdown animation
+    setShowCountdown(true);
+    setCountdownNumber(3);
   };
 
   // Move to the next part of the test
@@ -167,6 +184,8 @@ export const SpeakingProvider = ({ children }) => {
   const resetTest = () => {
     setShowInstructions(true);
     setCurrentPart(1);
+    setShowCountdown(false);
+    setCountdownNumber(3);
     setTranscriptions({
       part1: ["", "", "", ""],
       part2: "",
@@ -376,6 +395,8 @@ export const SpeakingProvider = ({ children }) => {
     showInstructions,
     currentPart,
     usingFallback,
+    showCountdown,
+    countdownNumber,
     transcriptions,
     isRecording,
     feedback,

@@ -1290,4 +1290,226 @@
 .overall-feedback-content,
 .task-feedback-content {
   animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Enhanced Typography */
+.text-gradient {
+  background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+/* Enhanced Countdown Animation Styles */
+.countdown-animation {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Floating particles background */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.floating-particle {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  background: linear-gradient(45deg, #60a5fa, #3b82f6);
+  border-radius: 50%;
+  opacity: var(--opacity);
+  animation: floatParticle var(--duration) ease-in-out infinite var(--delay);
+  left: var(--x-start);
+  top: var(--y-start);
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translate(0, 0) scale(0.8);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(20px, -30px) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-15px, -20px) scale(0.9);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(25px, 10px) scale(1.1);
+    opacity: 0.6;
+  }
+}
+
+/* Animated rings */
+.countdown-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.countdown-ring-1 {
+  animation: rotateClockwise 20s linear infinite;
+}
+
+.countdown-ring-2 {
+  animation: rotateCounterclockwise 15s linear infinite;
+}
+
+.countdown-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes rotateClockwise {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes rotateCounterclockwise {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
+/* Central countdown display */
+.countdown-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.countdown-number {
+  font-size: 80px;
+  font-weight: bold;
+  background: linear-gradient(to bottom, #1e40af, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.countdown-go {
+  font-size: 40px;
+  font-weight: bold;
+  background: linear-gradient(to bottom, #047857, #10b981);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: zoomIn 0.5s ease-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes zoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.countdown-message {
+  margin-top: 30px;
+  font-size: 24px;
+  color: #4b5563;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Breathing guide animation */
+.breathing-guide {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.breathing-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #60a5fa, #3b82f6);
+  animation: breatheCircle 4s ease-in-out infinite;
+}
+
+@keyframes breatheCircle {
+  0%, 100% {
+    transform: scale(0.8);
+    box-shadow: 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.breathing-text {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #6b7280;
+  opacity: 0.8;
+}
+
+.breath-text {
+  animation: breathe 4s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 } 

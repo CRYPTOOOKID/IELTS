@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTimer } from '../../../lib/TimerContext';
 import ExamContainer from '../../ui/ExamContainer';
+import './ReadingExam.css';
 
 const ReadingInstructions = () => {
   const navigate = useNavigate();
@@ -10,59 +11,99 @@ const ReadingInstructions = () => {
   const startExam = () => {
     // Start the timer when navigating to the exam
     setTimerStarted(true);
-    navigate('/reading/exam');
+    navigate('/ielts/reading/exam');
   };
 
   return (
     <ExamContainer>
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-center text-blue-800 mb-6">IELTS Reading Test Instructions</h1>
-        
-        <div className="space-y-6 text-gray-700">
-          <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-            <h2 className="text-xl font-semibold text-blue-800 mb-2">Overview</h2>
-            <p>The IELTS Reading test assesses your ability to understand written English in various contexts. The test contains 3 sections with increasing difficulty.</p>
-          </div>
-          
-          <div>
-            <h2 className="text-xl font-semibold text-blue-800 mb-2">Test Format</h2>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Duration: 60 minutes</li>
-              <li>3 sections with increasing difficulty</li>
-              <li>Total of 40 questions</li>
-              <li>Various question types (multiple choice, matching, short answer, etc.)</li>
-              <li>No extra time given for transferring answers</li>
-            </ul>
-          </div>
-          
-          <div>
-            <h2 className="text-xl font-semibold text-blue-800 mb-2">Tips for Success</h2>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Read the instructions carefully for each question</li>
-              <li>Pay attention to word limits for short-answer questions</li>
-              <li>Manage your time - approximately 20 minutes per section</li>
-              <li>Don't spend too long on difficult questions</li>
-              <li>Transfer your answers accurately if using an answer sheet</li>
-            </ul>
-          </div>
-          
-          <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-            <h2 className="text-xl font-semibold text-yellow-700 mb-2">Important Notes</h2>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Spelling and grammar count in your answers</li>
-              <li>All answers must be written on the answer sheet</li>
-              <li>No extra time is allowed for transferring answers</li>
-            </ul>
-          </div>
+      <div className="instructions-container">
+        <div className="reading-header">
+          <h1 className="reading-title">IELTS Reading Practice</h1>
+          <p className="reading-subtitle">
+            Master reading comprehension with authentic IELTS passages
+          </p>
         </div>
         
-        <div className="mt-8 text-center">
-          <button 
-            onClick={startExam}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition duration-200 shadow-md hover:shadow-lg"
-          >
-            Start Exam
-          </button>
+        <div className="instructions-card-compact">
+          <h2 className="instructions-title">IELTS Reading Test Instructions</h2>
+          
+          <div className="instructions-content-grid">
+            <div className="instruction-block-compact">
+              <div className="instruction-icon-small">
+                <span className="material-icons">menu_book</span>
+              </div>
+              <div className="instruction-details-compact">
+                <h3>Test Structure</h3>
+                <p><strong>3 Sections</strong> - 40 questions with increasing difficulty</p>
+              </div>
+            </div>
+
+            <div className="instruction-block-compact">
+              <div className="instruction-icon-small">
+                <span className="material-icons">schedule</span>
+              </div>
+              <div className="instruction-details-compact">
+                <h3>Duration</h3>
+                <p><strong>60 minutes</strong> - No extra time for transfers</p>
+              </div>
+            </div>
+
+            <div className="instruction-block-compact">
+              <div className="instruction-icon-small">
+                <span className="material-icons">quiz</span>
+              </div>
+              <div className="instruction-details-compact">
+                <h3>Question Types</h3>
+                <p><strong>Various formats</strong> - Multiple choice, matching, fill-ins</p>
+              </div>
+            </div>
+
+            <div className="instruction-block-compact">
+              <div className="instruction-icon-small">
+                <span className="material-icons">rule</span>
+              </div>
+              <div className="instruction-details-compact">
+                <h3>Important Rules</h3>
+                <p><strong>Spelling counts</strong> - Answers must be accurate</p>
+              </div>
+            </div>
+
+            <div className="instruction-block-compact">
+              <div className="instruction-icon-small">
+                <span className="material-icons">tips_and_updates</span>
+              </div>
+              <div className="instruction-details-compact">
+                <h3>Time Strategy</h3>
+                <p><strong>20 min per section</strong> - Don't spend too long on difficult questions</p>
+              </div>
+            </div>
+
+            <div className="instruction-block-compact">
+              <div className="instruction-icon-small">
+                <span className="material-icons">feedback</span>
+              </div>
+              <div className="instruction-details-compact">
+                <h3>AI Feedback</h3>
+                <p>Get <strong>detailed analysis</strong> of your performance</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="start-instruction-compact">
+            <p className="text-center font-medium text-gray-800">
+              Click "Start Exam" to begin your IELTS Reading test.
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <button 
+              onClick={startExam}
+              className="start-button"
+            >
+              <span className="material-icons mr-2">menu_book</span>
+              Start Exam
+            </button>
+          </div>
         </div>
       </div>
     </ExamContainer>

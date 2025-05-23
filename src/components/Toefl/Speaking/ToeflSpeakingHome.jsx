@@ -4,28 +4,15 @@ import { ToeflSpeakingProvider, useToeflSpeakingContext } from './ToeflSpeakingC
 import ToeflSpeakingInstructions from './ToeflSpeakingInstructions';
 import ToeflSpeakingTask from './ToeflSpeakingTask';
 import ToeflSpeakingFeedback from './ToeflSpeakingFeedback';
-import ExamContainer from '../../ui/ExamContainer';
 import './ToeflSpeaking.css';
 
 const ToeflSpeakingContent = () => {
   const { 
-    loading, 
     error, 
     showInstructions, 
     showFeedback, 
-    loadingMessage,
     resetTest
   } = useToeflSpeakingContext();
-  
-  // Display loading state
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p className="loading-message">{loadingMessage || 'Loading test data...'}</p>
-      </div>
-    );
-  }
   
   // Display error message
   if (error) {
@@ -66,11 +53,9 @@ const ToeflSpeakingHome = () => {
   
   return (
     <ToeflSpeakingProvider>
-      <ExamContainer>
-        <div className="toefl-speaking-container">
-          <ToeflSpeakingContent />
-        </div>
-      </ExamContainer>
+      <div className="toefl-speaking-container">
+        <ToeflSpeakingContent />
+      </div>
     </ToeflSpeakingProvider>
   );
 };

@@ -1116,3 +1116,246 @@
 .text-amber-600 {
   color: #d97706;
 }
+
+/* Instructions Page Styling */
+.instructions-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.writing-header {
+  text-align: center;
+  padding: 2rem 1rem;
+  position: relative;
+}
+
+.writing-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
+}
+
+.writing-subtitle {
+  font-size: 1.25rem;
+  color: #6b7280;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.instructions-card-compact {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  border: 1px solid #e5e7eb;
+}
+
+.instructions-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.instructions-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.instruction-block-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.instruction-block-compact:hover {
+  background-color: #f1f5f9;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.instruction-icon-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  color: white;
+  border-radius: 0.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
+}
+
+.instruction-icon-small .material-icons {
+  font-size: 1.5rem;
+}
+
+.instruction-details-compact {
+  flex: 1;
+}
+
+.instruction-details-compact h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 0.5rem;
+}
+
+.instruction-details-compact p {
+  color: var(--secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.start-instruction-compact {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.start-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  text-decoration: none;
+}
+
+.start-button:hover {
+  background: linear-gradient(135deg, var(--primary-deep), #1e3a8a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px -1px rgba(37, 99, 235, 0.4);
+}
+
+.start-button .material-icons {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .instructions-content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .writing-title {
+    font-size: 2rem;
+  }
+  
+  .writing-subtitle {
+    font-size: 1rem;
+  }
+  
+  .instruction-block-compact {
+    padding: 1rem;
+  }
+}
+
+/* Task Layout Improvements */
+.task-header-container {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #93c5fd;
+  transition: all 0.3s ease;
+}
+
+.task-header-container:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 15px rgba(37, 99, 235, 0.15);
+}
+
+.task-content-container {
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.task-content-container:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.task-instructions-header {
+  background: linear-gradient(90deg, #f8fafc, #f1f5f9);
+}
+
+.task-content {
+  background-color: #ffffff;
+}
+
+/* Section-specific styles */
+.situation-section,
+.instructions-section,
+.bullet-points-section,
+.task2-content {
+  transition: all 0.3s ease;
+}
+
+.situation-section:hover {
+  background-color: #dbeafe !important;
+  transform: translateX(3px);
+}
+
+.instructions-section:hover {
+  background-color: #dcfce7 !important;
+  transform: translateX(3px);
+}
+
+.bullet-points-section:hover {
+  background-color: #fefce8 !important;
+  transform: translateX(3px);
+}
+
+.task2-content:hover {
+  background-color: #faf5ff !important;
+  transform: translateX(3px);
+}
+
+/* Better spacing and typography */
+.task-content h4 {
+  font-size: 1rem;
+  letter-spacing: 0.025em;
+}
+
+.task-content .material-icons {
+  font-size: 1rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .task-header-container .flex {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .task-header-container .flex > span {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+}

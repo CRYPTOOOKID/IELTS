@@ -13,7 +13,13 @@ import {
   Star,
   Clock,
   BarChart,
-  Gamepad
+  Gamepad,
+  Target,
+  Trophy,
+  Globe,
+  Zap,
+  Users,
+  GraduationCap
 } from 'lucide-react';
 
 // Simple Alert components implementation
@@ -33,7 +39,7 @@ const AlertDescription = ({ className, children }) => {
   return <div className={`text-sm ${className}`}>{children}</div>;
 };
 
-const IELTSLandingPage = () => {
+const SpintaLandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
   const navigate = useNavigate();
@@ -66,7 +72,16 @@ const IELTSLandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        {/* Floating Orbs */}
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/15 to-blue-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
       {/* Logout Success Toast */}
       {showLogoutSuccess && (
         <div className="fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded-lg shadow-md flex items-center space-x-2 animate-fadeIn z-50">
@@ -76,27 +91,29 @@ const IELTSLandingPage = () => {
       )}
       
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/10 backdrop-blur-xl border-b border-white/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <span className="text-2xl font-bold text-blue-600">IELTS Mastery</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                <GraduationCap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </div>
             
             {/* Desktop Navigation */}
             <nav className="hidden md:block">
               <ul className="flex space-x-8">
-                <li><a href="#features" className="text-gray-600 hover:text-blue-600 transition duration-200">Features</a></li>
-                <li><a href="#skills" className="text-gray-600 hover:text-blue-600 transition duration-200">Skills</a></li>
-                <li><a href="#playzone" className="text-gray-600 hover:text-blue-600 transition duration-200">Play & Learn</a></li>
-                <li><a href="#testimonials" className="text-gray-600 hover:text-blue-600 transition duration-200">Testimonials</a></li>
+                <li><a href="#features" className="text-white/80 hover:text-white transition duration-200">Features</a></li>
+                <li><a href="#exams" className="text-white/80 hover:text-white transition duration-200">Tests</a></li>
+                <li><a href="#games" className="text-white/80 hover:text-white transition duration-200">Games</a></li>
               </ul>
             </nav>
             
             <div className="hidden md:block">
               <button 
                 onClick={handleLogin}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition duration-200 font-medium shadow-lg"
               >
                 Login
               </button>
@@ -106,7 +123,7 @@ const IELTSLandingPage = () => {
             <div className="md:hidden">
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-600 hover:text-blue-600 focus:outline-none"
+                className="text-white hover:text-cyan-300 focus:outline-none"
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -116,15 +133,14 @@ const IELTSLandingPage = () => {
         
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white">
+          <div className="md:hidden bg-black/20 backdrop-blur-lg">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <a href="#features" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Features</a>
-              <a href="#skills" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Skills</a>
-              <a href="#playzone" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Play & Learn</a>
-              <a href="#testimonials" className="block px-3 py-2 text-gray-600 hover:text-blue-600">Testimonials</a>
+              <a href="#features" className="block px-3 py-2 text-white hover:text-cyan-300">Features</a>
+              <a href="#exams" className="block px-3 py-2 text-white hover:text-cyan-300">Tests</a>
+              <a href="#games" className="block px-3 py-2 text-white hover:text-cyan-300">Games</a>
               <button 
                 onClick={handleLogin}
-                className="mt-2 w-full bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700"
+                className="mt-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-2 rounded-lg hover:from-cyan-600 hover:to-blue-600"
               >
                 Login
               </button>
@@ -133,61 +149,43 @@ const IELTSLandingPage = () => {
         )}
       </header>
 
-      <main>
+      <main className="relative z-10">
         {/* Hero Section */}
-        <section className="py-16 md:py-24">
+        <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-8">
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                  Master IELTS with <span className="text-blue-600">AI-Powered</span> Precision
-                </h1>
-                <p className="text-xl text-gray-600 mb-6">
-                  Experience real-time feedback and expert guidance to achieve your target IELTS score. Just like the official exam, but with instant AI assistance.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button 
-                    onClick={handleGetStarted}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-medium"
-                  >
-                    Get Started
-                  </button>
-                  <button className="bg-transparent border border-blue-600 text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition duration-200 text-lg font-medium">
-                    Learn More
-                  </button>
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="mb-8">
+                <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6">
+                  <Zap className="w-4 h-4 text-cyan-400 mr-2" />
+                  <span className="text-sm font-medium">AI-Powered English Test Preparation</span>
                 </div>
               </div>
               
-              <div className="md:w-1/2 mt-12 md:mt-0">
-                <div className="relative">
-                  <div className="bg-blue-600 rounded-lg w-full h-64 md:h-96 opacity-20 absolute -top-4 -right-4"></div>
-                  <div className="bg-white rounded-lg shadow-xl p-6 relative">
-                    <div className="flex flex-col gap-4 h-full">
-                      <div className="flex gap-3">
-                        <div className="bg-blue-100 rounded-lg p-4 flex-1 text-center">
-                          <Headphones className="text-blue-600 w-12 h-12 mx-auto mb-2" />
-                          <h3 className="font-semibold text-blue-800">Listening</h3>
-                        </div>
-                        <div className="bg-green-100 rounded-lg p-4 flex-1 text-center">
-                          <BookOpen className="text-green-600 w-12 h-12 mx-auto mb-2" />
-                          <h3 className="font-semibold text-green-800">Reading</h3>
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
-                        <div className="bg-purple-100 rounded-lg p-4 flex-1 text-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mx-auto mb-2 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M17.6 9.45c-1.95 2.7-4.5 5.25-7.2 7.2" />
-                            <path d="M22 2 11 13" />
-                            <path d="M9 11c-2.7 1.95-5.25 4.5-7.2 7.2" />
-                          </svg>
-                          <h3 className="font-semibold text-purple-800">Writing</h3>
-                        </div>
-                        <div className="bg-amber-100 rounded-lg p-4 flex-1 text-center">
-                          <MessageSquare className="text-amber-600 w-12 h-12 mx-auto mb-2" />
-                          <h3 className="font-semibold text-amber-800">Speaking</h3>
-                        </div>
-                      </div>
-                    </div>
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                Master <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">English Tests</span> with AI Precision
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Experience IELTS and TOEFL preparation like never before. Get real-time AI feedback, practice with games, and track your progress with advanced analytics.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <button 
+                  onClick={handleGetStarted}
+                  className="group bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-4 rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 text-lg font-semibold flex items-center shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+                >
+                  Get Started Free
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                
+                <div className="flex items-center space-x-4 text-white/60">
+                  <div className="flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    <span>Trusted by students</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Star className="w-5 h-5 mr-2 text-yellow-400" />
+                    <span>4.9/5 Rating</span>
                   </div>
                 </div>
               </div>
@@ -195,613 +193,278 @@ const IELTSLandingPage = () => {
           </div>
         </section>
 
-        {/* Skills Section */}
-        <section id="skills" className="py-16 bg-white">
+        {/* Test Platforms Section */}
+        <section id="exams" className="py-16 relative">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Master All IELTS Sections</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Our comprehensive platform helps you excel in all four components of the IELTS exam with AI-powered feedback and guidance.
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Choose Your <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Test Platform</span>
+              </h2>
+              <p className="text-xl text-white/70 max-w-2xl mx-auto">
+                Practice with authentic test formats and get instant AI feedback
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {/* Listening Component */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 transition duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center mb-4">
-                  <Headphones className="text-white" size={28} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Listening</h3>
-                <p className="text-gray-600 mb-4">
-                  Practice with authentic IELTS listening tests and receive detailed scoring on your performance.
-                </p>
-                <div className="flex items-center text-blue-600 font-medium hover:text-blue-800 cursor-pointer">
-                  <span>Learn More</span>
-                  <ChevronRight size={16} className="ml-1" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              {/* IELTS Card */}
+              <div className="group relative bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center">
+                        <Globe className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">IELTS</h3>
+                        <p className="text-white/60">International English Language Testing System</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-cyan-400">4 Skills</div>
+                      <div className="text-sm text-white/60">Complete Training</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <Headphones className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                      <div className="text-sm font-medium">Listening</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <BookOpen className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+                      <div className="text-sm font-medium">Reading</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.6 9.45c-1.95 2.7-4.5 5.25-7.2 7.2" />
+                        <path d="M22 2 11 13" />
+                        <path d="M9 11c-2.7 1.95-5.25 4.5-7.2 7.2" />
+                      </svg>
+                      <div className="text-sm font-medium">Writing</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <MessageSquare className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                      <div className="text-sm font-medium">Speaking</div>
+                    </div>
+                  </div>
+                  
+                  <button className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-cyan-600 hover:to-cyan-700 transition-all duration-200 flex items-center justify-center">
+                    Start IELTS Practice
+                    <ChevronRight className="ml-2 w-5 h-5" />
+                  </button>
                 </div>
               </div>
-              
-              {/* Reading Component */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 transition duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="bg-green-600 w-14 h-14 rounded-full flex items-center justify-center mb-4">
-                  <BookOpen className="text-white" size={28} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Reading</h3>
-                <p className="text-gray-600 mb-4">
-                  Enhance your reading skills with real IELTS passages and receive AI-powered feedback on your answers.
-                </p>
-                <div className="flex items-center text-green-600 font-medium hover:text-green-800 cursor-pointer">
-                  <span>Learn More</span>
-                  <ChevronRight size={16} className="ml-1" />
-                </div>
-              </div>
-              
-              {/* Writing Component */}
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 transition duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="bg-purple-600 w-14 h-14 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                    <path d="M17.6 9.45c-1.95 2.7-4.5 5.25-7.2 7.2" />
-                    <path d="M22 2 11 13" />
-                    <path d="M9 11c-2.7 1.95-5.25 4.5-7.2 7.2" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-3">Writing</h3>
-                <p className="text-gray-600 mb-4">
-                  Get real-time AI feedback on your essays with suggestions for improvements in grammar, vocabulary, and structure.
-                </p>
-                <div className="flex items-center text-purple-600 font-medium hover:text-purple-800 cursor-pointer">
-                  <span>Learn More</span>
-                  <ChevronRight size={16} className="ml-1" />
-                </div>
-              </div>
-              
-              {/* Speaking Component */}
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 transition duration-300 hover:shadow-lg hover:-translate-y-1">
-                <div className="bg-amber-600 w-14 h-14 rounded-full flex items-center justify-center mb-4">
-                  <MessageSquare className="text-white" size={28} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Speaking</h3>
-                <p className="text-gray-600 mb-4">
-                  Practice speaking tasks with our AI interviewer and receive instant feedback on your pronunciation and fluency.
-                </p>
-                <div className="flex items-center text-amber-600 font-medium hover:text-amber-800 cursor-pointer">
-                  <span>Learn More</span>
-                  <ChevronRight size={16} className="ml-1" />
+
+              {/* TOEFL Card */}
+              <div className="group relative bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">TOEFL</h3>
+                        <p className="text-white/60">Test of English as a Foreign Language</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-blue-400">4 Skills</div>
+                      <div className="text-sm text-white/60">Complete Training</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <Headphones className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                      <div className="text-sm font-medium">Listening</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <BookOpen className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+                      <div className="text-sm font-medium">Reading</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.6 9.45c-1.95 2.7-4.5 5.25-7.2 7.2" />
+                        <path d="M22 2 11 13" />
+                        <path d="M9 11c-2.7 1.95-5.25 4.5-7.2 7.2" />
+                      </svg>
+                      <div className="text-sm font-medium">Writing</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <MessageSquare className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                      <div className="text-sm font-medium">Speaking</div>
+                    </div>
+                  </div>
+                  
+                  <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center justify-center">
+                    Start TOEFL Practice
+                    <ChevronRight className="ml-2 w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* PlayZone Section */}
-        <section id="playzone" className="py-16 bg-gradient-to-r from-indigo-50 to-purple-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row items-center lg:space-x-12">
-              <div className="lg:w-1/2 mb-10 lg:mb-0 text-center lg:text-left">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  <span className="text-indigo-600">Play</span> Your Way to Fluency
-                </h2>
-                <p className="text-xl text-gray-700 mb-8">
-                  Our interactive games make learning English grammar and vocabulary fun and engaging. Build your language foundation through play!
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                    <Gamepad className="text-indigo-500 mt-1" />
-                    <div>
-                      <h3 className="font-bold text-gray-800">Interactive Games</h3>
-                      <p className="text-gray-600 text-sm">Engaging activities that reinforce learning</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="text-indigo-500 w-6 h-6 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12" />
-                      <circle cx="17" cy="7" r="5" />
-                    </svg>
-                    <div>
-                      <h3 className="font-bold text-gray-800">Vocabulary Builder</h3>
-                      <p className="text-gray-600 text-sm">Expand your word bank while having fun</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="text-indigo-500 w-6 h-6 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <path d="M8 13h2" />
-                      <path d="M8 17h2" />
-                      <path d="M14 13h2" />
-                      <path d="M14 17h2" />
-                    </svg>
-                    <div>
-                      <h3 className="font-bold text-gray-800">Grammar Practice</h3>
-                      <p className="text-gray-600 text-sm">Master grammar rules through creative challenges</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="text-indigo-500 w-6 h-6 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m8 18 3-3-3-3" />
-                      <path d="m13 12 3-3-3-3" />
-                      <rect width="18" height="18" x="3" y="3" rx="2" />
-                    </svg>
-                    <div>
-                      <h3 className="font-bold text-gray-800">Progress Tracking</h3>
-                      <p className="text-gray-600 text-sm">See your improvement as you play</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <button className="bg-indigo-600 text-white px-8 py-3 rounded-lg shadow hover:bg-indigo-700 transition duration-300">
-                  Explore Games
-                </button>
-              </div>
-              
-              <div className="lg:w-1/2">
-                <div className="relative">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
-                      <div className="bg-indigo-600 h-2"></div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-800">CrossRoads</h3>
-                        <p className="text-gray-600 text-sm">Master conditional sentences through interactive road crossing challenges</p>
-                        <div className="mt-4 bg-indigo-100 rounded p-2 text-xs text-indigo-800">Grammar • Conditionals</div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
-                      <div className="bg-purple-600 h-2"></div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-800">WordTile</h3>
-                        <p className="text-gray-600 text-sm">Arrange word tiles to form grammatically correct sentences</p>
-                        <div className="mt-4 bg-purple-100 rounded p-2 text-xs text-purple-800">Vocabulary • Sentence Structure</div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
-                      <div className="bg-blue-600 h-2"></div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-800">DragZilla</h3>
-                        <p className="text-gray-600 text-sm">Drag and drop words to their correct grammatical positions</p>
-                        <div className="mt-4 bg-blue-100 rounded p-2 text-xs text-blue-800">Parts of Speech • Word Order</div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300">
-                      <div className="bg-amber-600 h-2"></div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-800">TalkToMe</h3>
-                        <p className="text-gray-600 text-sm">Practice speaking with interactive conversation scenarios</p>
-                        <div className="mt-4 bg-amber-100 rounded p-2 text-xs text-amber-800">Speaking • Fluency</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* AI Feedback Highlight Section */}
-        <section className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row items-center lg:space-x-12">
-              <div className="lg:w-1/2 mb-10 lg:mb-0">
-                <div className="relative">
-                  <div className="bg-blue-600 rounded-lg w-full h-64 md:h-96 opacity-10 absolute -top-4 -left-4"></div>
-                  <div className="bg-white rounded-lg shadow-xl overflow-hidden relative">
-                    <div className="bg-gray-900 p-3 flex items-center space-x-2">
-                      <div className="flex space-x-1">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      </div>
-                      <div className="text-gray-400 text-sm">IELTS Mastery AI Feedback</div>
-                    </div>
-                    <div className="p-6">
-                      <div className="mb-4">
-                        <p className="text-gray-500 mb-2 text-sm">Essay Response:</p>
-                        <p className="text-gray-800">The graph shows information about computer ownership as a percentage of the population between 2002 and 2010...</p>
-                      </div>
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h4 className="font-bold text-blue-700 mb-2 flex items-center">
-                          <BarChart size={18} className="mr-2" /> AI Feedback Analysis
-                        </h4>
-                        
-                        <div className="mb-4">
-                          <div className="font-medium text-gray-800 mb-1">Task Achievement</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '85%' }}></div>
-                          </div>
-                          <div className="mt-1 text-sm text-gray-600 flex justify-between">
-                            <span>8.5/10</span>
-                            <span className="text-green-600 font-medium">Very Good</span>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <div className="font-medium text-gray-800 mb-1">Coherence & Cohesion</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '80%' }}></div>
-                          </div>
-                          <div className="mt-1 text-sm text-gray-600 flex justify-between">
-                            <span>8.0/10</span>
-                            <span className="text-green-600 font-medium">Good</span>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <div className="font-medium text-gray-800 mb-1">Lexical Resource</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '70%' }}></div>
-                          </div>
-                          <div className="mt-1 text-sm text-gray-600 flex justify-between">
-                            <span>7.0/10</span>
-                            <span className="text-amber-600 font-medium">Satisfactory</span>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <div className="font-medium text-gray-800 mb-1">Grammar Range & Accuracy</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '65%' }}></div>
-                          </div>
-                          <div className="mt-1 text-sm text-gray-600 flex justify-between">
-                            <span>6.5/10</span>
-                            <span className="text-amber-600 font-medium">Adequate</span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4 pt-4 border-t border-blue-200">
-                          <div className="flex justify-between items-center">
-                            <div className="font-medium text-gray-800">Overall Band Score:</div>
-                            <div className="flex items-center">
-                              <span className="text-xl font-bold text-blue-700">7.5</span>
-                              <Star size={16} className="ml-1 text-blue-600 fill-blue-600" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="lg:w-1/2">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">Real-time AI Feedback <span className="text-blue-600">Just Like an Examiner</span></h2>
-                <p className="text-xl text-gray-600 mb-8">
-                  Our advanced AI technology provides immediate, detailed feedback on your performance—just like having a personal IELTS examiner available 24/7.
-                </p>
-                
-                <div className="space-y-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                        <CheckCircle2 className="text-white" size={14} />
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-semibold mb-1">Detailed Scoring</h3>
-                      <p className="text-gray-600">Get comprehensive band scores with specific feedback on each criteria.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                        <CheckCircle2 className="text-white" size={14} />
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-semibold mb-1">Improvement Suggestions</h3>
-                      <p className="text-gray-600">Receive actionable tips to improve your grammar, vocabulary, and structure.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                        <CheckCircle2 className="text-white" size={14} />
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-semibold mb-1">Progress Tracking</h3>
-                      <p className="text-gray-600">Monitor your improvement over time with detailed analytics and insights.</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={handleGetStarted}
-                  className="mt-8 bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg font-medium inline-flex items-center"
-                >
-                  Get Started
-                  <ArrowRight size={18} className="ml-2" />
-                </button>
+            
+            {/* Coming Soon */}
+            <div className="text-center mt-12">
+              <div className="inline-flex items-center px-6 py-3 bg-white/5 backdrop-blur-lg rounded-full border border-white/20">
+                <Clock className="w-5 h-5 text-cyan-400 mr-3" />
+                <span className="text-white/80">Cambridge, PTE, and more tests coming soon!</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-16 bg-white">
+        <section id="features" className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose IELTS Mastery</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Our platform offers unique advantages to help you achieve your target score faster and more efficiently.
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Why Choose <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">SPINTA?</span>
+              </h2>
+              <p className="text-xl text-white/70 max-w-2xl mx-auto">
+                Experience the future of language learning with our cutting-edge features
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Feature 1 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="mb-4 text-blue-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* AI Feedback */}
+              <div className="group bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                  <Target className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Authentic Exam Experience</h3>
-                <p className="text-gray-600">
-                  Practice with tests that exactly replicate the format, timing, and difficulty of the official IELTS General exam.
+                <h3 className="text-2xl font-bold mb-4">AI-Powered Feedback</h3>
+                <p className="text-white/70">
+                  Get instant, detailed feedback just like having a personal examiner available 24/7
                 </p>
               </div>
               
-              {/* Feature 2 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="mb-4 text-blue-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" />
-                    <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" />
-                  </svg>
+              {/* Progress Tracking */}
+              <div className="group bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                  <BarChart className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Live AI Feedback</h3>
-                <p className="text-gray-600">
-                  Get instant, detailed feedback on your performance across all IELTS components, helping you identify areas for improvement.
+                <h3 className="text-2xl font-bold mb-4">Smart Analytics</h3>
+                <p className="text-white/70">
+                  Track your progress with advanced analytics and personalized insights
                 </p>
               </div>
               
-              {/* Feature 3 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="mb-4 text-blue-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2" />
-                    <path d="M12 10v6" />
-                    <path d="m9 13 3-3 3 3" />
-                  </svg>
+              {/* Gamification */}
+              <div className="group bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                  <Gamepad className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Comprehensive Resources</h3>
-                <p className="text-gray-600">
-                  Access a vast library of practice materials, vocabulary lists, grammar lessons, and strategy guides.
-                </p>
-              </div>
-              
-              {/* Feature 4 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="mb-4 text-blue-600">
-                  <Clock size={24} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Study Anywhere, Anytime</h3>
-                <p className="text-gray-600">
-                  Access our platform on any device - desktop, tablet, or mobile - and study whenever and wherever it's convenient for you.
-                </p>
-              </div>
-              
-              {/* Feature 5 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="mb-4 text-blue-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-3">Expert Support</h3>
-                <p className="text-gray-600">
-                  Get help from our team of IELTS experts whenever you need clarification or have questions about your preparation.
-                </p>
-              </div>
-              
-              {/* Feature 6 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="mb-4 text-blue-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 12h10" />
-                    <path d="M9 4v16" />
-                    <path d="M14 9h3" />
-                    <path d="M14 12h7" />
-                    <path d="M14 15h3" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-3">Personalized Learning</h3>
-                <p className="text-gray-600">
-                  Our system adapts to your strengths and weaknesses, creating a customized study plan to maximize your score improvement.
+                <h3 className="text-2xl font-bold mb-4">Interactive Games</h3>
+                <p className="text-white/70">
+                  Learn through engaging games that make vocabulary and grammar fun
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section id="testimonials" className="py-16 bg-gray-50">
+        {/* Games Section */}
+        <section id="games" className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Success Stories</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                See how IELTS Mastery has helped students achieve their target scores and pursue their dreams.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Testimonial 1 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0">
-                    <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-bold">SK</span>
+            <div className="flex flex-col lg:flex-row items-center lg:space-x-16">
+              <div className="lg:w-1/2 mb-12 lg:mb-0">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                  <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Play</span> Your Way to Fluency
+                </h2>
+                <p className="text-xl text-white/80 mb-8 leading-relaxed">
+                  Transform learning into an adventure with our interactive games designed to boost your vocabulary, grammar, and confidence.
+                </p>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-white" />
                     </div>
+                    <span className="text-white/90">Vocabulary building through interactive challenges</span>
                   </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-bold">Sarah K.</h4>
-                    <p className="text-gray-600">Band 7.5</p>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-white/90">Grammar mastery with gamified lessons</span>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-white/90">Real-time progress tracking and achievements</span>
                   </div>
                 </div>
-                <div className="flex mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className="text-yellow-500 fill-yellow-500 mr-1" />
+                
+                <button className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-8 py-4 rounded-xl hover:from-emerald-600 hover:to-cyan-600 transition-all duration-200 font-semibold flex items-center">
+                  Explore Games
+                  <Gamepad className="ml-3 w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="lg:w-1/2">
+                <div className="grid grid-cols-2 gap-6">
+                  {[
+                    { name: "CrossRoads", desc: "Master conditionals", color: "from-cyan-500 to-blue-500" },
+                    { name: "WordTile", desc: "Sentence building", color: "from-blue-500 to-indigo-500" },
+                    { name: "DragZilla", desc: "Grammar positioning", color: "from-emerald-500 to-teal-500" },
+                    { name: "TalkToMe", desc: "Speaking practice", color: "from-purple-500 to-pink-500" }
+                  ].map((game, index) => (
+                    <div key={index} className="group bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-2">
+                      <div className={`w-12 h-12 bg-gradient-to-r ${game.color} rounded-lg mb-4 group-hover:scale-110 transition-transform`}></div>
+                      <h3 className="text-lg font-bold mb-2">{game.name}</h3>
+                      <p className="text-white/60 text-sm">{game.desc}</p>
+                    </div>
                   ))}
                 </div>
-                <p className="text-gray-600">
-                  "After struggling with the Writing section for months, IELTS Mastery's AI feedback helped me identify my weaknesses and improve my score from 6.0 to 7.5 in just 6 weeks."
-                </p>
-              </div>
-              
-              {/* Testimonial 2 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0">
-                    <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                      <span className="text-green-600 font-bold">RP</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-bold">Raj P.</h4>
-                    <p className="text-gray-600">Band 8.0</p>
-                  </div>
-                </div>
-                <div className="flex mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className="text-yellow-500 fill-yellow-500 mr-1" />
-                  ))}
-                </div>
-                <p className="text-gray-600">
-                  "The Speaking practice with AI feedback transformed my confidence. The realistic simulation of the actual test environment made a huge difference on test day."
-                </p>
-              </div>
-              
-              {/* Testimonial 3 */}
-              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0">
-                    <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                      <span className="text-purple-600 font-bold">EM</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-bold">Elena M.</h4>
-                    <p className="text-gray-600">Band 7.0</p>
-                  </div>
-                </div>
-                <div className="flex mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className="text-yellow-500 fill-yellow-500 mr-1" />
-                  ))}
-                </div>
-                <p className="text-gray-600">
-                  "I had taken the IELTS twice before and couldn't get the score I needed. With IELTS Mastery, I finally understood where I was going wrong and achieved my target score."
-                </p>
-              </div>
-            </div>
-            
-            {/* Success Stats */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-4xl font-bold text-blue-600 mb-2">94%</h3>
-                <p className="text-gray-600">of users improve their score</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-4xl font-bold text-blue-600 mb-2">1.5+</h3>
-                <p className="text-gray-600">average band score improvement</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-4xl font-bold text-blue-600 mb-2">50K+</h3>
-                <p className="text-gray-600">successful students</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-4xl font-bold text-blue-600 mb-2">30+</h3>
-                <p className="text-gray-600">countries served</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-blue-600">
+        <section className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Start Your IELTS Success Journey Today
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-4xl md:text-6xl font-bold mb-6">
+                Ready to Start Your <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">Success Journey?</span>
               </h2>
-              <p className="text-xl text-blue-100 mb-8">
-                Join thousands of successful test-takers who achieved their target score with IELTS Mastery.
+              <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
+                Join thousands of students who've achieved their target scores with SPINTA's AI-powered preparation.
               </p>
               
-              <Alert className="bg-white border-blue-200 mb-8">
-                <AlertCircle className="text-blue-600" size={18} />
-                <AlertTitle className="text-gray-900">Limited Time Offer</AlertTitle>
-                <AlertDescription className="text-gray-600">
-                  Get 20% off any plan when you sign up before the end of the month.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="flex justify-center">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <button 
+                  onClick={handleGetStarted}
+                  className="group bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-10 py-4 rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 text-lg font-semibold flex items-center shadow-lg hover:shadow-2xl transform hover:-translate-y-1"
+                >
+                  Get Started Free
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                
                 <button 
                   onClick={handleLogin}
-                  className="bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition duration-200 text-lg font-medium">
-                  Login
+                  className="group bg-white/10 backdrop-blur-lg border border-white/20 text-white px-10 py-4 rounded-xl hover:bg-white/20 transition-all duration-300 text-lg font-semibold"
+                >
+                  Sign In
                 </button>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section id="faq" className="py-16 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Find answers to common questions about IELTS Mastery and how it can help you succeed.
-              </p>
-            </div>
-            
-            <div className="max-w-3xl mx-auto">
-              <div className="space-y-6">
-                {/* FAQ Item 1 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-300">
-                  <h3 className="text-xl font-bold mb-3">How does the AI feedback work?</h3>
-                  <p className="text-gray-600">
-                    Our advanced AI system analyzes your responses across all four IELTS components, providing detailed feedback on grammar, vocabulary, pronunciation, and content. It compares your performance to the official IELTS scoring criteria and offers specific suggestions for improvement.
-                  </p>
+              
+              <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-cyan-400 mb-2">Trusted</div>
+                  <div className="text-white/60">by Students</div>
                 </div>
-                
-                {/* FAQ Item 2 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-300">
-                  <h3 className="text-xl font-bold mb-3">How accurate is your simulated test compared to the real IELTS?</h3>
-                  <p className="text-gray-600">
-                    Our tests are designed to mirror the official IELTS exam in format, timing, difficulty, and scoring. Our team includes certified IELTS examiners who ensure that our materials meet the same standards as the actual test.
-                  </p>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-400 mb-2">95%</div>
+                  <div className="text-white/60">Success Rate</div>
                 </div>
-                
-                {/* FAQ Item 3 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-300">
-                  <h3 className="text-xl font-bold mb-3">Can I access the platform on my mobile device?</h3>
-                  <p className="text-gray-600">
-                    Yes, IELTS Mastery is fully responsive and works on all devices, including smartphones and tablets. You can practice and improve your skills whenever and wherever is most convenient for you.
-                  </p>
-                </div>
-                
-                {/* FAQ Item 4 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-300">
-                  <h3 className="text-xl font-bold mb-3">How long does it take to see improvement in my scores?</h3>
-                  <p className="text-gray-600">
-                    Most users see meaningful improvement within 2-4 weeks of consistent practice. The exact timeline depends on your starting level, target score, and the amount of time you dedicate to practice.
-                  </p>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-emerald-400 mb-2">4.9★</div>
+                  <div className="text-white/60">Rating</div>
                 </div>
               </div>
             </div>
@@ -810,68 +473,49 @@ const IELTSLandingPage = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="relative z-10 border-t border-white/20 bg-black/20 backdrop-blur-lg py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">IELTS Mastery</h3>
-              <p className="mb-4">Helping students achieve their dream IELTS scores with AI-powered practice and feedback.</p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />
-                  </svg>
-                </a>
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-white drop-shadow-lg">SPINTA</span>
               </div>
+              <p className="text-white/60 mb-4">AI-powered English test preparation for IELTS, TOEFL, and more.</p>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white">Home</a></li>
-                <li><a href="#features" className="hover:text-white">Features</a></li>
-                <li><a href="#skills" className="hover:text-white">Skills</a></li>
-                <li><a href="#playzone" className="hover:text-white">Play & Learn</a></li>
-                <li><a href="#testimonials" className="hover:text-white">Testimonials</a></li>
-                <li><a href="#faq" className="hover:text-white">FAQ</a></li>
+              <h3 className="text-lg font-semibold text-white mb-4">Tests</h3>
+              <ul className="space-y-2 text-white/60">
+                <li><a href="#" className="hover:text-white transition">IELTS Practice</a></li>
+                <li><a href="#" className="hover:text-white transition">TOEFL Practice</a></li>
+                <li><a href="#" className="hover:text-white transition">Coming Soon</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Practice Tests</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white">Listening Tests</a></li>
-                <li><a href="#" className="hover:text-white">Reading Tests</a></li>
-                <li><a href="#" className="hover:text-white">Writing Tasks</a></li>
-                <li><a href="#" className="hover:text-white">Speaking Practice</a></li>
+              <h3 className="text-lg font-semibold text-white mb-4">Features</h3>
+              <ul className="space-y-2 text-white/60">
+                <li><a href="#" className="hover:text-white transition">AI Feedback</a></li>
+                <li><a href="#" className="hover:text-white transition">Progress Tracking</a></li>
+                <li><a href="#" className="hover:text-white transition">Interactive Games</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">About Us</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white">Our Story</a></li>
-                <li><a href="#" className="hover:text-white">Success Stories</a></li>
-                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
+              <h3 className="text-lg font-semibold text-white mb-4">Company</h3>
+              <ul className="space-y-2 text-white/60">
+                <li><a href="#" className="hover:text-white transition">About Us</a></li>
+                <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition">Terms of Service</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p>© {new Date().getFullYear()} IELTS Mastery. All rights reserved.</p>
+          <div className="border-t border-white/20 mt-12 pt-8 text-center">
+            <p className="text-white/60">© {new Date().getFullYear()} SPINTA. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -879,4 +523,4 @@ const IELTSLandingPage = () => {
   );
 };
 
-export default IELTSLandingPage;
+export default SpintaLandingPage;
