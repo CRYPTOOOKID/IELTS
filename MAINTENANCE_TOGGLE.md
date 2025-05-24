@@ -81,6 +81,6 @@ Perfect for:
 - 🐛 **Critical bug fixes**
 - 📊 **Database migrations**
 
----
+------
 
 **Pro Tip**: Bookmark your Netlify environment variables page for quick access during emergencies! 
