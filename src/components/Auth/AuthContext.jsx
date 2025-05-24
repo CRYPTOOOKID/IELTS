@@ -1,10 +1,33 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Amplify } from 'aws-amplify';
-// import config from '../../aws-exports';
 import * as Auth from 'aws-amplify/auth';
 
-// Configure Amplify
-Amplify.configure(config);
+// AWS Configuration using environment variables
+const awsConfig = {
+  Auth: {
+    Cognito: {
+      region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
+      userPoolId: import.meta.env.VITE_AWS_USER_POOL_ID,
+      userPoolClientId: import.meta.env.VITE_AWS_USER_POOL_CLIENT_ID,
+      loginWith: {
+        oauth: {
+          domain: import.meta.env.VITE_AWS_OAUTH_DOMAIN,
+          scopes: ['email', 'openid', 'profile'],
+          redirectSignIn: import.meta.env.VITE_AWS_REDIRECT_SIGN_IN || window.location.origin,
+          redirectSignOut: import.meta.env.VITE_AWS_REDIRECT_SIGN_OUT || window.location.origin,
+          responseType: 'code'
+        }
+      }
+    }
+  }
+};
+
+// Only configure Amplify if we have the required environment variables
+if (import.meta.env.VITE_AWS_USER_POOL_ID && import.meta.env.VITE_AWS_USER_POOL_CLIENT_ID) {
+  Amplify.configure(awsConfig);
+} else {
+  console.warn('AWS configuration missing. Set VITE_AWS_USER_POOL_ID and VITE_AWS_USER_POOL_CLIENT_ID environment variables.');
+}
 
 // Create the authentication context
 const AuthContext = createContext();
