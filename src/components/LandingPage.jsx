@@ -95,8 +95,17 @@ const SpintaLandingPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/logo.ico" 
+                  alt="SPINTA Logo" 
+                  className="w-8 h-8 rounded-lg object-contain" 
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)',
+                    WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                  }} 
+                />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </div>
@@ -489,8 +498,8 @@ const SpintaLandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                  <img src="/logo.ico" alt="SPINTA Logo" className="w-8 h-8 rounded-lg" />
                 </div>
                 <span className="text-xl font-bold text-white drop-shadow-lg">SPINTA</span>
               </div>

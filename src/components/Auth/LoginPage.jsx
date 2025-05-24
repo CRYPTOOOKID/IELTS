@@ -132,8 +132,17 @@ const LoginPage = () => {
         <div className="relative z-10 max-w-md w-full space-y-8 bg-white/10 backdrop-blur-lg p-10 rounded-3xl shadow-2xl border border-white/20">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/logo.ico" 
+                  alt="SPINTA Logo" 
+                  className="w-10 h-10 rounded-lg object-contain" 
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)',
+                    WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                  }} 
+                />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </div>
@@ -255,8 +264,17 @@ const LoginPage = () => {
       <div className="relative z-10 max-w-md w-full bg-white/10 backdrop-blur-lg p-10 rounded-3xl shadow-2xl border border-white/20">
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <img 
+                src="/logo.ico" 
+                alt="SPINTA Logo" 
+                className="w-10 h-10 rounded-lg object-contain" 
+                style={{
+                  imageRendering: 'crisp-edges',
+                  filter: 'contrast(1.1) brightness(1.05)',
+                  WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                }} 
+              />
             </div>
             <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
           </div>

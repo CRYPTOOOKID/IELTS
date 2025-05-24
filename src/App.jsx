@@ -106,8 +106,17 @@ const ExamTypePage = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <span className="material-icons text-white text-lg">graduation_cap</span>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/logo.ico" 
+                  alt="SPINTA Logo" 
+                  className="w-8 h-8 rounded-lg object-contain" 
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)',
+                    WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                  }} 
+                />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </div>
@@ -369,8 +378,17 @@ const SkillsPage = ({ examType }) => {
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <span className="material-icons text-white text-lg">graduation_cap</span>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/logo.ico" 
+                  alt="SPINTA Logo" 
+                  className="w-8 h-8 rounded-lg object-contain" 
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)',
+                    WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                  }} 
+                />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </div>
@@ -588,8 +606,17 @@ const PlayZonePlaceholder = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <span className="material-icons text-white text-lg">graduation_cap</span>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/logo.ico" 
+                  alt="SPINTA Logo" 
+                  className="w-8 h-8 rounded-lg object-contain" 
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)',
+                    WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                  }} 
+                />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </div>
