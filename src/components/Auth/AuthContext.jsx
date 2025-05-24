@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Amplify } from 'aws-amplify';
 import * as Auth from 'aws-amplify/auth';
+import logger from '../../utils/logger';
 
 // AWS Configuration using environment variables
 const awsConfig = {
@@ -26,7 +27,7 @@ const awsConfig = {
 if (import.meta.env.VITE_AWS_USER_POOL_ID && import.meta.env.VITE_AWS_USER_POOL_CLIENT_ID) {
   Amplify.configure(awsConfig);
 } else {
-  console.warn('AWS configuration missing. Set VITE_AWS_USER_POOL_ID and VITE_AWS_USER_POOL_CLIENT_ID environment variables.');
+  logger.warn('AWS configuration missing. Set VITE_AWS_USER_POOL_ID and VITE_AWS_USER_POOL_CLIENT_ID environment variables.');
 }
 
 // Create the authentication context

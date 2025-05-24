@@ -165,10 +165,21 @@ const SpintaLandingPage = () => {
                 Master <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">English Tests</span> with AI Precision
               </h1>
               
-              <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto leading-relaxed">
                 Experience IELTS and TOEFL preparation like never before. Get real-time AI feedback, practice with games, and track your progress with advanced analytics.
               </p>
               
+              {/* Free Tests Offer */}
+              <div className="mb-12">
+                <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 backdrop-blur-lg rounded-full border border-emerald-400/30 mb-4">
+                  <Trophy className="w-5 h-5 text-emerald-400 mr-3" />
+                  <span className="text-emerald-300 font-semibold text-lg">🎉 Get 2 Free Tests Upon Registration!</span>
+                </div>
+                <p className="text-white/70 text-sm max-w-md mx-auto">
+                  Start your journey with two complete practice tests at no cost
+                </p>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <button 
                   onClick={handleGetStarted}
