@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "./ReadingExam.css";
-import ReadingResults from "./ReadingResults";
+import ReadingResults from "./Readingresults";
 import { useTimer } from "../../../lib/TimerContext";
 import TimeUpModal from "../../ui/TimeUpModal";
 import ExamContainer from "../../ui/ExamContainer";
