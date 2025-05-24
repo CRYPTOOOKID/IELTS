@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Amplify } from 'aws-amplify';
-import config from '../../aws-exports';
+// import config from '../../aws-exports';
 import * as Auth from 'aws-amplify/auth';
 
 // Configure Amplify
