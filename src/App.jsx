@@ -4,6 +4,7 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import './App.css';
 import LandingPage from './components/LandingPage.jsx';
 import LoginPage from './components/Auth/LoginPage.jsx';
+import MaintenancePage from './components/maintenance/MaintenancePage.jsx';
 // Import other sections
 import WritingHome from './components/IELTS/Writing/WritingHome.jsx';
 
@@ -724,6 +725,14 @@ const PlayZonePlaceholder = () => {
 };
 
 function App() {
+  // Check if the site is enabled via environment variable
+  const siteEnabled = import.meta.env.VITE_SITE_ENABLED;
+  
+  // If site is disabled, show maintenance page
+  if (siteEnabled === 'false') {
+    return <MaintenancePage />;
+  }
+  
   console.log('App component mounting');
   return (
     <AuthProvider>
