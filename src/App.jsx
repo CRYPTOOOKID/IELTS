@@ -7,6 +7,7 @@ import LoginPage from './components/Auth/LoginPage.jsx';
 import MaintenancePage from './components/Maintenance/MaintenancePage.jsx';
 // Import other sections
 import WritingHome from './components/IELTS/Writing/WritingHome.jsx';
+import ReadingFeedback from './components/IELTS/Reading/ReadingFeedback';
 
 // Import Auth context
 import { AuthProvider, useAuth } from './components/Auth/AuthContext.jsx';
@@ -779,6 +780,7 @@ function App() {
               <Route path="/ielts/listening" element={<ListeningPlaceholder />} />
               <Route path="/ielts/reading" element={<ReadingHome />} />
               <Route path="/ielts/reading/exam" element={<ReadingExam />} />
+              <Route path="/ielts/reading/feedback" element={<ReadingFeedback />} />
               
               {/* TOEFL Routes */}
               <Route path="/toefl/writing" element={<ToeflWritingHome />} />
