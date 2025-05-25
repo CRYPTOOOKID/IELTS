@@ -15,6 +15,22 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     # Prevent zoom issues on mobile
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://xguxnr9iu0.execute-api.us-east-1.amazonaws.com https://jjsmfiikybhgha37vrlcpipu2y.appsync-api.us-east-1.amazonaws.com https://generativelanguage.googleapis.com https://api.deepseek.com https://yeo707lcq4.execute-api.us-east-1.amazonaws.com https://cognito-idp.us-east-1.amazonaws.com https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com https://80yhq8e9rl.execute-api.us-east-1.amazonaws.com https://h5gf4jspy7.execute-api.us-east-1.amazonaws.com"
+    # Additional headers for zoom prevention
+    X-UA-Compatible = "IE=edge"
+    X-Viewport-Scale = "1.0"
+    X-Device-Scale = "1.0"
+    
+# Headers specifically for HTML files to ensure proper viewport handling
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    X-Viewport-Scale = "1.0"
+    X-Device-Scale = "1.0"
+    X-Initial-Scale = "1.0"
+    X-Maximum-Scale = "1.0"
+    X-Minimum-Scale = "1.0"
+    X-User-Scalable = "no"
 
 # Cache static assets
 [[headers]]
