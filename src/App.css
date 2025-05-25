@@ -1,8 +1,13 @@
 /* App.css - Main application styles */
 
+/* Ensure Material Icons are loaded */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
 .app-container {
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Additional animations for the new design */
@@ -62,19 +67,17 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Ensure Material Icons are loaded */
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
 /* New Landing Page Styles */
 .landing-page {
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
   background-color: #f8f9fa;
   background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
   background-size: 25px 25px;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
 }
 
 /* Header Styles */
@@ -91,10 +94,11 @@
   display: inline-block;
   position: relative;
   width: 100%;
+  max-width: 100%;
 }
 
 .landing-header h1 {
-  font-size: 2.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 700;
   color: #2d3748;
   letter-spacing: -0.5px;
@@ -103,6 +107,8 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 .header-line {

@@ -8,7 +8,27 @@ export default defineConfig({
     extensions: ['.js', '.jsx']
   },
   build: {
-    sourcemap: true
+    sourcemap: true,
+    // Optimize for production
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        }
+      }
+    },
+    // Ensure CSS is properly processed
+    cssCodeSplit: true,
+    target: 'es2015'
+  },
+  css: {
+    postcss: {
+      plugins: [
+        // Ensure consistent CSS across browsers
+        require('autoprefixer'),
+      ]
+    }
   },
   server: {
     hmr: {

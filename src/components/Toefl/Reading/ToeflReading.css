@@ -3,6 +3,8 @@
 .toefl-reading-container {
   min-height: 100vh;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   background-color: #f8fafc;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
@@ -13,10 +15,11 @@
   text-align: center;
   padding: 2rem 1rem;
   position: relative;
+  max-width: 100%;
 }
 
 .reading-title {
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 800;
   background: linear-gradient(135deg, #1e40af, #4f46e5);
   -webkit-background-clip: text;
@@ -24,13 +27,16 @@
   color: transparent;
   margin-bottom: 0.75rem;
   letter-spacing: -0.025em;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 .reading-subtitle {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
   color: #6b7280;
   max-width: 700px;
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
 /* Instructions Container */
