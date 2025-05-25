@@ -59,26 +59,6 @@
     }
   }
   
-  // Override zoom functions if they exist
-  function overrideZoomFunctions() {
-    if (window.devicePixelRatio && window.devicePixelRatio !== 1) {
-      // Try to force device pixel ratio to 1
-      Object.defineProperty(window, 'devicePixelRatio', {
-        get: function() { return 1; },
-        configurable: false
-      });
-    }
-    
-    // Override zoom if browser supports it
-    if (document.body && 'zoom' in document.body.style) {
-      Object.defineProperty(document.body.style, 'zoom', {
-        get: function() { return '1'; },
-        set: function() { return '1'; },
-        configurable: false
-      });
-    }
-  }
-  
   // Set up viewport dimensions
   function enforceViewport() {
     const viewport = document.querySelector('meta[name="viewport"]');
@@ -89,13 +69,29 @@
     }
   }
   
+  // Force CSS zoom reset on all elements
+  function resetAllElementsZoom() {
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(function(element) {
+      if (element.style) {
+        element.style.zoom = '1';
+        element.style.transform = element.style.transform ? 
+          element.style.transform.replace(/scale\([^)]*\)/g, '') + ' scale(1)' : 
+          'scale(1)';
+        element.style.webkitTransform = element.style.webkitTransform ? 
+          element.style.webkitTransform.replace(/scale\([^)]*\)/g, '') + ' scale(1)' : 
+          'scale(1)';
+      }
+    });
+  }
+  
   // Monitor for dynamic zoom changes
   function monitorZoom() {
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.type === 'attributes' && 
             (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
-          forceZoomReset();
+          setTimeout(forceZoomReset, 10);
         }
       });
     });
@@ -109,13 +105,32 @@
     }
   }
   
+  // Detect and fix zoom changes
+  function detectZoomChanges() {
+    let lastInnerWidth = window.innerWidth;
+    let lastOuterWidth = window.outerWidth;
+    
+    function checkZoom() {
+      const currentInnerWidth = window.innerWidth;
+      const currentOuterWidth = window.outerWidth;
+      
+      // If significant change in viewport, reset zoom
+      if (Math.abs(currentInnerWidth - lastInnerWidth) > 50 || 
+          Math.abs(currentOuterWidth - lastOuterWidth) > 50) {
+        forceZoomReset();
+        resetAllElementsZoom();
+        lastInnerWidth = currentInnerWidth;
+        lastOuterWidth = currentOuterWidth;
+      }
+    }
+    
+    setInterval(checkZoom, 500);
+  }
+  
   // Initialize all prevention methods
   function initializeZoomPrevention() {
     // Force initial zoom reset
     forceZoomReset();
-    
-    // Override functions
-    overrideZoomFunctions();
     
     // Enforce viewport
     enforceViewport();
@@ -133,8 +148,14 @@
     // Monitor for changes
     monitorZoom();
     
+    // Detect zoom changes
+    detectZoomChanges();
+    
     // Periodic check
-    setInterval(forceZoomReset, 1000);
+    setInterval(function() {
+      forceZoomReset();
+      resetAllElementsZoom();
+    }, 1000);
   }
   
   // Run on DOM ready
@@ -149,5 +170,6 @@
   
   // Export for manual triggering if needed
   window.forceZoomReset = forceZoomReset;
+  window.resetAllElementsZoom = resetAllElementsZoom;
   
 })(); 

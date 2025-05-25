@@ -11,18 +11,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-touch-fullscreen" content="yes" />
     
-    <!-- Prevent zoom CSS injection -->
+    <!-- Critical zoom prevention CSS -->
     <style>
       html {
-        -webkit-text-size-adjust: 100% !important;
-        -moz-text-size-adjust: 100% !important;
-        -ms-text-size-adjust: 100% !important;
-        text-size-adjust: 100% !important;
+        -webkit-text-size-adjust: none !important;
+        -moz-text-size-adjust: none !important;
+        -ms-text-size-adjust: none !important;
+        text-size-adjust: none !important;
         zoom: 1 !important;
         -webkit-transform: scale(1) !important;
         -moz-transform: scale(1) !important;
         -ms-transform: scale(1) !important;
         transform: scale(1) !important;
+        font-size: 16px !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        overflow-x: hidden !important;
       }
       
       body {
@@ -32,33 +36,101 @@
         -ms-transform: scale(1) !important;
         transform: scale(1) !important;
         font-size: 16px !important;
+        -webkit-text-size-adjust: none !important;
+        -moz-text-size-adjust: none !important;
+        -ms-text-size-adjust: none !important;
+        text-size-adjust: none !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      #root {
+        zoom: 1 !important;
+        -webkit-transform: scale(1) !important;
+        -moz-transform: scale(1) !important;
+        -ms-transform: scale(1) !important;
+        transform: scale(1) !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        overflow-x: hidden !important;
       }
       
       * {
         touch-action: manipulation !important;
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        -khtml-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Allow text selection for content */
+      p, span, div, h1, h2, h3, h4, h5, h6, 
+      .text, [class*="text"], 
+      input, textarea, [contenteditable] {
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        user-select: text !important;
+      }
+      
+      /* Force all form inputs to 16px to prevent iOS zoom */
+      input, textarea, select, button {
+        font-size: 16px !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        zoom: 1 !important;
+        -webkit-transform: scale(1) !important;
+        -moz-transform: scale(1) !important;
+        -ms-transform: scale(1) !important;
+        transform: scale(1) !important;
+      }
+      
+      /* Prevent any elements from being scaled */
+      img, video, canvas, svg, iframe {
+        max-width: 100% !important;
+        height: auto !important;
+        zoom: 1 !important;
+        -webkit-transform: scale(1) !important;
+        -moz-transform: scale(1) !important;
+        -ms-transform: scale(1) !important;
+        transform: scale(1) !important;
       }
     </style>
     
-    <!-- Inline zoom prevention script for immediate execution -->
+    <!-- Simple zoom prevention script -->
     <script>
       (function() {
         'use strict';
         
-        // Immediate zoom prevention
-        function forceZoomReset() {
-          document.documentElement.style.zoom = '1';
-          document.documentElement.style.transform = 'scale(1)';
-          document.documentElement.style.webkitTransform = 'scale(1)';
-          document.documentElement.style.mozTransform = 'scale(1)';
-          document.documentElement.style.msTransform = 'scale(1)';
-          document.documentElement.style.webkitTextSizeAdjust = '100%';
-          document.documentElement.style.mozTextSizeAdjust = '100%';
-          document.documentElement.style.msTextSizeAdjust = '100%';
-          document.documentElement.style.textSizeAdjust = '100%';
+        // Simple and safe zoom reset
+        function simpleZoomReset() {
+          try {
+            if (document.documentElement) {
+              document.documentElement.style.zoom = '1';
+              document.documentElement.style.transform = 'scale(1)';
+              document.documentElement.style.webkitTransform = 'scale(1)';
+              document.documentElement.style.fontSize = '16px';
+            }
+            if (document.body) {
+              document.body.style.zoom = '1';
+              document.body.style.transform = 'scale(1)';
+              document.body.style.webkitTransform = 'scale(1)';
+              document.body.style.fontSize = '16px';
+            }
+          } catch (e) {
+            // Silently fail if properties can't be set
+            console.log('Zoom reset failed:', e);
+          }
         }
         
-        // Prevent touch zoom
-        function preventTouchZoom(e) {
+        // Prevent multi-touch zoom
+        function preventMultiTouch(e) {
           if (e.touches && e.touches.length > 1) {
             e.preventDefault();
             return false;
@@ -66,21 +138,26 @@
         }
         
         // Run immediately
-        forceZoomReset();
+        simpleZoomReset();
         
-        // Prevent touch events
-        document.addEventListener('touchstart', preventTouchZoom, { passive: false });
-        document.addEventListener('touchmove', preventTouchZoom, { passive: false });
+        // Add basic touch prevention
+        document.addEventListener('touchstart', preventMultiTouch, { passive: false });
+        document.addEventListener('touchmove', preventMultiTouch, { passive: false });
         document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
         document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
         document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
         
-        // Monitor viewport changes
-        window.addEventListener('resize', forceZoomReset);
-        window.addEventListener('orientationchange', forceZoomReset);
+        // Reset on resize/orientation change
+        window.addEventListener('resize', simpleZoomReset);
+        window.addEventListener('orientationchange', function() {
+          setTimeout(simpleZoomReset, 100);
+        });
         
-        // Periodic enforcement
-        setInterval(forceZoomReset, 500);
+        // Periodic check (less aggressive)
+        setInterval(simpleZoomReset, 2000);
+        
+        // Export for debugging
+        window.simpleZoomReset = simpleZoomReset;
       })();
     </script>
     
