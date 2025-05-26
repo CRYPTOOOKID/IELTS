@@ -21,6 +21,7 @@ import {
   Users,
   GraduationCap
 } from 'lucide-react';
+import LogoutSuccessExperience from './ui/LogoutSuccessExperience.jsx';
 
 // Simple Alert components implementation
 const Alert = ({ className, children }) => {
@@ -54,12 +55,7 @@ const SpintaLandingPage = () => {
       // Clear the session storage flag
       sessionStorage.removeItem('showLogoutSuccess');
       
-      // Hide the message after 3 seconds
-      const timer = setTimeout(() => {
-        setShowLogoutSuccess(false);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
+      // The LogoutSuccessExperience component handles its own timing
     }
   }, []);
 
@@ -82,13 +78,11 @@ const SpintaLandingPage = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-teal-400/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      {/* Logout Success Toast */}
-      {showLogoutSuccess && (
-        <div className="fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded-lg shadow-md flex items-center space-x-2 animate-fadeIn z-50">
-          <CheckCircle2 size={20} className="text-green-500" />
-          <span>Successfully logged out</span>
-        </div>
-      )}
+      {/* Modern Logout Success Experience */}
+      <LogoutSuccessExperience 
+        isVisible={showLogoutSuccess} 
+        onClose={() => setShowLogoutSuccess(false)} 
+      />
       
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/10 backdrop-blur-xl border-b border-white/20">
