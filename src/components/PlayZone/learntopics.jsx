@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import config from '../../config';
 
-// Add CSS for confetti animation
-const confettiStyles = `
+// Enhanced CSS for modern design and animations
+const modernStyles = `
 @keyframes confettiDrop {
   0% {
     transform: translateY(-100vh) rotate(0deg);
@@ -15,24 +15,89 @@ const confettiStyles = `
   }
 }
 
+@keyframes confettiExplode {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.8) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes scoreReveal {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.6);
+  }
+}
+
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+  0% { opacity: 0; transform: translateY(50px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.5s ease-in forwards;
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.8s ease-out forwards;
+}
+
+.animate-scoreReveal {
+  animation: scoreReveal 1s ease-out forwards;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 .confetti-container {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1000;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -43,43 +108,141 @@ const confettiStyles = `
 
 .confetti-piece {
   position: absolute;
-  top: -20px;
-  width: 10px;
-  height: 10px;
-  opacity: 0.8;
-  border-radius: 2px;
-  animation: confettiDrop 5s ease-in-out forwards;
+  width: 12px;
+  height: 12px;
+  opacity: 0.9;
+  border-radius: 3px;
+  animation: confettiDrop 4s ease-in-out forwards;
 }
 
-.bg-red-300 { background-color: #fca5a5; }
-.bg-red-400 { background-color: #f87171; }
-.bg-red-500 { background-color: #ef4444; }
-.bg-red-600 { background-color: #dc2626; }
+.confetti-burst {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: confettiExplode 2s ease-out forwards;
+}
 
-.bg-blue-300 { background-color: #93c5fd; }
-.bg-blue-400 { background-color: #60a5fa; }
-.bg-blue-500 { background-color: #3b82f6; }
-.bg-blue-600 { background-color: #2563eb; }
+/* Modern glassmorphism background */
+.learn-topics-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e1b4b 0%, #7c3aed 50%, #1e40af 100%);
+  position: relative;
+  overflow: hidden;
+}
 
-.bg-green-300 { background-color: #86efac; }
-.bg-green-400 { background-color: #4ade80; }
-.bg-green-500 { background-color: #22c55e; }
-.bg-green-600 { background-color: #16a34a; }
+.learn-topics-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
 
-.bg-yellow-300 { background-color: #fcd34d; }
-.bg-yellow-400 { background-color: #fbbf24; }
-.bg-yellow-500 { background-color: #f59e0b; }
-.bg-yellow-600 { background-color: #d97706; }
+.topics-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 10;
+}
 
-.bg-purple-300 { background-color: #c4b5fd; }
-.bg-purple-400 { background-color: #a78bfa; }
-.bg-purple-500 { background-color: #8b5cf6; }
-.bg-purple-600 { background-color: #7c3aed; }
+.topic-title {
+  background: linear-gradient(135deg, #06ffa5, #22d3ee, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 3rem;
+  font-weight: 900;
+  text-align: center;
+  padding: 2rem 0;
+  text-shadow: 0 0 40px rgba(34, 211, 238, 0.6), 0 0 80px rgba(6, 255, 165, 0.4);
+  filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.5));
+}
 
-.bg-pink-300 { background-color: #f9a8d4; }
-.bg-pink-400 { background-color: #f472b6; }
-.bg-pink-500 { background-color: #ec4899; }
-.bg-pink-600 { background-color: #db2777; }
+.topics-main {
+  position: relative;
+  z-index: 10;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 200px);
+}
+
+.question-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  max-width: 800px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.question-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #22d3ee, #3b82f6, #8b5cf6);
+  border-radius: 24px 24px 0 0;
+}
+
+.quiz-summary {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  margin: 2rem;
+  color: white;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #22d3ee;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 `;
 
 // Progress tracker component
@@ -88,15 +251,19 @@ const ProgressTracker = ({ currentQuestion, totalQuestions }) => {
   
   return (
     <div className="progress-tracker flex flex-col items-center">
-      <div className="progress-text text-sm font-medium text-gray-600 mb-2">
-        {currentQuestion} of {totalQuestions}
+      <div className="progress-text text-sm font-semibold text-white mb-3">
+        Question {currentQuestion} of {totalQuestions}
       </div>
-      <div className="progress-bar-container w-36 h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="progress-bar-container w-44 h-4 bg-gray-800/60 rounded-full overflow-hidden backdrop-blur-sm border-2 border-cyan-400/50 shadow-lg">
         <div 
-          className="progress-bar-fill h-full bg-blue-600 transition-all duration-300 ease-out" 
-          style={{ width: `${progressPercentage}%` }}
+          className="progress-bar-fill h-full bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-400 transition-all duration-500 ease-out rounded-full shadow-xl" 
+          style={{ 
+            width: `${progressPercentage}%`,
+            boxShadow: '0 0 20px rgba(34, 211, 238, 0.6)'
+          }}
         ></div>
       </div>
+      <div className="text-sm font-medium text-cyan-200 mt-2">{progressPercentage}% Complete</div>
     </div>
   );
 };
@@ -176,14 +343,14 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
           return (
             <button
               key={index}
-              className={`option-button relative flex items-center p-4 mb-3 rounded-lg border-2 transition-all ${
-                isSelected ? 'font-semibold' : ''
+              className={`option-button relative flex items-center p-5 mb-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] ${
+                isSelected ? 'font-bold' : 'font-semibold'
               } ${
                 showCorrectHighlight 
-                  ? 'border-green-500 bg-green-50 text-green-700' 
+                  ? 'border-emerald-300 bg-emerald-400/30 text-emerald-50 shadow-xl shadow-emerald-400/40' 
                   : isIncorrectSelected
-                    ? 'border-red-500 bg-red-50 text-red-700'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    ? 'border-red-300 bg-red-400/30 text-red-50 shadow-xl shadow-red-400/40'
+                    : 'border-cyan-300/60 bg-white/15 text-white hover:border-cyan-300 hover:bg-cyan-400/25 hover:shadow-xl hover:shadow-cyan-400/30 backdrop-blur-sm'
               }`}
               onClick={() => handleOptionClick(option)}
               disabled={feedback !== null}
@@ -192,15 +359,15 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
               
               {/* Show checkmark or X icon after answering */}
               {feedback && (
-                <div className="flex-shrink-0 ml-2">
+                <div className="flex-shrink-0 ml-3">
                   {isCorrectAnswer && (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700">
-                      <span className="material-icons" style={{fontSize: '16px'}}>check</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-400/40 text-emerald-100 border-2 border-emerald-300 shadow-lg">
+                      <span className="material-icons" style={{fontSize: '20px'}}>check</span>
                     </span>
                   )}
                   {isIncorrectSelected && (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700">
-                      <span className="material-icons" style={{fontSize: '16px'}}>close</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-400/40 text-red-100 border-2 border-red-300 shadow-lg">
+                      <span className="material-icons" style={{fontSize: '20px'}}>close</span>
                     </span>
                   )}
                 </div>
@@ -221,12 +388,12 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder="Type your answer here..."
-            className={`text-input p-3 w-full rounded-lg border-2 outline-none transition-all ${
+            className={`text-input p-4 w-full rounded-xl border-2 outline-none transition-all duration-300 backdrop-blur-sm ${
               feedback
                 ? feedback.isCorrect
-                  ? 'border-green-500 bg-green-50 text-black pr-10'
-                  : 'border-red-500 bg-red-50 text-black pr-10'
-                : 'border-gray-200 focus:border-blue-400 bg-white text-black'
+                  ? 'border-emerald-300 bg-emerald-400/30 text-white pr-12 placeholder-emerald-200 shadow-lg shadow-emerald-400/25'
+                  : 'border-red-300 bg-red-400/30 text-white pr-12 placeholder-red-200 shadow-lg shadow-red-400/25'
+                : 'border-cyan-300/60 focus:border-cyan-300 bg-white/15 text-white placeholder-white/60 focus:bg-white/25 focus:shadow-lg focus:shadow-cyan-400/20'
             }`}
             disabled={feedback !== null}
             style={{ 
@@ -242,12 +409,12 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
           {feedback && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               {feedback.isCorrect ? (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700">
-                  <span className="material-icons" style={{fontSize: '16px'}}>check</span>
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-400/40 text-emerald-100 border-2 border-emerald-300 shadow-lg">
+                  <span className="material-icons" style={{fontSize: '18px'}}>check</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700">
-                  <span className="material-icons" style={{fontSize: '16px'}}>close</span>
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-400/40 text-red-100 border-2 border-red-300 shadow-lg">
+                  <span className="material-icons" style={{fontSize: '18px'}}>close</span>
                 </span>
               )}
             </div>
@@ -255,28 +422,31 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
           
           <button
             type="submit"
-            className="submit-button mt-3 px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="submit-button mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-400 text-white hover:from-cyan-300 hover:to-blue-300 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-cyan-300/50"
             disabled={textInput.trim() === '' || feedback !== null}
+            style={{
+              boxShadow: '0 0 20px rgba(34, 211, 238, 0.4)'
+            }}
           >
-            Submit
+            Submit Answer
           </button>
         </div>
         
         {feedback && !feedback.isCorrect && (
           <div className="wrong-answer-feedback animate-fadeIn">
-            <div className="incorrect-answer mb-2 p-3 bg-red-50 border-l-4 border-red-500 rounded-md">
+            <div className="incorrect-answer mb-3 p-4 bg-red-400/30 border-l-4 border-red-300 rounded-xl backdrop-blur-sm shadow-lg shadow-red-400/20">
               <div className="flex items-center">
-                <span className="material-icons text-red-600 mr-2">cancel</span>
-                <span className="font-medium text-gray-800">Your answer:</span>
-                <span className="ml-2 text-gray-800 font-semibold">{textInput}</span>
+                <span className="material-icons text-red-100 mr-3">cancel</span>
+                <span className="font-semibold text-white">Your answer:</span>
+                <span className="ml-2 text-red-100 font-bold">{textInput}</span>
               </div>
             </div>
             
-            <div className="correct-answer-display p-3 bg-green-50 border-l-4 border-green-500 rounded-md">
+            <div className="correct-answer-display p-4 bg-emerald-400/30 border-l-4 border-emerald-300 rounded-xl backdrop-blur-sm shadow-lg shadow-emerald-400/20">
               <div className="flex items-center">
-                <span className="material-icons text-green-600 mr-2">check_circle</span>
-                <span className="font-medium text-gray-800">Correct answer:</span>
-                <span className="ml-2 text-gray-800 font-semibold">{feedback.correctAnswer}</span>
+                <span className="material-icons text-emerald-100 mr-3">check_circle</span>
+                <span className="font-semibold text-white">Correct answer:</span>
+                <span className="ml-2 text-emerald-100 font-bold">{feedback.correctAnswer}</span>
               </div>
             </div>
           </div>
@@ -298,14 +468,14 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
           return (
             <button
               key={index}
-              className={`option-button relative flex items-center p-4 mb-3 rounded-lg border-2 transition-all ${
-                isSelected ? 'font-semibold' : ''
+              className={`option-button relative flex items-center p-5 mb-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] ${
+                isSelected ? 'font-bold' : 'font-semibold'
               } ${
                 showCorrectHighlight 
-                  ? 'border-green-500 bg-green-50 text-green-700' 
+                  ? 'border-emerald-300 bg-emerald-400/30 text-emerald-50 shadow-xl shadow-emerald-400/40' 
                   : isIncorrectSelected
-                    ? 'border-red-500 bg-red-50 text-red-700'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    ? 'border-red-300 bg-red-400/30 text-red-50 shadow-xl shadow-red-400/40'
+                    : 'border-cyan-300/60 bg-white/15 text-white hover:border-cyan-300 hover:bg-cyan-400/25 hover:shadow-xl hover:shadow-cyan-400/30 backdrop-blur-sm'
               }`}
               onClick={() => handleOptionClick(option)}
               disabled={feedback !== null}
@@ -314,15 +484,15 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
               
               {/* Show checkmark or X icon after answering */}
               {feedback && (
-                <div className="flex-shrink-0 ml-2">
+                <div className="flex-shrink-0 ml-3">
                   {isCorrectAnswer && (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700">
-                      <span className="material-icons" style={{fontSize: '16px'}}>check</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-400/40 text-emerald-100 border-2 border-emerald-300 shadow-lg">
+                      <span className="material-icons" style={{fontSize: '20px'}}>check</span>
                     </span>
                   )}
                   {isIncorrectSelected && (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700">
-                      <span className="material-icons" style={{fontSize: '16px'}}>close</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-400/40 text-red-100 border-2 border-red-300 shadow-lg">
+                      <span className="material-icons" style={{fontSize: '20px'}}>close</span>
                     </span>
                   )}
                 </div>
@@ -335,38 +505,41 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
   };
   
   return (
-    <div className="question-container p-6 bg-white rounded-xl shadow-md">
-      <h2 className="question-text text-xl font-medium text-gray-800 mb-5">{question.question}</h2>
+    <div className="question-container p-8 animate-fadeIn">
+      <h2 className="question-text text-2xl font-bold text-white mb-6 leading-relaxed drop-shadow-lg">{question.question}</h2>
       
       {isMultipleChoice && renderMultipleChoice()}
       {isFillInTheBlank && renderFillInTheBlank()}
       {isErrorCorrection && renderErrorCorrection()}
       
       {showProTip && (
-        <div className={`pro-tip mt-6 p-4 rounded-lg shadow-sm ${
+        <div className={`pro-tip mt-8 p-6 rounded-xl backdrop-blur-sm border-l-4 shadow-xl animate-slideInUp ${
           feedback?.isCorrect 
-            ? 'bg-green-50 border-l-4 border-green-500' 
-            : 'bg-amber-50 border-l-4 border-amber-500'
+            ? 'bg-emerald-400/30 border-emerald-300 shadow-emerald-400/20' 
+            : 'bg-amber-400/30 border-amber-300 shadow-amber-400/20'
         }`}>
-          <div className="pro-tip-header flex items-center mb-2">
-            <span className={`material-icons mr-2 ${
-              feedback?.isCorrect ? 'text-green-600' : 'text-amber-600'
+          <div className="pro-tip-header flex items-center mb-3">
+            <span className={`material-icons mr-3 text-xl ${
+              feedback?.isCorrect ? 'text-emerald-100' : 'text-amber-100'
             }`}>
               {feedback?.isCorrect ? 'check_circle' : 'lightbulb'}
             </span>
-            <h3 className="font-semibold">Pro Tip</h3>
+            <h3 className="font-bold text-white text-lg">Pro Tip</h3>
           </div>
-          <p className="text-gray-700">{question.pro_tip}</p>
+          <p className="text-white font-medium leading-relaxed">{question.pro_tip}</p>
         </div>
       )}
       
-      <div className="navigation-buttons mt-8 flex items-center justify-between">
+      <div className="navigation-buttons mt-10 flex items-center justify-between">
         <button
-          className="nav-button prev-button px-4 py-2 flex items-center bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="nav-button prev-button px-6 py-3 flex items-center bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-xl hover:from-purple-300 hover:to-purple-400 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-purple-300/50"
           onClick={onPrevious}
           disabled={currentQuestionIndex === 0}
+          style={{
+            boxShadow: '0 0 20px rgba(168, 85, 247, 0.4)'
+          }}
         >
-          <span className="material-icons mr-1">arrow_back</span>
+          <span className="material-icons mr-2">arrow_back</span>
           Previous
         </button>
         
@@ -376,84 +549,113 @@ const Question = ({ question, onAnswerSubmit, onNext, onPrevious, currentQuestio
         />
         
         <button
-          className="nav-button next-button px-4 py-2 flex items-center bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="nav-button next-button px-6 py-3 flex items-center bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-xl hover:from-cyan-300 hover:to-blue-300 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 border border-cyan-300/50"
           onClick={onNext}
           disabled={!feedback}
+          style={{
+            boxShadow: '0 0 20px rgba(34, 211, 238, 0.4)'
+          }}
         >
           {currentQuestionIndex === totalQuestions - 1 ? 'Finish Quiz' : 'Next'}
-          <span className="material-icons ml-1">arrow_forward</span>
+          <span className="material-icons ml-2">arrow_forward</span>
         </button>
       </div>
     </div>
   );
 };
 
-// Quiz summary component
+// Enhanced Quiz summary component with modern design and confetti
 const QuizSummary = ({ score, totalQuestions, topicName, onRetry, onBackToTopics }) => {
   const percentage = Math.round((score / totalQuestions) * 100);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showBurst, setShowBurst] = useState(false);
+  const [scoreAnimated, setScoreAnimated] = useState(false);
+  
   let message = '';
-  let color = '';
+  let messageColor = '';
   let icon = '';
   let accentColor = '';
-  
-  // Set up confetti effect refs
-  const [showConfetti, setShowConfetti] = useState(false);
-  
-  useEffect(() => {
-    // Trigger confetti animation after a short delay
-    const timer = setTimeout(() => {
-      setShowConfetti(true);
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  let gradientFrom = '';
+  let gradientTo = '';
   
   if (percentage >= 90) {
-    message = 'Excellent! You\'ve mastered this topic.';
-    color = 'text-green-700';
+    message = '🎉 Outstanding! You\'ve mastered this topic!';
+    messageColor = 'text-emerald-200';
     icon = 'emoji_events';
-    accentColor = '#22c55e'; // green-600
+    accentColor = '#10b981'; // emerald-500
+    gradientFrom = '#10b981'; // emerald-500
+    gradientTo = '#059669'; // emerald-600
   } else if (percentage >= 70) {
-    message = 'Good job! You\'re on the right track.';
-    color = 'text-blue-700';
+    message = '👏 Great job! You\'re doing excellent!';
+    messageColor = 'text-cyan-200';
     icon = 'thumb_up';
-    accentColor = '#3b82f6'; // blue-500
+    accentColor = '#06b6d4'; // cyan-500
+    gradientFrom = '#06b6d4'; // cyan-500
+    gradientTo = '#0891b2'; // cyan-600
   } else if (percentage >= 50) {
-    message = 'Not bad, but there\'s room for improvement.';
-    color = 'text-amber-700';
+    message = '💪 Good effort! Keep practicing to improve!';
+    messageColor = 'text-amber-200';
     icon = 'stars';
     accentColor = '#f59e0b'; // amber-500
+    gradientFrom = '#f59e0b'; // amber-500
+    gradientTo = '#d97706'; // amber-600
   } else {
-    message = 'You might need to review this topic again.';
-    color = 'text-red-700';
+    message = '📚 Keep studying! You\'ll get better with practice!';
+    messageColor = 'text-red-200';
     icon = 'school';
     accentColor = '#ef4444'; // red-500
+    gradientFrom = '#ef4444'; // red-500
+    gradientTo = '#dc2626'; // red-600
   }
   
-  // Confetti pieces with limited colors to match theme
+  useEffect(() => {
+    // Trigger animations in sequence
+    const timer1 = setTimeout(() => setScoreAnimated(true), 500);
+    const timer2 = setTimeout(() => setShowBurst(true), 800);
+    const timer3 = setTimeout(() => setShowConfetti(true), 1000);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
+  
+  // Enhanced confetti with multiple types
   const renderConfetti = () => {
-    // Use a reduced color palette that matches your theme color
-    const colorClass = percentage >= 90 
-      ? 'bg-green-500' 
-      : percentage >= 70 
-        ? 'bg-blue-500'
-        : percentage >= 50
-          ? 'bg-amber-500'
-          : 'bg-red-500';
-          
+    const colors = [accentColor, '#22d3ee', '#8b5cf6', '#f59e0b', '#10b981'];
+    
     return (
       <div className={`confetti-container ${showConfetti ? 'active' : ''}`}>
-        {[...Array(40)].map((_, i) => (
+        {/* Falling confetti */}
+        {[...Array(60)].map((_, i) => (
           <div 
-            key={i} 
+            key={`fall-${i}`}
             className="confetti-piece"
             style={{
-              animationDelay: `${(i * 0.1) % 5}s`,
-              left: `${(i * 2.5) % 100}%`,
-              width: `${Math.random() * 10 + 5}px`,
-              height: `${Math.random() * 10 + 5}px`,
-              backgroundColor: accentColor,
-              opacity: Math.random() * 0.6 + 0.4,
+              animationDelay: `${(i * 0.05) % 3}s`,
+              left: `${(i * 1.67) % 100}%`,
+              top: `-${Math.random() * 100}px`,
+              width: `${Math.random() * 8 + 6}px`,
+              height: `${Math.random() * 8 + 6}px`,
+              backgroundColor: colors[i % colors.length],
+              opacity: Math.random() * 0.8 + 0.4,
+              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            }}
+          />
+        ))}
+        
+        {/* Burst confetti from center */}
+        {showBurst && [...Array(30)].map((_, i) => (
+          <div 
+            key={`burst-${i}`}
+            className="confetti-burst"
+            style={{
+              animationDelay: `${i * 0.02}s`,
+              left: '50%',
+              top: '50%',
+              backgroundColor: colors[i % colors.length],
+              transform: `translate(-50%, -50%) rotate(${i * 12}deg) translateY(-${Math.random() * 200 + 100}px)`,
             }}
           />
         ))}
@@ -462,191 +664,112 @@ const QuizSummary = ({ score, totalQuestions, topicName, onRetry, onBackToTopics
   };
   
   return (
-    <div className="quiz-summary bg-white p-8 rounded-xl shadow-md relative overflow-hidden">
-      {percentage >= 70 && renderConfetti()}
+    <div className="quiz-summary animate-fadeIn relative overflow-hidden">
+      {percentage >= 50 && renderConfetti()}
       
-      <h2 className="summary-title text-2xl font-bold text-center mb-4 text-gray-800">Quiz Completed!</h2>
-      <h3 className="topic-name text-xl text-center text-gray-700 mb-6">{topicName}</h3>
+      {/* Floating background elements */}
+      <div className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-full blur-xl animate-float"></div>
+      <div className="absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-r from-purple-400/20 to-pink-500/20 rounded-full blur-xl animate-float" style={{animationDelay: '1s'}}></div>
       
-      <div className="score-display flex justify-center mb-8">
-        <div className="score-circle relative flex items-center justify-center w-40 h-40 rounded-full">
-          {/* Score circle background */}
-          <div className="absolute inset-0 rounded-full bg-gray-100"></div>
-          
-          {/* Score percentage highlight ring */}
-          <svg className="absolute inset-0" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
-              fill="none"
-              stroke="#f0f0f0"
-              strokeWidth="8"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
-              fill="none"
-              stroke={accentColor}
-              strokeWidth="8"
-              strokeDasharray="283"
-              strokeDashoffset={283 - (283 * percentage) / 100}
-              transform="rotate(-90 50 50)"
-              className="transition-all duration-1000 ease-out"
-              style={{ strokeDashoffset: 283 - (283 * percentage) / 100 }}
-            />
-          </svg>
-          
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="score-percentage text-4xl font-bold text-gray-800">
-                {percentage}%
-              </div>
-              <div className="score-text text-sm text-gray-600 mt-1">
-                {score} out of {totalQuestions} correct
+      <div className="relative z-10 p-10">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 mb-4 animate-float">
+            <span className="material-icons text-white text-2xl">{icon}</span>
+          </div>
+          <h2 className="summary-title text-3xl font-bold text-white mb-2">Quiz Completed!</h2>
+          <h3 className="topic-name text-xl text-white/80">{topicName}</h3>
+        </div>
+        
+        <div className="score-display flex justify-center mb-10">
+          <div className={`score-circle relative flex items-center justify-center w-48 h-48 ${scoreAnimated ? 'animate-scoreReveal' : 'opacity-0'}`}>
+            {/* Glowing background */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20"></div>
+            
+            {/* Animated progress ring */}
+            <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth="6"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke={`url(#gradient-${percentage})`}
+                strokeWidth="6"
+                strokeDasharray="264"
+                strokeDashoffset={scoreAnimated ? 264 - (264 * percentage) / 100 : 264}
+                strokeLinecap="round"
+                className="transition-all duration-2000 ease-out"
+                style={{
+                  filter: `drop-shadow(0 0 10px ${accentColor}40)`,
+                }}
+              />
+              <defs>
+                <linearGradient id={`gradient-${percentage}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={gradientFrom} />
+                  <stop offset="100%" stopColor={gradientTo} />
+                </linearGradient>
+              </defs>
+            </svg>
+            
+            {/* Score content */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="score-percentage text-5xl font-bold text-white mb-1" style={{
+                  background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
+                  {scoreAnimated ? percentage : 0}%
+                </div>
+                <div className="score-text text-sm text-white/70">
+                  {score} out of {totalQuestions} correct
+                </div>
               </div>
             </div>
+            
+            {/* Pulse effect for high scores */}
+            {percentage >= 90 && scoreAnimated && (
+              <div className="absolute inset-0 rounded-full animate-pulseGlow"></div>
+            )}
           </div>
         </div>
-      </div>
-      
-      <div className={`feedback-message ${color} flex items-center justify-center text-center text-lg mb-8 px-4`}>
-        <span className="material-icons mr-2">{icon}</span>
-        <span>{message}</span>
-      </div>
-      
-      <div className="summary-buttons">
-        <button 
-          onClick={onRetry} 
-          className="summary-button retry"
-        >
-          <span className="material-icons">refresh</span>
-          Try Again
-        </button>
-        <button 
-          onClick={onBackToTopics}
-          className="summary-button flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 border border-blue-200"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          Back to Topics
-        </button>
+        
+        <div className={`feedback-message ${messageColor} flex items-center justify-center text-center text-xl mb-10 px-6 animate-slideInUp`}>
+          <span className="text-2xl mr-3">{message}</span>
+        </div>
+        
+        <div className="summary-buttons flex flex-col sm:flex-row gap-4 justify-center">
+          <button 
+            onClick={onRetry} 
+            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-3"
+          >
+            <span className="material-icons">refresh</span>
+            Try Again
+          </button>
+          <button 
+            onClick={onBackToTopics}
+            className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-3"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            Back to Topics
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// Static topic data mapped directly from the API
-const topicDataMap = {
-  "1": {
-    "topicId": 1, 
-    "topicName": "Subject-Verb Agreement", 
-    "questions": [
-      {
-        "options": ["A) is", "B) are", "C) was", "D) be"], 
-        "correct_answer": "B) are", 
-        "pro_tip": "When you have a compound subject joined by 'and', it usually takes a plural verb. 'The manager and the assistant' are two separate individuals acting as the subject.", 
-        "type": "multiple_choice", 
-        "question": "The manager and the assistant ____ responsible for organizing the upcoming conference."
-      }, 
-      {
-        "options": ["A) are", "B) is", "C) were", "D) being"], 
-        "correct_answer": "B) is", 
-        "pro_tip": "Collective nouns like 'team' are generally treated as singular when referring to the group as a unit. Here, 'team' acts as a single entity determined to win.", 
-        "type": "multiple_choice", 
-        "question": "The team, despite facing several challenges, ____ determined to win the championship."
-      }, 
-      {
-        "options": ["A) is", "B) are", "C) was", "D) has"], 
-        "correct_answer": "B) are", 
-        "pro_tip": "In 'there is/are' constructions, the verb agrees with the noun that follows 'there'. In this case, 'documents' is plural, so we use 'are'.", 
-        "type": "multiple_choice", 
-        "question": "There ____ several important documents missing from this file cabinet."
-      }, 
-      {
-        "options": ["A) are", "B) is", "C) were", "D) been"], 
-        "correct_answer": "B) is", 
-        "pro_tip": "Indefinite pronouns like 'each', 'everyone', 'someone', 'nobody' are singular and take a singular verb. 'Each of the participants' refers to individuals within the group, but 'each' itself is singular.", 
-        "type": "multiple_choice", 
-        "question": "Each of the participants ____ required to submit their feedback after the workshop."
-      }, 
-      {
-        "options": ["A) has", "B) have", "C) are", "D) were"], 
-        "correct_answer": "A) has", 
-        "pro_tip": "With 'neither/nor' and 'either/or', the verb agrees with the noun closest to it. 'Winds' is plural, but 'rain' is closer to the verb, and 'rain' is singular, hence 'has'.", 
-        "type": "multiple_choice", 
-        "question": "Neither the heavy rain nor the strong winds ____ stopped the outdoor concert."
-      }, 
-      {
-        "options": ["A) are", "B) is", "C) were", "D) being"], 
-        "correct_answer": "B) is", 
-        "pro_tip": "When phrases like 'not', 'as well as', 'along with', 'in addition to' are used, they don't change the number of the subject. The subject remains 'quality', which is singular, thus 'is' is correct.", 
-        "type": "multiple_choice", 
-        "question": "The quality of the ingredients, not the price, ____ the most important factor for this restaurant."
-      }, 
-      {
-        "correct_answer": "goes", 
-        "pro_tip": "Phrases like 'along with', 'as well as', 'together with' do not change the number of the subject. The subject is 'neighbor' (singular), so the verb should be singular ('goes').", 
-        "type": "fill_in_the_blank", 
-        "question": "My neighbor, along with his two dogs, ____ (go) for a walk in the park every morning."
-      }, 
-      {
-        "correct_answer": "are", 
-        "pro_tip": "In 'here is/are' constructions, the verb agrees with the noun that follows 'here'. 'Keys' is plural, so we use 'are'.", 
-        "type": "fill_in_the_blank", 
-        "question": "Here ____ (be) the keys you were looking for."
-      }, 
-      {
-        "correct_answer": "needs", 
-        "pro_tip": "Indefinite pronouns like 'everything', 'something', 'nothing' are singular and require a singular verb. 'Everything' is singular, so the verb is 'needs'.", 
-        "type": "fill_in_the_blank", 
-        "question": "Everything in the kitchen ____ (need) to be cleaned after the party."
-      }, 
-      {
-        "correct_answer": "meets", 
-        "pro_tip": "Collective nouns like 'committee' can be singular or plural depending on context. Here, 'committee' is acting as a single unit performing the action of meeting, so a singular verb 'meets' is appropriate.", 
-        "type": "fill_in_the_blank", 
-        "question": "The committee ____ (meet) once a month to discuss project updates."
-      }, 
-      {
-        "correct_answer": "are", 
-        "pro_tip": "With 'either/or', the verb agrees with the noun closest to it. 'Dogs' is closer to the verb and is plural, so the verb should be plural ('are').", 
-        "type": "fill_in_the_blank", 
-        "question": "Either the cat or the dogs ____ (be) responsible for knocking over the vase."
-      }, 
-      {
-        "options": ["A) which were delivered", "B) which are delivered", "C) are now", "D) No error"], 
-        "correct_answer": "A) which were delivered", 
-        "pro_tip": "The subject 'boxes' is plural, so the relative pronoun 'which' should refer back to a plural subject, requiring the plural verb 'were' instead of 'was'.", 
-        "type": "error_correction", 
-        "question": "The boxes, which was delivered yesterday, is now in the storage room."
-      }, 
-      {
-        "options": ["A) has their own set", "B) have his own set", "C) has its own set", "D) No error"], 
-        "correct_answer": "A) has their own set", 
-        "pro_tip": "The indefinite pronoun 'Each' is singular and requires a singular verb. Therefore, 'have' should be corrected to 'has' to agree with 'Each of the students'.", 
-        "type": "error_correction", 
-        "question": "Each of the students have their own set of textbooks for the course."
-      }, 
-      {
-        "options": ["A) There are many reasons", "B) There is much reason", "C) There have many reasons", "D) No error"], 
-        "correct_answer": "A) There are many reasons", 
-        "pro_tip": "In 'there is/are' constructions, the verb agrees with the noun following 'there'. 'Reasons' is plural, so 'is' should be corrected to 'are'.", 
-        "type": "error_correction", 
-        "question": "There is many reasons why people choose to live in the countryside."
-      }, 
-      {
-        "options": ["A) is attending", "B) were attending", "C) was attending", "D) No error"], 
-        "correct_answer": "A) is attending", 
-        "pro_tip": "The phrase 'as well as the managers' does not change the subject 'CEO', which is singular. Therefore, the verb should agree with 'CEO' and be singular, 'is attending' instead of 'are attending'.", 
-        "type": "error_correction", 
-        "question": "The CEO, as well as the managers, are attending the international business summit."
-      }
-    ]
-  }
-};
+// Removed static topic data - now fetching all data from API
 
 const LearnTopics = () => {
   const { topicId } = useParams();
@@ -660,6 +783,19 @@ const LearnTopics = () => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [apiStatus, setApiStatus] = useState('pending');
   const [requestSent, setRequestSent] = useState(false); // Track if API request has been sent
+  
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log(`📊 Questions state updated: ${questions.length} questions`);
+    if (questions.length > 0) {
+      console.log('📊 First question:', questions[0]);
+      console.log('📊 Last question:', questions[questions.length - 1]);
+    }
+  }, [questions]);
+  
+  useEffect(() => {
+    console.log(`📊 Topic state updated:`, topic);
+  }, [topic]);
   
   // List of topic names
   const topicNames = [
@@ -686,11 +822,11 @@ const LearnTopics = () => {
     "Phrasal Verbs"
   ];
   
-  // Inject confetti CSS
+  // Inject modern styles
   useEffect(() => {
     // Create style element
     const styleEl = document.createElement('style');
-    styleEl.textContent = confettiStyles;
+    styleEl.textContent = modernStyles;
     document.head.appendChild(styleEl);
     
     // Cleanup
@@ -714,26 +850,37 @@ const LearnTopics = () => {
         
         const id = parseInt(topicId, 10);
         if (isNaN(id) || id < 1 || id > 21) {
-          throw new Error('Invalid topic ID');
+          throw new Error('Invalid topic ID. Please select a topic between 1 and 21.');
         }
         
-        // Use embedded data for topic ID 1
-        if (id === 1 && topicDataMap["1"]) {
-          console.log('Using embedded data for topic ID 1');
-          setTopic(topicDataMap["1"]);
-          setQuestions(topicDataMap["1"].questions);
-          setApiStatus('embedded');
-          setLoading(false);
-          return;
-        }
+        console.log(`Fetching topic data for ID: ${id}`);
         
-        // Always try the API call first - let the catch block handle any failures
+        // Try direct API call first, then fallback to CORS proxy if needed
+        let apiUrl = `${config.apiBaseUrl}/id/${id}`;
+        console.log(`API URL: ${apiUrl}`);
+        
+        // Set timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
+        
+        let response;
         try {
-          // Set timeout to prevent hanging requests
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+          // Try direct API call first
+          response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            },
+            mode: 'cors',
+            signal: controller.signal
+          });
+        } catch (corsError) {
+          console.warn('Direct API call failed, trying with CORS proxy:', corsError);
+          // Try with allorigins CORS proxy
+          const corsProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+          console.log(`Trying CORS proxy URL: ${corsProxyUrl}`);
           
-          const response = await fetch(`${config.apiBaseUrl}/id/${id}`, {
+          const proxyResponse = await fetch(corsProxyUrl, {
             method: 'GET',
             headers: {
               'Accept': 'application/json'
@@ -741,148 +888,82 @@ const LearnTopics = () => {
             signal: controller.signal
           });
           
-          // Clear the timeout
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            throw new Error(`Failed to fetch topic data: ${response.status}`);
+          if (!proxyResponse.ok) {
+            throw new Error(`CORS proxy failed: ${proxyResponse.status}`);
           }
           
-          const data = await response.json();
+          const proxyData = await proxyResponse.json();
+          // allorigins returns the actual response in the 'contents' field
+          const actualData = JSON.parse(proxyData.contents);
           
-          // Validate the data structure
-          if (data && data.topicId && data.topicName && Array.isArray(data.questions)) {
-            console.log('API data successfully received for topic:', data.topicName);
-            setTopic(data);
-            setQuestions(data.questions);
-            setApiStatus('success');
-            setLoading(false);
-            return;
-          } else {
-            console.warn('API returned invalid data structure:', data);
-            throw new Error('Invalid data structure received from API');
-          }
-        } catch (apiError) {
-          // Log the error details for debugging
-          console.warn('API request failed:', apiError.toString());
+          // Create a mock response object for consistency
+          response = {
+            ok: true,
+            status: 200,
+            json: async () => actualData
+          };
+        }
+        
+        // Clear the timeout
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch topic data: HTTP ${response.status} - ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Raw API response:', data);
+        console.log('Response data type:', typeof data);
+        console.log('Questions array:', data.questions);
+        console.log('Questions array type:', typeof data.questions);
+        console.log('Is questions an array?', Array.isArray(data.questions));
+        
+        // Validate the data structure
+        if (data && data.topicId && data.topicName && Array.isArray(data.questions)) {
+          console.log(`✅ API data successfully received for topic: ${data.topicName}`);
+          console.log(`✅ Number of questions received: ${data.questions.length}`);
+          console.log('✅ Setting topic and questions in state...');
           
-          // Classify the error type for logging purposes
-          if (apiError.name === 'AbortError') {
-            console.warn('API request timed out after 5 seconds');
-            setApiStatus('timeout');
-          } else if (apiError.toString().includes('Content Security Policy')) {
-            console.warn('Content Security Policy blocked the API request');
-            setApiStatus('csp-blocked');
-          } else {
-            setApiStatus('failed');
-          }
+          setTopic(data);
+          setQuestions(data.questions);
+          setApiStatus('success');
+          setLoading(false);
           
-          // Always use mock data as fallback, regardless of error type
-          useMockData(id);
+          console.log('✅ State updated successfully');
+          return;
+        } else {
+          console.error('❌ API returned invalid data structure:', data);
+          console.error('❌ Missing fields:', {
+            hasTopicId: !!data.topicId,
+            hasTopicName: !!data.topicName,
+            hasQuestions: !!data.questions,
+            questionsIsArray: Array.isArray(data.questions)
+          });
+          throw new Error('Invalid data structure received from API. Expected topicId, topicName, and questions array.');
+        }
+        
+      } catch (err) {
+        console.error('Error fetching topic data:', err);
+        
+        // Classify the error type for better error handling
+        if (err.name === 'AbortError') {
+          setError('Request timed out. Please check your internet connection and try again.');
+          setApiStatus('timeout');
+        } else if (err.toString().includes('Content Security Policy')) {
+          setError('Browser security settings prevented the request. Please try refreshing the page.');
+          setApiStatus('csp-blocked');
+        } else if (err.toString().includes('Failed to fetch')) {
+          setError('Network error. Please check your internet connection and try again.');
+          setApiStatus('network-error');
+        } else {
+          setError(err.message || 'Failed to load topic data. Please try again.');
+          setApiStatus('error');
         }
         
         setLoading(false);
-      } catch (err) {
-        console.error('Error in topic fetching process:', err);
-        setError(err.message || 'Failed to load topic data');
-        setApiStatus('error');
-        setLoading(false);
       }
     };
-    
-    // Helper function to use mock data
-    const useMockData = (id) => {
-      // Get the topic name
-      const topicName = topicNames[id-1] || "Grammar Topic";
-      
-      // Create a mock data object with the correct structure
-      const mockData = {
-        topicId: id,
-        topicName: topicName,
-        questions: []
-      };
-      
-      // Use the switch statement to provide topic-specific mock data
-      switch(id) {
-        case 2: // Verb Tenses (Basic)
-          mockData.questions = [
-            {
-              question: "She _____ to the store every Saturday.",
-              type: "multiple_choice",
-              correct_answer: "A. goes",
-              pro_tip: "Present Simple tense is used for habitual actions or routines. 'Every Saturday' indicates a regular, repeated action.",
-              options: ["A. goes", "B. is going", "C. went", "D. has gone"]
-            },
-            {
-              question: "They _____ dinner when I arrived.",
-              type: "multiple_choice",
-              correct_answer: "A. were eating",
-              pro_tip: "Past Continuous tense is used for an action that was in progress at a specific point in the past ('when I arrived').",
-              options: ["A. were eating", "B. ate", "C. had eaten", "D. have eaten"]
-            },
-            {
-              question: "I _____ (finish) my assignment by tomorrow evening.",
-              type: "fill_in_the_blank",
-              correct_answer: "will have finished",
-              pro_tip: "Future Perfect tense is used to express an action that will be completed before a specific point in the future ('by tomorrow evening')."
-            }
-          ];
-          break;
-          
-        case 3: // Verb Tenses (Advanced)
-          mockData.questions = [
-            {
-              question: "By the time we reach the summit, we ________ for ten hours straight.",
-              type: "multiple_choice",
-              correct_answer: "B. will have been hiking",
-              pro_tip: "Future Perfect Continuous tense is used to describe an action that will continue up to a certain point in the future. It emphasizes the duration of the activity.",
-              options: ["A. will be hiking", "B. will have been hiking", "C. will hike", "D. are hiking"]
-            },
-            {
-              question: "I ________ to learn Italian for years, but I never seem to find the time.",
-              type: "multiple_choice",
-              correct_answer: "B. have been wanting",
-              pro_tip: "Present Perfect Continuous tense expresses an action that started in the past and continues up to the present. It highlights the ongoing desire over a period of time.",
-              options: ["A. am wanting", "B. have been wanting", "C. want", "D. wanted"]
-            },
-            {
-              question: "When I arrived at the cinema, the movie ________ (already/start).",
-              type: "fill_in_the_blank",
-              correct_answer: "had already started",
-              pro_tip: "Past Perfect is used to show that an action was completed before another action in the past. It clarifies the sequence of events."
-            }
-          ];
-          break;
-          
-        default:
-          // For other topics, create generic questions
-          mockData.questions = [
-            {
-              question: `Sample multiple choice question for ${topicName}?`,
-              type: "multiple_choice",
-              correct_answer: "A. Option 1",
-              pro_tip: `This is a sample question for ${topicName}. Mock data is being used due to API restrictions.`,
-              options: ["A. Option 1", "B. Option 2", "C. Option 3", "D. Option 4"]
-            },
-            {
-              question: `Sample fill-in-the-blank question for ${topicName}.`,
-              type: "fill_in_the_blank",
-              correct_answer: "answer",
-              pro_tip: `This is a sample fill-in-the-blank question for ${topicName}.`
-            },
-            {
-              question: `Identify the error in this sentence for ${topicName}.`,
-              type: "error_correction",
-              correct_answer: "A. Corrected version",
-              pro_tip: `Look for grammar errors in the sentence related to ${topicName}.`,
-              options: ["A. Corrected version", "B. Incorrect version 2", "C. Incorrect version 3", "D. No error"]
-            }
-          ];
-      }
-      
-      setTopic(mockData);
-      setQuestions(mockData.questions);
-    };
+
 
     if (topicId) {
       fetchTopic();
@@ -946,14 +1027,14 @@ const LearnTopics = () => {
               setError(null);
               setLoading(true);
             }} 
-            className="retry-button bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            className="retry-button bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
-            <span className="material-icons mr-1" style={{fontSize: '16px'}}>refresh</span>
+            <span className="material-icons mr-2" style={{fontSize: '18px'}}>refresh</span>
             Try Again
           </button>
           <button 
             onClick={handleBackToTopics} 
-            className="back-button flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors text-blue-700 font-medium"
+            className="back-button flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/30 hover:bg-white/20 transition-all duration-300 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -965,9 +1046,6 @@ const LearnTopics = () => {
     );
   }
   
-  // Show CSP info banner if applicable
-  const isCspIssue = apiStatus === 'csp-blocked';
-
   // Get current topic name
   const topicName = topic?.topicName || topicNames[parseInt(topicId, 10) - 1] || 'Grammar Topic';
   
@@ -976,7 +1054,7 @@ const LearnTopics = () => {
       <header className="topics-header">
         <button 
           onClick={handleBackToTopics}
-          className="absolute top-8 left-8 flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors text-blue-700 font-medium"
+          className="absolute top-8 left-8 flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/30 hover:bg-white/20 transition-all duration-300 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -985,25 +1063,6 @@ const LearnTopics = () => {
         </button>
         <h1 className="topic-title">{topicName}</h1>
       </header>
-      
-      {isCspIssue && (
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <span className="material-icons text-amber-500">info</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-amber-700">
-                <strong>Using sample data due to browser security restrictions.</strong>
-              </p>
-              <p className="text-sm mt-1 text-amber-600">
-                Your browser's security settings (Content Security Policy) prevented access to the API. 
-                Sample questions are being displayed instead.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
       
       <main className="topics-main">
         {quizCompleted ? (
