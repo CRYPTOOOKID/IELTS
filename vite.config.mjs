@@ -25,8 +25,7 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [
-        // Ensure consistent CSS across browsers
-        require('autoprefixer'),
+        // PostCSS configuration is handled in postcss.config.cjs
       ]
     }
   },
