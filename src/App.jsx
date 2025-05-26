@@ -103,7 +103,7 @@ const ExamTypePage = () => {
 
       {/* Header */}
       <header className="relative z-10 bg-white/10 backdrop-blur-lg border-b border-white/20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-2">
@@ -155,8 +155,8 @@ const ExamTypePage = () => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 pb-12 pt-8">
-        <div className="max-w-6xl mx-auto">
+      <main className="relative z-10 py-12">
+        <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl mb-8 shadow-2xl">
@@ -204,7 +204,7 @@ const ExamTypePage = () => {
           </div>
 
           {/* Exam Type Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {examTypes.map((exam) => (
               <div
                 key={exam.id}
@@ -435,8 +435,8 @@ const SkillsPage = ({ examType }) => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 pb-12 pt-8">
-        <div className="max-w-6xl mx-auto">
+      <main className="relative z-10 py-12">
+        <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl mb-6 shadow-xl">
@@ -449,7 +449,7 @@ const SkillsPage = ({ examType }) => {
               <br />
               <span className="text-white/90">Practice Hub</span>
             </h1>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
               Master all four essential skills with our AI-powered practice platform. 
               Choose your skill below and start your journey to exam success.
             </p>
@@ -472,7 +472,7 @@ const SkillsPage = ({ examType }) => {
           </div>
 
           {/* Skills Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {skills.map((skill) => (
               <div
                 key={skill.id}
@@ -663,8 +663,8 @@ const PlayZonePlaceholder = () => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 pb-12 pt-8">
-        <div className="max-w-6xl mx-auto">
+      <main className="relative z-10 py-12">
+        <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-3xl mb-8 shadow-2xl">
@@ -675,7 +675,7 @@ const PlayZonePlaceholder = () => {
                 Play Zone
               </span>
             </h1>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-xl text-white/70 max-w-4xl mx-auto leading-relaxed mb-8">
               Make learning fun with interactive games, flashcards, and engaging activities. 
               Enhance your English skills through play-based learning experiences.
             </p>
@@ -698,7 +698,7 @@ const PlayZonePlaceholder = () => {
           </div>
 
           {/* Play Zone Options */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {playZoneOptions.map((option) => (
               <div
                 key={option.id}

@@ -3,10 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
-import './production-fixes.css'
-import './viewport-consistency.css'
-// Import zoom prevention script early
-import './zoom-prevention.js'
 
 // Amplify is configured in AuthContext.jsx
 

@@ -92,7 +92,7 @@ const SpintaLandingPage = () => {
       
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/10 backdrop-blur-xl border-b border-white/20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
@@ -161,8 +161,8 @@ const SpintaLandingPage = () => {
       <main className="relative z-10">
         {/* Hero Section */}
         <section className="py-20 md:py-32">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-4xl mx-auto">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
               <div className="mb-8">
                 <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6">
                   <Zap className="w-4 h-4 text-cyan-400 mr-2" />
@@ -174,7 +174,7 @@ const SpintaLandingPage = () => {
                 Master <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">English Tests</span> with AI Precision
               </h1>
               
-              <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-4xl mx-auto leading-relaxed">
                 Experience IELTS and TOEFL preparation like never before. Get real-time AI feedback, practice with games, and track your progress with advanced analytics.
               </p>
               
@@ -184,7 +184,7 @@ const SpintaLandingPage = () => {
                   <Trophy className="w-5 h-5 text-emerald-400 mr-3" />
                   <span className="text-emerald-300 font-semibold text-lg">🎉 Get 2 Free Tests Upon Registration!</span>
                 </div>
-                <p className="text-white/70 text-sm max-w-md mx-auto">
+                <p className="text-white/70 text-sm text-center">
                   Start your journey with two complete practice tests at no cost
                 </p>
               </div>
@@ -215,7 +215,7 @@ const SpintaLandingPage = () => {
 
         {/* Test Platforms Section */}
         <section id="exams" className="py-16 relative">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 Choose Your <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Test Platform</span>
@@ -225,7 +225,7 @@ const SpintaLandingPage = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* IELTS Card */}
               <div className="group relative bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -339,7 +339,7 @@ const SpintaLandingPage = () => {
 
         {/* Features Section */}
         <section id="features" className="py-16">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 Why Choose <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">SPINTA?</span>
@@ -349,7 +349,7 @@ const SpintaLandingPage = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* AI Feedback */}
               <div className="group bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
@@ -388,7 +388,7 @@ const SpintaLandingPage = () => {
 
         {/* Games Section */}
         <section id="games" className="py-16">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto px-4">
             <div className="flex flex-col lg:flex-row items-center lg:space-x-16">
               <div className="lg:w-1/2 mb-12 lg:mb-0">
                 <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -447,12 +447,12 @@ const SpintaLandingPage = () => {
 
         {/* CTA Section */}
         <section className="py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto text-center">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
               <h2 className="text-4xl md:text-6xl font-bold mb-6">
                 Ready to Start Your <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">Success Journey?</span>
               </h2>
-              <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto">
                 Join thousands of students who've achieved their target scores with SPINTA's AI-powered preparation.
               </p>
               
@@ -473,7 +473,7 @@ const SpintaLandingPage = () => {
                 </button>
               </div>
               
-              <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
+              <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-8 justify-center max-w-3xl mx-auto">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-cyan-400 mb-2">Trusted</div>
                   <div className="text-white/60">by Students</div>
@@ -494,7 +494,7 @@ const SpintaLandingPage = () => {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/20 bg-black/20 backdrop-blur-lg py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">

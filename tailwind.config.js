@@ -14,10 +14,18 @@ export default {
         md: '768px',
         lg: '1024px',
         xl: '1280px',
-        '2xl': '1280px', // Force consistent max-width
+        '2xl': '1400px', // Allow wider containers for better use of screen space
       },
     },
     extend: {
+      maxWidth: {
+        '8xl': '88rem',   // ~1408px
+        '9xl': '96rem',   // ~1536px
+        '10xl': '104rem', // ~1664px
+        'screen-xl': '1400px',
+        'screen-2xl': '1600px',
+        'responsive': 'min(1600px, 95vw)', // Responsive max-width that adapts to viewport
+      },
       colors: {
         border: "hsl(214.3 31.8% 91.4%)",
         input: "hsl(214.3 31.8% 91.4%)",
