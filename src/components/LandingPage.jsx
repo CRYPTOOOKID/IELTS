@@ -94,7 +94,10 @@ const SpintaLandingPage = () => {
       <header className="sticky top-0 z-50 bg-white/10 backdrop-blur-xl border-b border-white/20">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => navigate('/skills')}
+              className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
+            >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
                   src="/logo.ico" 
@@ -108,7 +111,7 @@ const SpintaLandingPage = () => {
                 />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
-            </div>
+            </button>
             
             {/* Desktop Navigation */}
             <nav className="hidden md:block">

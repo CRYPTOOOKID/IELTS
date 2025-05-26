@@ -29,10 +29,11 @@ const SpeakingInstructions = () => {
   // Show countdown animation when starting test
   if (showCountdown) {
     return (
-      <div className="instructions-container">
-        <div className="speaking-header">
-          <h1 className="speaking-title">IELTS Speaking Practice</h1>
-        </div>
+      <div className="speaking-container">
+        <div className="instructions-container">
+          <div className="speaking-header">
+            <h1 className="speaking-title">IELTS Speaking Practice</h1>
+          </div>
         
         <div className="flex flex-col justify-center items-center h-[600px] text-center">
           {/* Main heading with enhanced styling */}
@@ -132,17 +133,19 @@ const SpeakingInstructions = () => {
             </p>
           </div>
         </div>
+        </div>
       </div>
     );
   }
   
   return (
-    <div className="instructions-container">
-      <div className="speaking-header">
-        <h1 className="speaking-title">IELTS Speaking Practice</h1>
-        <p className="speaking-subtitle">
-          Build confidence and fluency with authentic IELTS speaking tasks
-        </p>
+    <div className="speaking-container">
+      <div className="instructions-container">
+        <div className="speaking-header">
+          <h1 className="speaking-title">IELTS Speaking Practice</h1>
+          <p className="speaking-subtitle">
+            Build confidence and fluency with authentic IELTS speaking tasks
+          </p>
         
         {loadingMessage && (
           <div className="mt-4 p-3 bg-blue-50 text-blue-700 rounded-lg animate-fade-in">
@@ -253,6 +256,7 @@ const SpeakingInstructions = () => {
             )}
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );

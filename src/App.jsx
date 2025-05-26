@@ -5,6 +5,7 @@ import './App.css';
 import LandingPage from './components/LandingPage.jsx';
 import LoginPage from './components/Auth/LoginPage.jsx';
 import MaintenancePage from './components/Maintenance/MaintenancePage.jsx';
+import ListeningMaintenancePage from './components/Maintenance/ListeningMaintenancePage.jsx';
 // Import other sections
 import WritingHome from './components/IELTS/Writing/WritingHome.jsx';
 import ReadingFeedback from './components/IELTS/Reading/ReadingFeedback';
@@ -106,7 +107,10 @@ const ExamTypePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
-            <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => navigate('/skills')}
+              className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
+            >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
                   src="/logo.ico" 
@@ -120,7 +124,7 @@ const ExamTypePage = () => {
                 />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
-            </div>
+            </button>
             
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
@@ -285,7 +289,11 @@ const SkillsPage = ({ examType }) => {
   
   const handleSkillSelection = (skill) => {
     resetTimer();
-    navigate(`/${examType}/${skill.toLowerCase()}`);
+    if (skill === 'listening') {
+      navigate('/listening-maintenance');
+    } else {
+      navigate(`/${examType}/${skill.toLowerCase()}`);
+    }
   };
   
   const handleBack = () => {
@@ -317,7 +325,7 @@ const SkillsPage = ({ examType }) => {
       id: 'reading',
       name: 'Reading',
       icon: 'menu_book',
-      description: 'Master comprehension with authentic passages',
+      description: 'Master reading comprehension skills',
       color: 'from-cyan-500 to-cyan-700',
       bgColor: 'bg-cyan-50',
       hoverColor: 'group-hover:bg-cyan-100',
@@ -341,7 +349,7 @@ const SkillsPage = ({ examType }) => {
       id: 'listening',
       name: 'Listening',
       icon: 'headphones',
-      description: 'Sharpen your audio comprehension skills',
+      description: 'Enhance your listening comprehension',
       color: 'from-blue-500 to-blue-700',
       bgColor: 'bg-blue-50',
       hoverColor: 'group-hover:bg-blue-100',
@@ -378,7 +386,10 @@ const SkillsPage = ({ examType }) => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
-            <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => navigate('/skills')}
+              className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
+            >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
                   src="/logo.ico" 
@@ -392,7 +403,7 @@ const SkillsPage = ({ examType }) => {
                 />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
-            </div>
+            </button>
             
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
@@ -482,21 +493,23 @@ const SkillsPage = ({ examType }) => {
                 onMouseLeave={() => setHoveredSkill(null)}
                 style={{animationDelay: skill.delay}}
               >
-                <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl`}>
+                <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl min-h-[280px] flex flex-col`}>
                   {/* Floating icon */}
                   <div className={`inline-flex items-center justify-center w-16 h-16 ${skill.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
                     <span className="material-icons text-white text-2xl">{skill.icon}</span>
                   </div>
                   
                   {/* Content */}
-                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-white">
-                    {skill.name}
-                  </h3>
-                  <p className="text-white/70 mb-4 leading-relaxed group-hover:text-white/80">
-                    {skill.description}
-                  </p>
-                  <div className="text-sm text-white/50 group-hover:text-white/60">
-                    {skill.stats}
+                  <div className="flex-grow flex flex-col">
+                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-white">
+                      {skill.name}
+                    </h3>
+                    <p className="text-white/70 mb-4 leading-relaxed group-hover:text-white/80 flex-grow">
+                      {skill.description}
+                    </p>
+                    <div className="text-sm text-white/50 group-hover:text-white/60 mt-auto">
+                      {skill.stats}
+                    </div>
                   </div>
                   
                   {/* Hover effect overlay */}
@@ -606,7 +619,10 @@ const PlayZonePlaceholder = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
-            <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => navigate('/skills')}
+              className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
+            >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
                   src="/logo.ico" 
@@ -620,7 +636,7 @@ const PlayZonePlaceholder = () => {
                 />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
-            </div>
+            </button>
             
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
@@ -773,6 +789,8 @@ function App() {
               <Route path="/skills" element={<ExamTypePage />} />
               <Route path="/ielts-skills" element={<IELTSSkillsPage />} />
               <Route path="/toefl-skills" element={<TOEFLSkillsPage />} />
+              <Route path="/maintenance" element={<MaintenancePage />} />
+              <Route path="/listening-maintenance" element={<ListeningMaintenancePage />} />
               
               {/* IELTS Routes */}
               <Route path="/ielts/writing" element={<WritingHome />} />

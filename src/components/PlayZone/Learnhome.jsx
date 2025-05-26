@@ -175,7 +175,10 @@ const LearnHome = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
-            <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => navigate('/skills')}
+              className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
+            >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
                   src="/logo.ico" 
@@ -189,7 +192,7 @@ const LearnHome = () => {
                 />
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
-            </div>
+            </button>
             
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">

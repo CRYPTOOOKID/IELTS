@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Wrench, 
   Clock, 
@@ -11,6 +12,8 @@ import {
 } from 'lucide-react';
 
 const MaintenancePage = () => {
+  const navigate = useNavigate();
+
   const handleRefresh = () => {
     window.location.reload();
   };
@@ -29,7 +32,10 @@ const MaintenancePage = () => {
       {/* Main Content */}
       <div className="relative z-10 max-w-2xl mx-auto px-4 text-center">
         {/* Logo */}
-        <div className="flex items-center justify-center space-x-3 mb-12">
+        <button 
+          onClick={() => navigate('/skills')}
+          className="flex items-center justify-center space-x-3 mb-12 hover:scale-105 transition-transform duration-300"
+        >
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
             <img 
               src="/logo.ico" 
@@ -43,7 +49,7 @@ const MaintenancePage = () => {
             />
           </div>
           <span className="text-4xl font-bold text-white drop-shadow-lg">SPINTA</span>
-        </div>
+        </button>
 
         {/* Maintenance Icon */}
         <div className="mb-8">

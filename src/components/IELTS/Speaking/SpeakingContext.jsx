@@ -61,17 +61,17 @@ export const SpeakingProvider = ({ children }) => {
     }
   }, [countdownNumber, showCountdown]);
 
-  // Function to fetch test data from HTTP API with fallback
+  // Function to fetch test data from HTTP API with fallback (inspired by writing test pattern)
   const fetchTestData = async () => {
     setError(null);
     setLoadingMessage('Loading speaking test data...');
     setUsingFallback(false);
     
-    console.log("Preparing speaking test data");
+    console.log("Fetching speaking test data...");
     
     try {
       // Use the correct endpoint for speaking test
-      const testIdToFetch = "speaking_gt_2";
+      const testIdToFetch = "speaking_gt_1";
       const apiUrl = `https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testIdToFetch}`;
       
       console.log(`Fetching speaking test data from: ${apiUrl}`);
