@@ -1,43 +1,72 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- ZOOM FIX - Add this style block -->
+    <!-- FIXED ZOOM SOLUTION -->
     <style>
-      /* Auto-detect and fix zoom for production */
+      /* Reset any zoom by default */
       html {
-        /* CSS variable approach for flexibility */
-        --zoom-scale: 1;
+        zoom: 1;
+        transform: none;
       }
       
-      /* Apply zoom only on larger screens and non-localhost */
-      @media screen and (min-width: 1024px) {
-        html:not([data-dev]) {
-          --zoom-scale: 0.75;
-          zoom: var(--zoom-scale);
+      /* Only apply zoom in production AND on desktop screens */
+      @media screen and (min-width: 1440px) {
+        html.production-zoom {
+          zoom: 0.75;
           /* Firefox compatibility */
-          -moz-transform: scale(var(--zoom-scale));
+          -moz-transform: scale(0.75);
           -moz-transform-origin: 0 0;
+        }
+      }
+      
+      /* For screens between 1024px and 1440px, you might want different handling */
+      @media screen and (min-width: 1024px) and (max-width: 1439px) {
+        html.production-zoom {
+          zoom: 0.85; /* Slightly less zoom for medium screens */
+        }
+      }
+      
+      /* Ensure no zoom on mobile/tablet */
+      @media screen and (max-width: 1023px) {
+        html {
+          zoom: 1 !important;
+          transform: none !important;
         }
       }
     </style>
     
-    <!-- Auto-detect environment -->
+    <!-- Better environment detection -->
     <script>
-      // Mark as dev if on localhost
-      if (window.location.hostname === 'localhost' || 
-          window.location.hostname === '127.0.0.1' || 
-          window.location.hostname.includes('.local')) {
-        document.documentElement.setAttribute('data-dev', 'true');
+      // More robust production detection
+      const isDev = window.location.hostname === 'localhost' || 
+                    window.location.hostname === '127.0.0.1' || 
+                    window.location.hostname.includes('.local') ||
+                    window.location.hostname.includes('deploy-preview') || // Netlify preview
+                    window.location.hostname.includes('--'); // Netlify branch deploys
+      
+      // Only add zoom class if truly in production
+      if (!isDev) {
+        document.documentElement.classList.add('production-zoom');
       }
       
-      // Optional: Allow URL parameter override for testing
-      // Use: ?zoom=0.8 to test different zoom levels
-      const urlZoom = new URLSearchParams(window.location.search).get('zoom');
-      if (urlZoom) {
-        document.documentElement.style.setProperty('--zoom-scale', urlZoom);
+      // Debug info
+      console.log('Zoom Debug:', {
+        hostname: window.location.hostname,
+        isDev: isDev,
+        screenWidth: window.screen.width,
+        innerWidth: window.innerWidth,
+        zoomApplied: !isDev
+      });
+      
+      // Allow manual override via URL
+      const zoomParam = new URLSearchParams(window.location.search).get('zoom');
+      if (zoomParam === 'off') {
+        document.documentElement.classList.remove('production-zoom');
+      } else if (zoomParam) {
+        document.documentElement.style.zoom = zoomParam;
       }
     </script>
     
@@ -49,6 +78,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
