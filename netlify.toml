@@ -4,6 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  NODE_ENV = "production"
+  GENERATE_SOURCEMAP = "false"
+  NODE_OPTIONS = "--max-old-space-size=4096"
 
 # Headers for consistent rendering and security
 [[headers]]
@@ -56,8 +59,4 @@
 [build.processing.html]
   pretty_urls = true
 
-# Environment variables for consistent builds
-[build.environment]
-  NODE_ENV = "production"
-  GENERATE_SOURCEMAP = "false"
-  NODE_OPTIONS = "--max-old-space-size=4096" 
+# Environment variables for consistent builds (merged with the build.environment section above) 
