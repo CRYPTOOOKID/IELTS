@@ -1,78 +1,14 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- FIXED ZOOM SOLUTION -->
-    <style>
-      /* Reset any zoom by default */
-      html {
-        zoom: 1;
-        transform: none;
-      }
-      
-      /* Only apply zoom in production AND on desktop screens */
-      @media screen and (min-width: 1440px) {
-        html.production-zoom {
-          zoom: 0.75;
-          /* Firefox compatibility */
-          -moz-transform: scale(0.75);
-          -moz-transform-origin: 0 0;
-        }
-      }
-      
-      /* For screens between 1024px and 1440px, you might want different handling */
-      @media screen and (min-width: 1024px) and (max-width: 1439px) {
-        html.production-zoom {
-          zoom: 0.85; /* Slightly less zoom for medium screens */
-        }
-      }
-      
-      /* Ensure no zoom on mobile/tablet */
-      @media screen and (max-width: 1023px) {
-        html {
-          zoom: 1 !important;
-          transform: none !important;
-        }
-      }
-    </style>
-    
-    <!-- Better environment detection -->
-    <script>
-      // More robust production detection
-      const isDev = window.location.hostname === 'localhost' || 
-                    window.location.hostname === '127.0.0.1' || 
-                    window.location.hostname.includes('.local') ||
-                    window.location.hostname.includes('deploy-preview') || // Netlify preview
-                    window.location.hostname.includes('--'); // Netlify branch deploys
-      
-      // Only add zoom class if truly in production
-      if (!isDev) {
-        document.documentElement.classList.add('production-zoom');
-      }
-      
-      // Debug info
-      console.log('Zoom Debug:', {
-        hostname: window.location.hostname,
-        isDev: isDev,
-        screenWidth: window.screen.width,
-        innerWidth: window.innerWidth,
-        zoomApplied: !isDev
-      });
-      
-      // Allow manual override via URL
-      const zoomParam = new URLSearchParams(window.location.search).get('zoom');
-      if (zoomParam === 'off') {
-        document.documentElement.classList.remove('production-zoom');
-      } else if (zoomParam) {
-        document.documentElement.style.zoom = zoomParam;
-      }
-    </script>
-    
-    <!-- Your existing meta tags and links -->
+    <!-- Favicons - Using the new SPINTA logo -->
     <link rel="icon" type="image/x-icon" href="/logo.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/logo.ico" />
+    
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com https://xguxnr9iu0.execute-api.us-east-1.amazonaws.com https://jjsmfiikybhgha37vrlcpipu2y.appsync-api.us-east-1.amazonaws.com https://generativelanguage.googleapis.com https://api.deepseek.com https://yeo707lcq4.execute-api.us-east-1.amazonaws.com https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com https://80yhq8e9rl.execute-api.us-east-1.amazonaws.com https://h5gf4jspy7.execute-api.us-east-1.amazonaws.com;">
     <title>Spinta</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   </head>

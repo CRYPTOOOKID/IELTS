@@ -48,24 +48,4 @@ To update other files, simply:
 This ensures your production site stays clean while maintaining debugging capabilities during development. 
 
 
-old
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Favicons - Using the new SPINTA logo -->
-    <link rel="icon" type="image/x-icon" href="/logo.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/logo.ico" />
-    
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com https://xguxnr9iu0.execute-api.us-east-1.amazonaws.com https://jjsmfiikybhgha37vrlcpipu2y.appsync-api.us-east-1.amazonaws.com https://generativelanguage.googleapis.com https://api.deepseek.com https://yeo707lcq4.execute-api.us-east-1.amazonaws.com https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com https://80yhq8e9rl.execute-api.us-east-1.amazonaws.com https://h5gf4jspy7.execute-api.us-east-1.amazonaws.com;">
-    <title>Spinta</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
