@@ -68,4 +68,4 @@ To build the application for production:
 npm run build
 ```
 
-This will generate a `dist` directory with the production-ready files.
+This will generate a `dist` directory with the production-ready files..
