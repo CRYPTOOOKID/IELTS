@@ -108,7 +108,7 @@ img {
 /* Responsive container constraints */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1280px !important; /* Force consistent 1280px max-width */
   margin: 0 auto;
   padding: 0 1rem;
   zoom: 1 !important;
@@ -116,6 +116,7 @@ img {
   -moz-transform: scale(1) !important;
   -ms-transform: scale(1) !important;
   transform: scale(1) !important;
+  box-sizing: border-box;
 }
 
 /* Prevent horizontal scrolling */
@@ -170,6 +171,19 @@ input, textarea {
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
+    zoom: 1 !important;
+    -webkit-transform: scale(1) !important;
+    -moz-transform: scale(1) !important;
+    -ms-transform: scale(1) !important;
+    transform: scale(1) !important;
+  }
+  
+  .container-consistent {
+    width: 100% !important;
+    max-width: 1280px !important;
+    margin: 0 auto !important;
+    padding: 0 1rem !important;
+    box-sizing: border-box !important;
     zoom: 1 !important;
     -webkit-transform: scale(1) !important;
     -moz-transform: scale(1) !important;

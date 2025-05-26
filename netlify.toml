@@ -54,4 +54,10 @@
   bundle = true
   minify = true
 [build.processing.html]
-  pretty_urls = true 
+  pretty_urls = true
+
+# Environment variables for consistent builds
+[build.environment]
+  NODE_ENV = "production"
+  GENERATE_SOURCEMAP = "false"
+  NODE_OPTIONS = "--max-old-space-size=4096" 

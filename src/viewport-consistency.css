@@ -1,0 +1,129 @@
+/* Viewport and Container Consistency Fixes */
+/* This file ensures consistent container widths across all deployment environments */
+
+/* Critical: Force consistent viewport behavior */
+@viewport {
+  width: device-width;
+  initial-scale: 1.0;
+  maximum-scale: 1.0;
+  minimum-scale: 1.0;
+  user-scalable: no;
+}
+
+/* Override any conflicting container styles from any source */
+.container,
+[class*="container"]:not(.reading-task-container):not(.modern-feedback-container):not(.instructions-container):not(.toefl-reading-container):not(.toefl-writing-container),
+.max-w-4xl,
+.max-w-5xl,
+.max-w-6xl,
+.max-w-7xl {
+  max-width: 1280px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Specific media query overrides to prevent environment-specific differences */
+@media (min-width: 1280px) {
+  .container,
+  .max-w-4xl,
+  .max-w-5xl,
+  .max-w-6xl,
+  .max-w-7xl {
+    max-width: 1280px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .container,
+  .max-w-4xl,
+  .max-w-5xl,
+  .max-w-6xl,
+  .max-w-7xl {
+    max-width: 1024px !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container,
+  .max-w-4xl,
+  .max-w-5xl,
+  .max-w-6xl,
+  .max-w-7xl {
+    max-width: 768px !important;
+  }
+}
+
+/* Force Tailwind's container class to behave consistently */
+.container {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* Production-specific overrides for common layout containers */
+.landing-page,
+.app-container,
+main[class*="container"],
+div[class*="mx-auto"] {
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+}
+
+/* Prevent any third-party CSS from overriding our container widths */
+*[style*="max-width"] {
+  max-width: 1280px !important;
+}
+
+/* Ensure consistent behavior for centered layouts */
+.mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Critical fix for main content areas */
+.skills-container,
+.landing-main > *,
+.container > * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Environment-agnostic font size fixes */
+html {
+  font-size: 16px !important;
+}
+
+body {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Prevent layout shifts that might cause width changes */
+* {
+  box-sizing: border-box !important;
+}
+
+/* Force consistent viewport units */
+.w-full {
+  width: 100% !important;
+}
+
+.h-full {
+  height: 100% !important;
+}
+
+/* Production environment CSS reset for container conflicts */
+@media screen {
+  .container,
+  .max-w-4xl,
+  .max-w-5xl,
+  .max-w-6xl,
+  .max-w-7xl {
+    transform: none !important;
+    zoom: 1 !important;
+    scale: 1 !important;
+  }
+} 

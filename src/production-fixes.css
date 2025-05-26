@@ -293,4 +293,54 @@ img, video, iframe {
   -moz-transform: none !important;
   -ms-transform: none !important;
   transform: none !important;
+}
+
+/* CRITICAL: Force consistent container max-widths across all environments */
+.container,
+.max-w-4xl,
+.max-w-5xl,
+.max-w-6xl,
+.max-w-7xl {
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+/* Ensure Tailwind container classes use consistent widths */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .container {
+    max-width: 1024px !important;
+  }
+}
+
+/* Force specific container elements to maintain consistent sizing */
+.landing-page .container,
+.landing-main .container,
+.skills-container,
+.max-w-4xl,
+.max-w-5xl,
+.max-w-6xl {
+  max-width: 1280px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Production environment container overrides */
+.app-container,
+.main-content-container,
+[class*="container"],
+[class*="max-w-"] {
+  box-sizing: border-box !important;
+}
+
+/* Prevent any CDN or external CSS from overriding container widths */
+div[class*="container"]:not(.reading-task-container):not(.modern-feedback-container) {
+  max-width: 1280px !important;
 } 
