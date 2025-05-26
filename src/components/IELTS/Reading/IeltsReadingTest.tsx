@@ -16,14 +16,14 @@ import { ChevronLeft, ChevronRight, Send, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { IeltsTest, IeltsQuestion, UserAnswer, TestState } from '../../../../types/IeltsTypes';
-import Timer from './Timer';
-import ProgressIndicator from './ProgressIndicator';
-import ReadingPassage from './ReadingPassage';
-import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion';
-import TrueFalseNotGivenQuestion from './questions/TrueFalseNotGivenQuestion';
-import SentenceCompletionQuestion from './questions/SentenceCompletionQuestion';
-import MatchingHeadingsQuestion from './questions/MatchingHeadingsQuestion';
-import ParagraphMatchingQuestion from './questions/ParagraphMatchingQuestion';
+import Timer from './Timer.tsx';
+import ProgressIndicator from './ProgressIndicator.tsx';
+import ReadingPassage from './ReadingPassage.tsx';
+import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.tsx';
+import TrueFalseNotGivenQuestion from './questions/TrueFalseNotGivenQuestion.tsx';
+import SentenceCompletionQuestion from './questions/SentenceCompletionQuestion.tsx';
+import MatchingHeadingsQuestion from './questions/MatchingHeadingsQuestion.tsx';
+import ParagraphMatchingQuestion from './questions/ParagraphMatchingQuestion.tsx';
 
 interface IeltsReadingTestProps {
   testData: IeltsTest;

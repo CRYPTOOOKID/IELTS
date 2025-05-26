@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import IeltsReadingTest from './IeltsReadingTest';
+import IeltsReadingTest from './IeltsReadingTest.tsx';
 
 // Sample test data - in a real app, this would come from an API
 const sampleTestData = {
