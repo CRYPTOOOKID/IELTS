@@ -21,15 +21,27 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
-// Initialize Google Auth Provider
+// Initialize Google Auth Provider with enhanced configuration
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  prompt: 'select_account'
+  prompt: 'select_account',
+  // Add hosted domain if needed for G Suite accounts
+  // hd: 'your-domain.com'
 });
 
 // Add additional scopes if needed
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
+
+// Add error handling for domain issues
+const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
+console.log('Current domain:', currentDomain);
+
+// Log Firebase configuration for debugging
+if (process.env.NODE_ENV === 'development') {
+  console.log('Firebase Auth Domain:', firebaseConfig.authDomain);
+  console.log('Current Domain:', currentDomain);
+}
 
 // Initialize Analytics (optional)
 let analytics;

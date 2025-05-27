@@ -300,6 +300,7 @@ export const AuthProvider = ({ children }) => {
       
       // Log for debugging
       console.log('Starting Google Sign-In...');
+      console.log('Current domain:', window.location.hostname);
       console.log('Auth instance:', auth);
       console.log('Google provider:', googleProvider);
       
@@ -331,6 +332,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Google Sign-In Error:', err);
       console.error('Error code:', err.code);
       console.error('Error message:', err.message);
+      console.error('Current domain:', window.location.hostname);
       
       // Convert Firebase errors to more user-friendly messages
       let errorMessage = err.message;
@@ -346,6 +348,10 @@ export const AuthProvider = ({ children }) => {
         errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
       } else if (err.code === 'auth/configuration-not-found') {
         errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        const currentDomain = window.location.hostname;
+        errorMessage = `This domain (${currentDomain}) is not authorized for Google Sign-In. Please contact the administrator to add this domain to Firebase Console under Authentication → Settings → Authorized domains.`;
+        console.error('Unauthorized domain error. Domain needs to be added to Firebase Console:', currentDomain);
       }
       
       const error = { ...err, message: errorMessage };
