@@ -43,10 +43,16 @@ if (process.env.NODE_ENV === 'development') {
   console.log('Current Domain:', currentDomain);
 }
 
-// Initialize Analytics (optional)
+// Initialize Analytics (only in production to avoid CSP issues in development)
 let analytics;
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  try {
+    analytics = getAnalytics(app);
+  } catch (error) {
+    console.warn('Failed to initialize Firebase Analytics:', error);
+    // Analytics failed to initialize, continue without it
+    analytics = null;
+  }
 }
 
 export { analytics };

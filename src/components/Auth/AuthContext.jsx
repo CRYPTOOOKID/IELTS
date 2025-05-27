@@ -25,6 +25,67 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Handle Google Sign-In redirect result (define this before useEffect)
+  const handleGoogleRedirectResult = async () => {
+    try {
+      console.log('Checking for Google Sign-In redirect result...');
+      
+      const result = await getRedirectResult(auth);
+      
+      if (result) {
+        // User successfully signed in via redirect
+        const firebaseUser = result.user;
+        console.log('Google Sign-In successful via redirect:', firebaseUser);
+        
+        // Return result in Cognito-like format for compatibility
+        const authResult = {
+          isSignedIn: true,
+          user: {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            emailVerified: firebaseUser.emailVerified,
+            photoURL: firebaseUser.photoURL,
+            attributes: {
+              email: firebaseUser.email,
+              name: firebaseUser.displayName,
+              email_verified: firebaseUser.emailVerified,
+              picture: firebaseUser.photoURL
+            }
+          }
+        };
+        
+        return authResult;
+      }
+      
+      // No redirect result (normal page load)
+      return null;
+      
+    } catch (err) {
+      console.error('Google Sign-In Redirect Error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
+      
+      // Convert Firebase errors to more user-friendly messages
+      let errorMessage = err.message;
+      if (err.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'An account already exists with the same email address but different sign-in credentials.';
+      } else if (err.code === 'auth/internal-error') {
+        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
+      } else if (err.code === 'auth/configuration-not-found') {
+        errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        const currentDomain = window.location.hostname;
+        errorMessage = `This domain (${currentDomain}) is not authorized for Google Sign-In. Please contact the administrator to add this domain to Firebase Console under Authentication → Settings → Authorized domains.`;
+        console.error('Unauthorized domain error. Domain needs to be added to Firebase Console:', currentDomain);
+      }
+      
+      const error = { ...err, message: errorMessage };
+      setError(error.message);
+      throw error;
+    }
+  };
+
   // Check if user is authenticated on initial load and listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -352,67 +413,6 @@ export const AuthProvider = ({ children }) => {
       const error = { ...err, message: errorMessage };
       setError(error.message);
       setLoading(false);
-      throw error;
-    }
-  };
-
-  // Handle Google Sign-In redirect result (call this when the page loads)
-  const handleGoogleRedirectResult = async () => {
-    try {
-      console.log('Checking for Google Sign-In redirect result...');
-      
-      const result = await getRedirectResult(auth);
-      
-      if (result) {
-        // User successfully signed in via redirect
-        const firebaseUser = result.user;
-        console.log('Google Sign-In successful via redirect:', firebaseUser);
-        
-        // Return result in Cognito-like format for compatibility
-        const authResult = {
-          isSignedIn: true,
-          user: {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            emailVerified: firebaseUser.emailVerified,
-            photoURL: firebaseUser.photoURL,
-            attributes: {
-              email: firebaseUser.email,
-              name: firebaseUser.displayName,
-              email_verified: firebaseUser.emailVerified,
-              picture: firebaseUser.photoURL
-            }
-          }
-        };
-        
-        return authResult;
-      }
-      
-      // No redirect result (normal page load)
-      return null;
-      
-    } catch (err) {
-      console.error('Google Sign-In Redirect Error:', err);
-      console.error('Error code:', err.code);
-      console.error('Error message:', err.message);
-      
-      // Convert Firebase errors to more user-friendly messages
-      let errorMessage = err.message;
-      if (err.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = 'An account already exists with the same email address but different sign-in credentials.';
-      } else if (err.code === 'auth/internal-error') {
-        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
-      } else if (err.code === 'auth/configuration-not-found') {
-        errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
-      } else if (err.code === 'auth/unauthorized-domain') {
-        const currentDomain = window.location.hostname;
-        errorMessage = `This domain (${currentDomain}) is not authorized for Google Sign-In. Please contact the administrator to add this domain to Firebase Console under Authentication → Settings → Authorized domains.`;
-        console.error('Unauthorized domain error. Domain needs to be added to Firebase Console:', currentDomain);
-      }
-      
-      const error = { ...err, message: errorMessage };
-      setError(error.message);
       throw error;
     }
   };
