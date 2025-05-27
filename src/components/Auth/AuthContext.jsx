@@ -1,34 +1,16 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { Amplify } from 'aws-amplify';
-import * as Auth from 'aws-amplify/auth';
+import { 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  sendEmailVerification,
+  updateProfile,
+  sendPasswordResetEmail
+} from 'firebase/auth';
+import { auth, googleProvider } from '../../firebase/config';
 import logger from '../../utils/logger';
-
-// AWS Configuration using environment variables
-const awsConfig = {
-  Auth: {
-    Cognito: {
-      region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
-      userPoolId: import.meta.env.VITE_AWS_USER_POOL_ID,
-      userPoolClientId: import.meta.env.VITE_AWS_USER_POOL_CLIENT_ID,
-      loginWith: {
-        oauth: {
-          domain: import.meta.env.VITE_AWS_OAUTH_DOMAIN,
-          scopes: ['email', 'openid', 'profile'],
-          redirectSignIn: import.meta.env.VITE_AWS_REDIRECT_SIGN_IN || window.location.origin,
-          redirectSignOut: import.meta.env.VITE_AWS_REDIRECT_SIGN_OUT || window.location.origin,
-          responseType: 'code'
-        }
-      }
-    }
-  }
-};
-
-// Only configure Amplify if we have the required environment variables
-if (import.meta.env.VITE_AWS_USER_POOL_ID && import.meta.env.VITE_AWS_USER_POOL_CLIENT_ID) {
-  Amplify.configure(awsConfig);
-} else {
-  logger.warn('AWS configuration missing. Set VITE_AWS_USER_POOL_ID and VITE_AWS_USER_POOL_CLIENT_ID environment variables.');
-}
 
 // Create the authentication context
 const AuthContext = createContext();
@@ -42,22 +24,64 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check if user is authenticated on initial load
+  // Check if user is authenticated on initial load and listen for auth state changes
   useEffect(() => {
-    checkAuthState();
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Convert Firebase user to our expected format
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          emailVerified: firebaseUser.emailVerified,
+          photoURL: firebaseUser.photoURL,
+          // Adding some Cognito-like properties for compatibility
+          attributes: {
+            email: firebaseUser.email,
+            name: firebaseUser.displayName,
+            email_verified: firebaseUser.emailVerified
+          },
+          isSignedIn: true
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+      setError(null);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   // Function to check the current authentication state
   const checkAuthState = async () => {
     try {
       setLoading(true);
-      const currentUser = await Auth.getCurrentUser();
-      setUser(currentUser);
+      // Firebase automatically handles this through onAuthStateChanged
+      // This function is kept for API compatibility
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        setUser({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          emailVerified: currentUser.emailVerified,
+          photoURL: currentUser.photoURL,
+          attributes: {
+            email: currentUser.email,
+            name: currentUser.displayName,
+            email_verified: currentUser.emailVerified
+          },
+          isSignedIn: true
+        });
+      } else {
+        setUser(null);
+      }
       setError(null);
     } catch (err) {
       setUser(null);
-      // Don't set error at all for unauthenticated users - this is an expected state
-      // for new users or logged out users
+      logger.error('Error checking auth state:', err);
     } finally {
       setLoading(false);
     }
@@ -68,19 +92,53 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const result = await Auth.signIn({
-        username: email,
-        password
-      });
       
-      if (result.isSignedIn) {
-        await checkAuthState();
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      
+      // Check if email is verified
+      if (!firebaseUser.emailVerified) {
+        throw {
+          code: 'UserNotConfirmedException',
+          message: 'User is not confirmed. Please check your email for verification.'
+        };
       }
+      
+      // Return result in Cognito-like format for compatibility
+      const result = {
+        isSignedIn: true,
+        user: {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          emailVerified: firebaseUser.emailVerified,
+          attributes: {
+            email: firebaseUser.email,
+            name: firebaseUser.displayName,
+            email_verified: firebaseUser.emailVerified
+          }
+        }
+      };
       
       return result;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      // Convert Firebase errors to more user-friendly messages
+      let errorMessage = err.message;
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (err.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (err.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed login attempts. Please try again later.';
+      }
+      
+      const error = { ...err, message: errorMessage };
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -91,40 +149,85 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const result = await Auth.signUp({
-        username: email,
-        password,
-        options: {
-          userAttributes: {
-            email,
-            name
-          }
+      
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      
+      // Update the user's display name
+      if (name) {
+        await updateProfile(firebaseUser, { displayName: name });
+      }
+      
+      // Send email verification
+      await sendEmailVerification(firebaseUser);
+      
+      // Return result in Cognito-like format for compatibility
+      const result = {
+        user: {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: name,
+          emailVerified: false
+        },
+        nextStep: {
+          signUpStep: 'CONFIRM_SIGN_UP'
         }
-      });
+      };
       
       return result;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      // Convert Firebase errors to more user-friendly messages
+      let errorMessage = err.message;
+      if (err.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please choose a stronger password.';
+      }
+      
+      const error = { ...err, message: errorMessage };
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  // Confirm sign up function
+  // Confirm sign up function (Firebase doesn't use codes, but we'll simulate for compatibility)
   const confirmSignUp = async (email, code) => {
     try {
       setLoading(true);
       setError(null);
-      const result = await Auth.confirmSignUp({
-        username: email,
-        confirmationCode: code
-      });
       
-      return result;
+      // In Firebase, email verification happens automatically when user clicks the link
+      // For compatibility, we'll just check if the current user's email is verified
+      await auth.currentUser?.reload();
+      const currentUser = auth.currentUser;
+      
+      if (currentUser && currentUser.emailVerified) {
+        return {
+          isSignUpComplete: true,
+          user: {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            emailVerified: true
+          }
+        };
+      } else {
+        throw {
+          code: 'CodeMismatchException',
+          message: 'Please click the verification link in your email first, then try signing in.'
+        };
+      }
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const error = { 
+        ...err, 
+        message: err.message || 'Email verification failed. Please check your email and click the verification link.'
+      };
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -135,27 +238,119 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      await Auth.signOut();
+      await firebaseSignOut(auth);
       setUser(null);
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const errorMessage = 'Failed to sign out. Please try again.';
+      setError(errorMessage);
+      throw { ...err, message: errorMessage };
     } finally {
       setLoading(false);
     }
   };
 
-  // Resend confirmation code
+  // Resend confirmation code (send email verification)
   const resendConfirmationCode = async (email) => {
     try {
       setLoading(true);
       setError(null);
-      await Auth.resendSignUpCode({
-        username: email
-      });
+      
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await sendEmailVerification(currentUser);
+      } else {
+        throw new Error('No user is currently signed in');
+      }
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const errorMessage = 'Failed to resend verification email. Please try again.';
+      setError(errorMessage);
+      throw { ...err, message: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Password reset function (new functionality)
+  const resetPassword = async (email) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await sendPasswordResetEmail(auth, email);
+    } catch (err) {
+      let errorMessage = err.message;
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      }
+      
+      const error = { ...err, message: errorMessage };
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google Sign-In function
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Log for debugging
+      console.log('Starting Google Sign-In...');
+      console.log('Auth instance:', auth);
+      console.log('Google provider:', googleProvider);
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      
+      console.log('Google Sign-In successful:', firebaseUser);
+      
+      // Return result in Cognito-like format for compatibility
+      const authResult = {
+        isSignedIn: true,
+        user: {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          emailVerified: firebaseUser.emailVerified,
+          photoURL: firebaseUser.photoURL,
+          attributes: {
+            email: firebaseUser.email,
+            name: firebaseUser.displayName,
+            email_verified: firebaseUser.emailVerified,
+            picture: firebaseUser.photoURL
+          }
+        }
+      };
+      
+      return authResult;
+    } catch (err) {
+      console.error('Google Sign-In Error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
+      
+      // Convert Firebase errors to more user-friendly messages
+      let errorMessage = err.message;
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in was cancelled.';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'Only one sign-in request at a time is allowed.';
+      } else if (err.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'An account already exists with the same email address but different sign-in credentials.';
+      } else if (err.code === 'auth/internal-error') {
+        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
+      } else if (err.code === 'auth/configuration-not-found') {
+        errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
+      }
+      
+      const error = { ...err, message: errorMessage };
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -171,6 +366,8 @@ export const AuthProvider = ({ children }) => {
     confirmSignUp,
     signOut,
     resendConfirmationCode,
+    resetPassword,
+    signInWithGoogle, // Google Sign-In function
     checkAuthState
   };
 
