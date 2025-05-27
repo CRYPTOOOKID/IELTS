@@ -24,7 +24,7 @@ const LoginPage = () => {
   const [successMessage, setSuccessMessage] = useState(null);
   
   // Use the auth context
-  const { user, loading, error, signIn, signUp, confirmSignUp, resendConfirmationCode } = useAuth();
+  const { user, loading, error, signIn, signUp, confirmSignUp, resendConfirmationCode, resetPassword, signInWithGoogle } = useAuth();
 
   // Redirect if user is already authenticated
   useEffect(() => {
@@ -70,7 +70,7 @@ const LoginPage = () => {
       
       // If sign up requires confirmation, show confirmation form
       if (result && result.nextStep && result.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
-        setSuccessMessage('Account created successfully! Please check your email for verification code.');
+        setSuccessMessage('Account created successfully! Please check your email for verification link.');
         setTimeout(() => {
           setShowConfirmation(true);
           setSuccessMessage(null);
@@ -87,32 +87,52 @@ const LoginPage = () => {
     setDisplayError(null);
     
     try {
-      const result = await confirmSignUp(formData.email, formData.code);
-      
-      // If confirmation is complete, try to sign in
-      if (result && result.isSignUpComplete) {
-        setSuccessMessage('Account confirmed successfully!');
-        try {
-          await signIn(formData.email, formData.password);
-          // Navigation will happen automatically in the useEffect when user state changes
-        } catch (signInError) {
-          setDisplayError('Confirmation successful. Please sign in.');
-          setShowConfirmation(false);
-          setActiveTab('signin');
-        }
-      }
+      // For Firebase, we'll just try to sign in to check if email is verified
+      await signIn(formData.email, formData.password);
+      // Navigation will happen automatically in the useEffect when user state changes
     } catch (error) {
       console.error('Error confirming sign up:', error);
-      setDisplayError(error.message);
+      if (error.code === 'UserNotConfirmedException') {
+        setDisplayError('Please check your email and click the verification link, then try signing in again.');
+      } else {
+        setDisplayError(error.message);
+      }
     }
   };
 
   const handleResendCode = async () => {
     try {
       await resendConfirmationCode(formData.email);
-      setSuccessMessage('Confirmation code resent successfully');
+      setSuccessMessage('Verification email resent successfully');
     } catch (error) {
-      console.error('Error resending code:', error);
+      console.error('Error resending verification email:', error);
+      setDisplayError(error.message);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setDisplayError('Please enter your email address first');
+      return;
+    }
+    
+    try {
+      await resetPassword(formData.email);
+      setSuccessMessage('Password reset email sent successfully! Check your inbox.');
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      setDisplayError(error.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setDisplayError(null);
+    
+    try {
+      await signInWithGoogle();
+      // Navigation will happen automatically in the useEffect when user state changes
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
       setDisplayError(error.message);
     }
   };
@@ -150,7 +170,7 @@ const LoginPage = () => {
               Verify Your Account
             </h2>
             <p className="mt-3 text-base text-white/70">
-              We've sent a verification code to your email
+              We've sent a verification link to your email. Please click it, then try signing in.
             </p>
           </div>
           
@@ -193,21 +213,22 @@ const LoginPage = () => {
               </div>
               
               <div>
-                <label htmlFor="code" className="block text-sm font-medium text-white/80 mb-1">
-                  Verification Code
+                <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-1">
+                  Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-white/50" aria-hidden="true" />
                   </div>
                   <input
-                    id="code"
-                    name="code"
-                    type="text"
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
                     required
                     className="appearance-none block w-full pl-10 px-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 backdrop-blur-sm"
-                    placeholder="Enter verification code"
-                    value={formData.code}
+                    placeholder="Your password"
+                    value={formData.password}
                     onChange={handleChange}
                   />
                 </div>
@@ -221,7 +242,7 @@ const LoginPage = () => {
                 className="text-blue-300 hover:text-blue-200 inline-flex items-center font-medium text-sm transition duration-150"
               >
                 <Mail size={16} className="mr-2" />
-                Resend code
+                Resend verification email
               </button>
             </div>
 
@@ -240,7 +261,7 @@ const LoginPage = () => {
                 </span>
               ) : (
                 <span className="flex items-center">
-                  Verify Account
+                  Try Sign In
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </span>
               )}
@@ -385,6 +406,16 @@ const LoginPage = () => {
               </div>
             </div>
 
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-blue-300 hover:text-blue-200 inline-flex items-center font-medium text-sm transition duration-150"
+              >
+                Forgot your password?
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -402,6 +433,44 @@ const LoginPage = () => {
                 <span className="flex items-center">
                   Sign in
                   <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </button>
+
+            {/* OR divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white/10 text-white/60 rounded-lg backdrop-blur-sm">OR</span>
+              </div>
+            </div>
+
+            {/* Google Sign-In Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-white/20 text-sm font-medium rounded-xl text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 shadow-xl transform transition-all duration-150 hover:shadow-2xl hover:-translate-y-0.5"
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
                 </span>
               )}
             </button>
@@ -531,6 +600,44 @@ const LoginPage = () => {
                 <span className="flex items-center">
                   Create account
                   <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </button>
+
+            {/* OR divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white/10 text-white/60 rounded-lg backdrop-blur-sm">OR</span>
+              </div>
+            </div>
+
+            {/* Google Sign-In Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-white/20 text-sm font-medium rounded-xl text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 shadow-xl transform transition-all duration-150 hover:shadow-2xl hover:-translate-y-0.5"
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
                 </span>
               )}
             </button>
