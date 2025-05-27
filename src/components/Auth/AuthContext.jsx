@@ -481,9 +481,12 @@ export const AuthProvider = ({ children }) => {
       
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
-      if (isLocalhost) {
-        console.log('🔧 Using popup method for localhost development');
-        // Use popup for localhost development
+      // TEMPORARY: Use popup for both localhost and production to test domain authorization
+      const usePopup = true; // Set to false to use redirect in production
+      
+      if (isLocalhost || usePopup) {
+        console.log(isLocalhost ? '🔧 Using popup method for localhost development' : '🔧 Using popup method for production testing');
+        // Use popup for localhost development or production testing
         try {
           const result = await signInWithPopup(auth, googleProvider);
           const firebaseUser = result.user;
@@ -512,8 +515,12 @@ export const AuthProvider = ({ children }) => {
           return authResult;
           
         } catch (popupError) {
-          console.error('Popup method failed, falling back to redirect:', popupError);
-          // Fall back to redirect if popup fails
+          console.error('Popup method failed:', popupError);
+          if (!isLocalhost) {
+            // If popup fails in production, don't fall back to redirect since that's also failing
+            throw popupError;
+          }
+          // Fall back to redirect only for localhost
         }
       }
       
