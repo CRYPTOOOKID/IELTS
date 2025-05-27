@@ -33,16 +33,6 @@ googleProvider.setCustomParameters({
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
-// Add error handling for domain issues
-const currentDomain = typeof window !== 'undefined' ? window.location.hostname : '';
-console.log('Current domain:', currentDomain);
-
-// Log Firebase configuration for debugging
-if (process.env.NODE_ENV === 'development') {
-  console.log('Firebase Auth Domain:', firebaseConfig.authDomain);
-  console.log('Current Domain:', currentDomain);
-}
-
 // Initialize Analytics (only in production to avoid CSP issues in development)
 let analytics;
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {

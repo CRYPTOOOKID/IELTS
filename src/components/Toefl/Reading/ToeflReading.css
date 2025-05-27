@@ -403,3 +403,43 @@ body,
     overflow-x: hidden !important;
   }
 }
+
+.toefl-reading-container,
+.toefl-reading-container * {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+/* Hide scrollbars */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Insertion points for INSERT_TEXT questions */
+.insertion-point {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  font-weight: bold;
+  font-size: 1.5rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 3px solid #f59e0b;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  display: inline-block;
+  margin: 0 8px;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.8);
+  }
+}

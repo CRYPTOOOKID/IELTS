@@ -777,7 +777,6 @@ function App() {
     return <MaintenancePage />;
   }
   
-  console.log('App component mounting');
   return (
     <AuthProvider>
       <SpeakingProvider>

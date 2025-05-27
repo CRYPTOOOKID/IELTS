@@ -139,15 +139,15 @@ const ToeflReadingTask = () => {
     switch (question.type) {
       case 'SENTENCE_SIMPLIFICATION':
         return (
-          <div className="question-content">
-            <div className="question-text">
-              <div className="highlighted-sentence-notice">
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-cyan-500/15 to-blue-500/15 rounded-2xl p-6 border border-cyan-400/40 backdrop-blur-sm">
+              <div className="text-cyan-200 text-base font-semibold mb-4">
                 The highlighted sentence below appears in the passage:
               </div>
-              <div className="highlighted-sentence-display">
-                {question.sentenceToHighlight}
+              <div className="bg-gradient-to-r from-cyan-400/20 to-blue-400/20 border border-cyan-300/50 rounded-xl p-5 mb-5">
+                <p className="text-white text-base leading-relaxed font-medium">{question.sentenceToHighlight}</p>
               </div>
-              <div className="question-instruction">
+              <div className="text-white text-lg font-bold">
                 Which of the following best expresses the essential information of the highlighted sentence?
               </div>
             </div>
@@ -157,15 +157,15 @@ const ToeflReadingTask = () => {
 
       case 'INSERT_TEXT':
         return (
-          <div className="question-content">
-            <div className="question-text">
-              <div className="insert-instruction">
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-purple-500/15 to-pink-500/15 rounded-2xl p-6 border border-purple-400/40 backdrop-blur-sm">
+              <div className="text-purple-200 text-base font-semibold mb-4">
                 Look at the four squares [■] in the passage that indicate where the following sentence could be added:
               </div>
-              <div className="sentence-to-insert">
-                {question.sentenceToInsert}
+              <div className="bg-gradient-to-r from-purple-400/20 to-pink-400/20 border border-purple-300/50 rounded-xl p-5 mb-5">
+                <p className="text-white text-base leading-relaxed font-medium">{question.sentenceToInsert}</p>
               </div>
-              <div className="question-instruction">
+              <div className="text-white text-lg font-bold">
                 Where would the sentence best fit?
               </div>
             </div>
@@ -175,20 +175,20 @@ const ToeflReadingTask = () => {
 
       case 'FILL_IN_A_TABLE':
         return (
-          <div className="question-content">
-            <div className="question-text">{question.question}</div>
+          <div className="space-y-6">
+            <div className="text-white text-lg font-bold leading-relaxed mb-6">{question.question}</div>
             {renderTableQuestion()}
           </div>
         );
 
       case 'PROSE_SUMMARY':
         return (
-          <div className="question-content">
-            <div className="question-text">
-              {question.question}
-            </div>
-            <div className="prose-summary-instruction">
-              Select THREE answer choices that express the most important ideas in the passage.
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-emerald-500/15 to-green-500/15 rounded-2xl p-6 border border-emerald-400/40 backdrop-blur-sm">
+              <div className="text-white text-lg font-bold leading-relaxed mb-4">{question.question}</div>
+              <div className="text-emerald-200 text-base font-semibold">
+                Select THREE answer choices that express the most important ideas in the passage.
+              </div>
             </div>
             {renderProseSummaryOptions()}
           </div>
@@ -196,18 +196,16 @@ const ToeflReadingTask = () => {
 
       case 'VOCABULARY':
         return (
-          <div className="question-content">
-            <div className="question-text">
-              The word "<strong>{question.targetWord}</strong>" in paragraph {question.paragraphReference} is closest in meaning to:
-            </div>
+          <div className="space-y-6">
+            <div className="text-white text-lg font-bold leading-relaxed">{question.question}</div>
             {renderStandardOptions()}
           </div>
         );
 
       default:
         return (
-          <div className="question-content">
-            <div className="question-text">{question.question}</div>
+          <div className="space-y-6">
+            <div className="text-white text-lg font-bold leading-relaxed">{question.question}</div>
             {renderStandardOptions()}
           </div>
         );
@@ -215,73 +213,79 @@ const ToeflReadingTask = () => {
   };
 
   const renderStandardOptions = () => (
-    <div className="answer-options">
-      {question.options && question.options.length > 0 ? (
-        question.options.map((option, index) => (
+    <div className="space-y-4">
+      {question.options.map((option, index) => {
+        const isSelected = userAnswers[question.id] === index;
+        return (
           <label
             key={index}
-            className={`answer-option ${userAnswers[question.id] === index ? 'selected' : ''}`}
+            className={`block p-5 rounded-xl border cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+              isSelected
+                ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-cyan-300/60 text-white shadow-lg'
+                : 'bg-gradient-to-r from-white/8 to-white/12 border-white/30 text-white/90 hover:bg-gradient-to-r hover:from-white/15 hover:to-white/20 hover:border-white/40'
+            }`}
           >
             <input
               type="radio"
               name={`question-${question.id}`}
-              value={index}
-              checked={userAnswers[question.id] === index}
+              checked={isSelected}
               onChange={() => handleAnswerSelect(index)}
+              className="sr-only"
             />
-            <span className="answer-option-text">
-              {String.fromCharCode(65 + index)}. {option || 'Option text missing'}
-            </span>
+            <div className="flex items-start space-x-4">
+              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 ${
+                isSelected
+                  ? 'border-cyan-300 bg-gradient-to-r from-cyan-400 to-blue-400'
+                  : 'border-white/50'
+              }`}>
+                {isSelected && (
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                )}
+              </div>
+              <div className="flex-1">
+                <span className="font-bold text-base mr-3 text-yellow-300">{String.fromCharCode(65 + index)}.</span>
+                <span className="text-base leading-relaxed font-medium">{processTextWithBold(option) || 'Option text missing'}</span>
+              </div>
+            </div>
           </label>
-        ))
-      ) : (
-        <div className="error-message">No options available for this question.</div>
-      )}
+        );
+      })}
     </div>
   );
 
   const renderInsertTextOptions = () => (
-    <div className="answer-options">
-      {question.options && question.options.length > 0 ? (
-        question.options.map((option, index) => (
+    <div className="space-y-4">
+      {[1, 2, 3, 4].map((position) => {
+        const isSelected = userAnswers[question.id] === position;
+        return (
           <label
-            key={index}
-            className={`answer-option insert-text-option ${userAnswers[question.id] === index ? 'selected' : ''}`}
+            key={position}
+            className={`block p-5 rounded-xl border cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+              isSelected
+                ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 border-purple-300/60 text-white shadow-lg'
+                : 'bg-gradient-to-r from-white/8 to-white/12 border-white/30 text-white/90 hover:bg-gradient-to-r hover:from-white/15 hover:to-white/20 hover:border-white/40'
+            }`}
           >
             <input
               type="radio"
               name={`question-${question.id}`}
-              value={index}
-              checked={userAnswers[question.id] === index}
-              onChange={() => handleAnswerSelect(index)}
+              checked={isSelected}
+              onChange={() => handleAnswerSelect(position)}
+              className="sr-only"
             />
-            <span className="answer-option-text">
-              <span className="insertion-position">Position {index + 1}</span>
-              <span className="insertion-description">■{index + 1}</span>
-            </span>
+            <div className="flex items-center space-x-4">
+              <div className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center ${
+                isSelected
+                  ? 'border-purple-300 bg-gradient-to-r from-purple-400 to-pink-400 text-white'
+                  : 'border-white/50 text-white/70'
+              }`}>
+                <span className="font-bold text-base">■{position}</span>
+              </div>
+              <span className="text-base font-semibold">Position {position}</span>
+            </div>
           </label>
-        ))
-      ) : (
-        // Default to 4 positions if no options provided
-        [1, 2, 3, 4].map((position) => (
-          <label
-            key={position - 1}
-            className={`answer-option insert-text-option ${userAnswers[question.id] === (position - 1) ? 'selected' : ''}`}
-          >
-            <input
-              type="radio"
-              name={`question-${question.id}`}
-              value={position - 1}
-              checked={userAnswers[question.id] === (position - 1)}
-              onChange={() => handleAnswerSelect(position - 1)}
-            />
-            <span className="answer-option-text">
-              <span className="insertion-position">Position {position}</span>
-              <span className="insertion-description">■{position}</span>
-            </span>
-          </label>
-        ))
-      )}
+        );
+      })}
     </div>
   );
 
@@ -309,30 +313,55 @@ const ToeflReadingTask = () => {
   const renderProseSummaryOptions = () => {
     const currentAnswers = userAnswers[question.id] || [];
     
-    if (!question.options || question.options.length === 0) {
-      return <div className="error-message">No summary options available.</div>;
-    }
-    
     return (
-      <div className="prose-summary-options">
-        {question.options.map((option, index) => (
-          <label
-            key={index}
-            className={`prose-summary-option ${currentAnswers.includes(index) ? 'selected' : ''} ${currentAnswers.length >= 3 && !currentAnswers.includes(index) ? 'disabled' : ''}`}
-          >
-            <input
-              type="checkbox"
-              checked={currentAnswers.includes(index)}
-              onChange={() => handleAnswerSelect(index)}
-              disabled={currentAnswers.length >= 3 && !currentAnswers.includes(index)}
-            />
-            <span className="option-text">
-              {String.fromCharCode(65 + index)}. {processTextWithBold(option) || 'Option text missing'}
-            </span>
-          </label>
-        ))}
-        <div className="selection-counter">
-          Selected: {currentAnswers.length} / 3
+      <div className="space-y-4">
+        {question.options.map((option, index) => {
+          const isSelected = currentAnswers.includes(index);
+          const isDisabled = currentAnswers.length >= 3 && !isSelected;
+          
+          return (
+            <label
+              key={index}
+              className={`block p-5 rounded-xl border cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+                isSelected
+                  ? 'bg-gradient-to-r from-emerald-500/30 to-green-500/30 border-emerald-300/60 text-white shadow-lg'
+                  : isDisabled
+                    ? 'bg-gradient-to-r from-gray-500/15 to-gray-600/15 border-gray-500/40 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-white/8 to-white/12 border-white/30 text-white/90 hover:bg-gradient-to-r hover:from-white/15 hover:to-white/20 hover:border-white/40'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleAnswerSelect(index)}
+                disabled={isDisabled}
+                className="sr-only"
+              />
+              <div className="flex items-start space-x-4">
+                <div className={`w-8 h-8 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1 ${
+                  isSelected
+                    ? 'border-emerald-300 bg-gradient-to-r from-emerald-400 to-green-400'
+                    : isDisabled
+                      ? 'border-gray-500'
+                      : 'border-white/50'
+                }`}>
+                  {isSelected && (
+                    <span className="material-icons text-white text-base">check</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <span className="font-bold text-base mr-3 text-yellow-300">{String.fromCharCode(65 + index)}.</span>
+                  <span className="text-base leading-relaxed font-medium">{processTextWithBold(option) || 'Option text missing'}</span>
+                </div>
+              </div>
+            </label>
+          );
+        })}
+        <div className="mt-6 p-4 bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-400/40 rounded-xl backdrop-blur-sm">
+          <div className="flex items-center justify-between text-base">
+            <span className="text-emerald-200 font-bold">Selected:</span>
+            <span className="text-white font-bold text-lg">{currentAnswers.length} / 3</span>
+          </div>
         </div>
       </div>
     );
@@ -342,27 +371,38 @@ const ToeflReadingTask = () => {
     const currentAnswers = userAnswers[question.id] || {};
     
     if (!question.tableCategories || question.tableCategories.length === 0) {
-      return <div className="error-message">No table categories available.</div>;
+      return (
+        <div className="bg-gradient-to-r from-red-500/25 to-pink-500/25 border border-red-400/40 rounded-xl p-5 backdrop-blur-sm">
+          <span className="text-red-200 text-base font-semibold">No table categories available.</span>
+        </div>
+      );
     }
     
     if (!question.statementsToCategorize || question.statementsToCategorize.length === 0) {
-      return <div className="error-message">No statements to categorize available.</div>;
+      return (
+        <div className="bg-gradient-to-r from-red-500/25 to-pink-500/25 border border-red-400/40 rounded-xl p-5 backdrop-blur-sm">
+          <span className="text-red-200 text-base font-semibold">No statements to categorize available.</span>
+        </div>
+      );
     }
     
     return (
-      <div className="table-question">
-        <div className="table-categories">
+      <div className="space-y-8">
+        {/* Categories Display */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {question.tableCategories.map((category, index) => (
-            <div key={index} className="table-category">
-              <h4>{category || `Category ${index + 1}`}</h4>
-              <div className="category-items">
+            <div key={index} className="bg-gradient-to-br from-white/10 to-white/15 rounded-2xl p-6 border border-white/20 backdrop-blur-sm">
+              <h4 className="text-white font-bold mb-4 text-lg">{category || `Category ${index + 1}`}</h4>
+              <div className="space-y-3 min-h-[120px]">
                 {question.statementsToCategorize
                   .map((statement, stmtIndex) => 
                     currentAnswers[stmtIndex] === index ? (statement.statement || 'Statement text missing') : null
                   )
                   .filter(item => item !== null)
                   .map((item, itemIndex) => (
-                    <div key={itemIndex} className="category-item">{item}</div>
+                    <div key={itemIndex} className="bg-gradient-to-r from-blue-500/25 to-cyan-500/25 border border-blue-400/40 rounded-lg p-3 backdrop-blur-sm">
+                      <span className="text-blue-100 text-sm font-medium">{item}</span>
+                    </div>
                   ))
                 }
               </div>
@@ -370,17 +410,27 @@ const ToeflReadingTask = () => {
           ))}
         </div>
         
-        <div className="statements-to-categorize">
-          <h4>Assign statements to appropriate categories: <span className="instruction-hint">(Click on the category)</span></h4>
+        {/* Statements to Categorize */}
+        <div className="space-y-6">
+          <h4 className="text-white font-bold text-lg flex items-center space-x-3">
+            <span>Assign statements to appropriate categories:</span>
+            <span className="text-white/70 text-base font-medium">(Click on the category)</span>
+          </h4>
           {question.statementsToCategorize.map((statement, index) => (
-            <div key={index} className="statement-item">
-              <div className="statement-text">{statement.statement || `Statement ${index + 1} text missing`}</div>
-              <div className="category-buttons">
+            <div key={index} className="bg-gradient-to-br from-white/10 to-white/15 rounded-2xl p-6 border border-white/20 backdrop-blur-sm">
+              <div className="text-white text-base mb-4 leading-relaxed font-medium">
+                {statement.statement || `Statement ${index + 1} text missing`}
+              </div>
+              <div className="flex flex-wrap gap-3">
                 {question.tableCategories.map((category, catIndex) => (
                   <button
                     key={catIndex}
-                    className={`category-btn ${currentAnswers[index] === catIndex ? 'selected' : ''}`}
                     onClick={() => handleTableAnswer(index, catIndex)}
+                    className={`px-4 py-3 rounded-lg text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
+                      currentAnswers[index] === catIndex
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg border border-cyan-300/50'
+                        : 'bg-gradient-to-r from-white/15 to-white/20 text-white/80 border border-white/30 hover:bg-gradient-to-r hover:from-white/25 hover:to-white/30'
+                    }`}
                   >
                     {category || `Category ${catIndex + 1}`}
                   </button>
@@ -394,120 +444,172 @@ const ToeflReadingTask = () => {
   };
 
   return (
-    <div className="reading-task-container">
-      {/* Questions Panel - Now on the LEFT */}
-      <div className="questions-panel">
-        <div className="question-header">
-          <div className="question-info">
-            <div className="question-number">
-              Question {getTotalQuestionNumber()}
-            </div>
-            <div className="question-progress">
-              {getTotalQuestionNumber()} of {getTotalQuestions()}
-            </div>
-            <div className="question-type-badge">
-              {question.type.replace(/_/g, ' ')}
-            </div>
-          </div>
-          <div className={`timer-display ${getTimerClass()}`}>
-            {formatTime(timeRemaining)}
-          </div>
-        </div>
-
-        {renderQuestionContent()}
-
-        <div className="navigation-buttons">
-          <Button
-            className="nav-button prev-button"
-            onClick={previousQuestion}
-            disabled={!canGoPrevious()}
-          >
-            <span className="material-icons mr-1">arrow_back</span>
-            Previous
-          </Button>
-
-          <Button
-            className="nav-button"
-            onClick={() => setShowReview(!showReview)}
-            variant="outline"
-          >
-            <span className="material-icons mr-1">rate_review</span>
-            Review
-          </Button>
-
-          {isLastQuestion() ? (
-            <Button
-              className="nav-button finish-button"
-              onClick={finishTest}
-            >
-              <span className="material-icons mr-1">check_circle</span>
-              Finish Test
-            </Button>
-          ) : (
-            <Button
-              className="nav-button next-button"
-              onClick={nextQuestion}
-              disabled={!canGoNext()}
-            >
-              Next
-              <span className="material-icons ml-1">arrow_forward</span>
-            </Button>
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800/20 to-purple-900/40"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-cyan-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      {/* Passage Panel - Now on the RIGHT */}
-      <div className="passage-panel">
-        <h2 className="passage-title">{passage.title}</h2>
-        <div className="passage-text">
-          {renderPassageText()}
-        </div>
-      </div>
-
-      {/* Review Panel */}
-      <div className={`review-panel ${showReview ? 'open' : ''}`}>
-        <div className="review-header">
-          <h3 className="review-title">Review</h3>
-          <button
-            className="close-review"
-            onClick={() => setShowReview(false)}
-          >
-            <span className="material-icons">close</span>
-          </button>
-        </div>
-
-        <div className="review-questions">
-          {passages.map((passage, passageIndex) => 
-            passage.questions.map((q, questionIndex) => {
-              const globalQuestionNumber = passages
-                .slice(0, passageIndex)
-                .reduce((total, p) => total + p.questions.length, 0) + questionIndex + 1;
-              
-              const isCurrent = passageIndex === currentPassage && questionIndex === currentQuestion;
-              const isAnswered = userAnswers[q.id] !== undefined;
-              
-              return (
-                <div
-                  key={q.id}
-                  className={`review-question-item ${
-                    isCurrent ? 'current' : isAnswered ? 'answered' : 'unanswered'
-                  }`}
-                  onClick={() => navigateToQuestion(passageIndex, questionIndex)}
-                >
-                  {globalQuestionNumber}
+      <div className="relative z-10 flex h-screen">
+        {/* Questions Panel - Left Side */}
+        <div className="w-1/2 p-6 overflow-y-auto scrollbar-hide">
+          <div className="bg-gradient-to-br from-white/12 to-white/8 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/30 h-full flex flex-col">
+            {/* Question Header */}
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/30">
+              <div className="flex items-center space-x-5">
+                <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl px-5 py-3 shadow-lg">
+                  <span className="text-white font-bold text-base">
+                    Question {getTotalQuestionNumber()}
+                  </span>
                 </div>
-              );
-            })
-          )}
+                <div className="text-white/80 text-base font-medium">
+                  {getTotalQuestionNumber()} of {getTotalQuestions()}
+                </div>
+                <div className="bg-gradient-to-r from-white/15 to-white/20 rounded-lg px-4 py-2 border border-white/30 backdrop-blur-sm">
+                  <span className="text-white text-sm font-bold">
+                    {question.type.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              </div>
+              <div className={`px-5 py-3 rounded-xl font-mono font-bold text-xl shadow-lg ${
+                timeRemaining <= 300 
+                  ? 'bg-gradient-to-r from-red-500/30 to-pink-500/30 text-red-200 border border-red-400/40' 
+                  : timeRemaining <= 600 
+                    ? 'bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-200 border border-amber-400/40'
+                    : 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 text-green-200 border border-green-400/40'
+              }`}>
+                {formatTime(timeRemaining)}
+              </div>
+            </div>
+
+            {/* Question Content */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide text-xl">
+              {renderQuestionContent()}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between pt-8 mt-8 border-t border-white/30">
+              <button
+                onClick={previousQuestion}
+                disabled={!canGoPrevious()}
+                className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                  canGoPrevious()
+                    ? 'bg-gradient-to-r from-white/15 to-white/20 hover:from-white/25 hover:to-white/30 text-white border border-white/30 shadow-lg'
+                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/30 cursor-not-allowed'
+                }`}
+              >
+                <span className="material-icons text-base">arrow_back</span>
+                <span className="text-base font-semibold">Previous</span>
+              </button>
+
+              <button
+                onClick={() => setShowReview(!showReview)}
+                className="flex items-center space-x-3 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500/25 to-pink-500/25 hover:from-purple-500/35 hover:to-pink-500/35 text-purple-100 border border-purple-400/40 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <span className="material-icons text-base">rate_review</span>
+                <span className="text-base font-semibold">Review</span>
+              </button>
+
+              {isLastQuestion() ? (
+                <button
+                  onClick={finishTest}
+                  className="flex items-center space-x-3 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white transition-all duration-300 transform hover:scale-105 shadow-xl"
+                >
+                  <span className="material-icons text-base">check_circle</span>
+                  <span className="text-base font-bold">Finish Test</span>
+                </button>
+              ) : (
+                <button
+                  onClick={nextQuestion}
+                  disabled={!canGoNext()}
+                  className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                    canGoNext()
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-xl'
+                      : 'bg-gray-500/20 text-gray-400 border border-gray-500/30 cursor-not-allowed'
+                  }`}
+                >
+                  <span className="text-base font-semibold">Next</span>
+                  <span className="material-icons text-base">arrow_forward</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="review-summary">
-          <p className="text-sm text-gray-600">
-            Answered: {Object.keys(userAnswers).length} / {getTotalQuestions()}
-          </p>
-          <p className="text-sm text-gray-600">
-            Time Remaining: {formatTime(timeRemaining)}
-          </p>
+        {/* Passage Panel - Right Side */}
+        <div className="w-1/2 p-6 overflow-y-auto scrollbar-hide">
+          <div className="bg-gradient-to-br from-white/12 to-white/8 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/30 h-full">
+            <div className="flex items-center space-x-4 mb-8 pb-6 border-b border-white/30">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="material-icons text-white text-xl">article</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white">{passage.title}</h2>
+            </div>
+            <div className="text-white/95 leading-relaxed space-y-6 text-2xl font-bold">
+              {renderPassageText()}
+            </div>
+          </div>
+        </div>
+
+        {/* Review Panel */}
+        <div className={`fixed top-0 right-0 h-full w-80 bg-gradient-to-br from-white/15 to-white/10 backdrop-blur-lg border-l border-white/30 transform transition-transform duration-300 z-50 ${
+          showReview ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="p-8 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/30">
+              <h3 className="text-xl font-bold text-white">Review</h3>
+              <button
+                onClick={() => setShowReview(false)}
+                className="w-10 h-10 bg-gradient-to-r from-white/15 to-white/20 hover:from-white/25 hover:to-white/30 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <span className="material-icons text-white text-lg">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
+              <div className="grid grid-cols-5 gap-3 mb-8">
+                {passages.map((passage, passageIndex) => 
+                  passage.questions.map((q, questionIndex) => {
+                    const globalQuestionNumber = passages
+                      .slice(0, passageIndex)
+                      .reduce((total, p) => total + p.questions.length, 0) + questionIndex + 1;
+                    
+                    const isCurrent = passageIndex === currentPassage && questionIndex === currentQuestion;
+                    const isAnswered = userAnswers[q.id] !== undefined;
+                    
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => navigateToQuestion(passageIndex, questionIndex)}
+                        className={`w-12 h-12 rounded-lg text-base font-bold transition-all duration-300 transform hover:scale-110 shadow-lg ${
+                          isCurrent 
+                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-xl border border-cyan-300/50' 
+                            : isAnswered 
+                              ? 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 text-green-200 border border-green-400/40 hover:from-green-500/40 hover:to-emerald-500/40' 
+                              : 'bg-gradient-to-r from-white/15 to-white/20 text-white/80 border border-white/30 hover:from-white/25 hover:to-white/30'
+                        }`}
+                      >
+                        {globalQuestionNumber}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-white/30 space-y-4">
+              <div className="flex items-center justify-between text-base">
+                <span className="text-white/80 font-semibold">Answered:</span>
+                <span className="text-white font-bold text-lg">{Object.keys(userAnswers).length} / {getTotalQuestions()}</span>
+              </div>
+              <div className="flex items-center justify-between text-base">
+                <span className="text-white/80 font-semibold">Time Remaining:</span>
+                <span className="text-white font-bold font-mono text-lg">{formatTime(timeRemaining)}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
