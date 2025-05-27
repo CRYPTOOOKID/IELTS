@@ -2,7 +2,8 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
@@ -49,6 +50,18 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       setError(null);
     });
+
+    // Check for Google Sign-In redirect result when the component mounts
+    const checkRedirectResult = async () => {
+      try {
+        await handleGoogleRedirectResult();
+      } catch (error) {
+        console.error('Error handling redirect result:', error);
+        // Error is already set in handleGoogleRedirectResult
+      }
+    };
+
+    checkRedirectResult();
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
@@ -292,42 +305,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Google Sign-In function
+  // Google Sign-In function (now using redirect)
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
       setError(null);
       
       // Log for debugging
-      console.log('Starting Google Sign-In...');
+      console.log('Starting Google Sign-In with redirect...');
       console.log('Current domain:', window.location.hostname);
       console.log('Auth instance:', auth);
       console.log('Google provider:', googleProvider);
       
-      const result = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = result.user;
+      // Redirect to Google sign-in (this will leave the page)
+      await signInWithRedirect(auth, googleProvider);
       
-      console.log('Google Sign-In successful:', firebaseUser);
+      // Note: This function will not continue past this point
+      // The user will be redirected away and come back to a new page load
       
-      // Return result in Cognito-like format for compatibility
-      const authResult = {
-        isSignedIn: true,
-        user: {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          emailVerified: firebaseUser.emailVerified,
-          photoURL: firebaseUser.photoURL,
-          attributes: {
-            email: firebaseUser.email,
-            name: firebaseUser.displayName,
-            email_verified: firebaseUser.emailVerified,
-            picture: firebaseUser.photoURL
-          }
-        }
-      };
-      
-      return authResult;
     } catch (err) {
       console.error('Google Sign-In Error:', err);
       console.error('Error code:', err.code);
@@ -339,7 +334,7 @@ export const AuthProvider = ({ children }) => {
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Sign-in was cancelled.';
       } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
+        errorMessage = 'Browser blocked the sign-in attempt. Please try again.';
       } else if (err.code === 'auth/cancelled-popup-request') {
         errorMessage = 'Only one sign-in request at a time is allowed.';
       } else if (err.code === 'auth/account-exists-with-different-credential') {
@@ -356,9 +351,69 @@ export const AuthProvider = ({ children }) => {
       
       const error = { ...err, message: errorMessage };
       setError(error.message);
-      throw error;
-    } finally {
       setLoading(false);
+      throw error;
+    }
+  };
+
+  // Handle Google Sign-In redirect result (call this when the page loads)
+  const handleGoogleRedirectResult = async () => {
+    try {
+      console.log('Checking for Google Sign-In redirect result...');
+      
+      const result = await getRedirectResult(auth);
+      
+      if (result) {
+        // User successfully signed in via redirect
+        const firebaseUser = result.user;
+        console.log('Google Sign-In successful via redirect:', firebaseUser);
+        
+        // Return result in Cognito-like format for compatibility
+        const authResult = {
+          isSignedIn: true,
+          user: {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            emailVerified: firebaseUser.emailVerified,
+            photoURL: firebaseUser.photoURL,
+            attributes: {
+              email: firebaseUser.email,
+              name: firebaseUser.displayName,
+              email_verified: firebaseUser.emailVerified,
+              picture: firebaseUser.photoURL
+            }
+          }
+        };
+        
+        return authResult;
+      }
+      
+      // No redirect result (normal page load)
+      return null;
+      
+    } catch (err) {
+      console.error('Google Sign-In Redirect Error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
+      
+      // Convert Firebase errors to more user-friendly messages
+      let errorMessage = err.message;
+      if (err.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'An account already exists with the same email address but different sign-in credentials.';
+      } else if (err.code === 'auth/internal-error') {
+        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
+      } else if (err.code === 'auth/configuration-not-found') {
+        errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        const currentDomain = window.location.hostname;
+        errorMessage = `This domain (${currentDomain}) is not authorized for Google Sign-In. Please contact the administrator to add this domain to Firebase Console under Authentication → Settings → Authorized domains.`;
+        console.error('Unauthorized domain error. Domain needs to be added to Firebase Console:', currentDomain);
+      }
+      
+      const error = { ...err, message: errorMessage };
+      setError(error.message);
+      throw error;
     }
   };
 
@@ -374,6 +429,7 @@ export const AuthProvider = ({ children }) => {
     resendConfirmationCode,
     resetPassword,
     signInWithGoogle, // Google Sign-In function
+    handleGoogleRedirectResult, // Google Sign-In redirect result handler
     checkAuthState
   };
 

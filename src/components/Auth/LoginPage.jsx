@@ -129,10 +129,11 @@ const LoginPage = () => {
     setDisplayError(null);
     
     try {
+      // The signInWithGoogle function now uses redirect
+      // User will be redirected away and come back after authentication
       await signInWithGoogle();
-      // Navigation will happen automatically in the useEffect when user state changes
     } catch (error) {
-      console.error('Error signing in with Google:', error);
+      console.error('Error starting Google Sign-In redirect:', error);
       setDisplayError(error.message);
     }
   };
