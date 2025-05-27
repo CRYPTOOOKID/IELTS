@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithRedirect,
+  signInWithPopup,
   getRedirectResult,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -195,6 +196,22 @@ export const AuthProvider = ({ children }) => {
               setUser(userObj);
               setLoading(false);
               sessionStorage.removeItem('googleSignInAttempt');
+            } else {
+              console.log('No current user found - clearing stuck session storage');
+              // If we had a sign-in attempt but no user and no redirect result, clear the session
+              sessionStorage.removeItem('googleSignInAttempt');
+              sessionStorage.removeItem('redirectAfterAuth');
+              
+              // For localhost development, show helpful message
+              if (window.location.hostname === 'localhost') {
+                console.warn('🚨 LOCALHOST GOOGLE SIGN-IN ISSUE:');
+                console.warn('This might be because:');
+                console.warn('1. localhost is not added to Firebase Console authorized domains');
+                console.warn('2. Google Sign-In redirect doesn\'t work well in development');
+                console.warn('3. Try testing in production (spinta.org) instead');
+                
+                setError('Google Sign-In redirect failed. This is common in localhost development. Please try in production or use email/password sign-in for testing.');
+              }
             }
           }
         }
@@ -451,19 +468,56 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Google Sign-In function (now using redirect)
+  // Google Sign-In function (popup for localhost, redirect for production)
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
       setError(null);
       
       // Log for debugging
-      console.log('Starting Google Sign-In with redirect...');
+      console.log('Starting Google Sign-In...');
       console.log('Current domain:', window.location.hostname);
       console.log('Current URL:', window.location.href);
-      console.log('Auth instance:', auth);
-      console.log('Google provider:', googleProvider);
       
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      if (isLocalhost) {
+        console.log('🔧 Using popup method for localhost development');
+        // Use popup for localhost development
+        try {
+          const result = await signInWithPopup(auth, googleProvider);
+          const firebaseUser = result.user;
+          
+          console.log('Google Sign-In successful via popup:', firebaseUser);
+          
+          // Return result in Cognito-like format for compatibility
+          const authResult = {
+            isSignedIn: true,
+            user: {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              emailVerified: firebaseUser.emailVerified,
+              photoURL: firebaseUser.photoURL,
+              attributes: {
+                email: firebaseUser.email,
+                name: firebaseUser.displayName,
+                email_verified: firebaseUser.emailVerified,
+                picture: firebaseUser.photoURL
+              }
+            }
+          };
+          
+          setLoading(false);
+          return authResult;
+          
+        } catch (popupError) {
+          console.error('Popup method failed, falling back to redirect:', popupError);
+          // Fall back to redirect if popup fails
+        }
+      }
+      
+      console.log('🌐 Using redirect method for production');
       // Store the current path to return to after redirect
       sessionStorage.setItem('redirectAfterAuth', '/skills');
       sessionStorage.setItem('googleSignInAttempt', 'true');
@@ -471,8 +525,7 @@ export const AuthProvider = ({ children }) => {
       // Redirect to Google sign-in (this will leave the page)
       await signInWithRedirect(auth, googleProvider);
       
-      // Note: This function will not continue past this point
-      // The user will be redirected away and come back to a new page load
+      // Note: This function will not continue past this point for redirect
       
     } catch (err) {
       console.error('Google Sign-In Error:', err);
@@ -489,7 +542,7 @@ export const AuthProvider = ({ children }) => {
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Sign-in was cancelled.';
       } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Browser blocked the sign-in attempt. Please try again.';
+        errorMessage = 'Browser blocked the sign-in popup. Please allow popups and try again.';
       } else if (err.code === 'auth/cancelled-popup-request') {
         errorMessage = 'Only one sign-in request at a time is allowed.';
       } else if (err.code === 'auth/account-exists-with-different-credential') {
