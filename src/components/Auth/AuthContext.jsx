@@ -37,6 +37,26 @@ export const AuthProvider = ({ children }) => {
         const firebaseUser = result.user;
         console.log('Google Sign-In successful via redirect:', firebaseUser);
         
+        // Manually update the user state immediately
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          emailVerified: firebaseUser.emailVerified,
+          photoURL: firebaseUser.photoURL,
+          attributes: {
+            email: firebaseUser.email,
+            name: firebaseUser.displayName,
+            email_verified: firebaseUser.emailVerified,
+            picture: firebaseUser.photoURL
+          },
+          isSignedIn: true
+        });
+        
+        // Set loading to false since we're done
+        setLoading(false);
+        setError(null);
+        
         // Return result in Cognito-like format for compatibility
         const authResult = {
           isSignedIn: true,
@@ -82,16 +102,21 @@ export const AuthProvider = ({ children }) => {
       
       const error = { ...err, message: errorMessage };
       setError(error.message);
+      setLoading(false);
       throw error;
     }
   };
 
   // Check if user is authenticated on initial load and listen for auth state changes
   useEffect(() => {
+    console.log('AuthContext useEffect: Setting up auth state listener');
+    
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
+      
       if (firebaseUser) {
         // Convert Firebase user to our expected format
-        setUser({
+        const userObj = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
@@ -104,8 +129,12 @@ export const AuthProvider = ({ children }) => {
             email_verified: firebaseUser.emailVerified
           },
           isSignedIn: true
-        });
+        };
+        
+        console.log('Setting user in AuthContext:', userObj);
+        setUser(userObj);
       } else {
+        console.log('Clearing user in AuthContext');
         setUser(null);
       }
       setLoading(false);
@@ -115,17 +144,26 @@ export const AuthProvider = ({ children }) => {
     // Check for Google Sign-In redirect result when the component mounts
     const checkRedirectResult = async () => {
       try {
-        await handleGoogleRedirectResult();
+        console.log('Checking for redirect result...');
+        const result = await handleGoogleRedirectResult();
+        if (result) {
+          console.log('Redirect result found:', result);
+        } else {
+          console.log('No redirect result found');
+        }
       } catch (error) {
         console.error('Error handling redirect result:', error);
-        // Error is already set in handleGoogleRedirectResult
+        setLoading(false);
       }
     };
 
     checkRedirectResult();
 
     // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      console.log('AuthContext useEffect: Cleaning up auth state listener');
+      unsubscribe();
+    };
   }, []);
 
   // Function to check the current authentication state

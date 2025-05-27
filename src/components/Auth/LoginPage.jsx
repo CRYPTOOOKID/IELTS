@@ -28,10 +28,14 @@ const LoginPage = () => {
 
   // Redirect if user is already authenticated
   useEffect(() => {
+    console.log('LoginPage useEffect: User state changed:', user);
+    console.log('LoginPage useEffect: Loading state:', loading);
+    
     if (user) {
+      console.log('User is authenticated, navigating to /skills');
       navigate('/skills');
     }
-  }, [user, navigate]);
+  }, [user, navigate, loading]);
 
   const handleChange = (e) => {
     setFormData({
@@ -127,11 +131,14 @@ const LoginPage = () => {
 
   const handleGoogleSignIn = async () => {
     setDisplayError(null);
+    console.log('Google Sign-In button clicked');
     
     try {
       // The signInWithGoogle function now uses redirect
       // User will be redirected away and come back after authentication
+      console.log('Starting Google Sign-In redirect...');
       await signInWithGoogle();
+      console.log('Google Sign-In redirect initiated successfully');
     } catch (error) {
       console.error('Error starting Google Sign-In redirect:', error);
       setDisplayError(error.message);
