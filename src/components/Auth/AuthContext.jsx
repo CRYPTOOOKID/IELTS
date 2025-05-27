@@ -29,16 +29,23 @@ export const AuthProvider = ({ children }) => {
   const handleGoogleRedirectResult = async () => {
     try {
       console.log('Checking for Google Sign-In redirect result...');
+      console.log('Session storage googleSignInAttempt:', sessionStorage.getItem('googleSignInAttempt'));
+      console.log('Current URL:', window.location.href);
       
       const result = await getRedirectResult(auth);
+      console.log('Raw redirect result:', result);
       
       if (result) {
         // User successfully signed in via redirect
         const firebaseUser = result.user;
         console.log('Google Sign-In successful via redirect:', firebaseUser);
         
+        // Clear the session storage since we're successful
+        sessionStorage.removeItem('googleSignInAttempt');
+        sessionStorage.removeItem('redirectAfterAuth');
+        
         // Manually update the user state immediately
-        setUser({
+        const userObj = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
@@ -51,7 +58,10 @@ export const AuthProvider = ({ children }) => {
             picture: firebaseUser.photoURL
           },
           isSignedIn: true
-        });
+        };
+        
+        console.log('Setting user state manually:', userObj);
+        setUser(userObj);
         
         // Set loading to false since we're done
         setLoading(false);
@@ -60,22 +70,18 @@ export const AuthProvider = ({ children }) => {
         // Return result in Cognito-like format for compatibility
         const authResult = {
           isSignedIn: true,
-          user: {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            emailVerified: firebaseUser.emailVerified,
-            photoURL: firebaseUser.photoURL,
-            attributes: {
-              email: firebaseUser.email,
-              name: firebaseUser.displayName,
-              email_verified: firebaseUser.emailVerified,
-              picture: firebaseUser.photoURL
-            }
-          }
+          user: userObj
         };
         
         return authResult;
+      } else {
+        // Check if we were expecting a redirect result
+        const wasGoogleSignInAttempt = sessionStorage.getItem('googleSignInAttempt');
+        if (wasGoogleSignInAttempt) {
+          console.warn('Expected Google Sign-In redirect result but got null');
+          console.log('This might indicate a redirect issue or domain not authorized');
+          // Don't clear the session storage yet, maybe the result is still coming
+        }
       }
       
       // No redirect result (normal page load)
@@ -85,6 +91,10 @@ export const AuthProvider = ({ children }) => {
       console.error('Google Sign-In Redirect Error:', err);
       console.error('Error code:', err.code);
       console.error('Error message:', err.message);
+      
+      // Clear session storage on error
+      sessionStorage.removeItem('googleSignInAttempt');
+      sessionStorage.removeItem('redirectAfterAuth');
       
       // Convert Firebase errors to more user-friendly messages
       let errorMessage = err.message;
@@ -110,6 +120,14 @@ export const AuthProvider = ({ children }) => {
   // Check if user is authenticated on initial load and listen for auth state changes
   useEffect(() => {
     console.log('AuthContext useEffect: Setting up auth state listener');
+    
+    // Log domain information for debugging
+    console.log('🔍 Domain Debug Info:');
+    console.log('- Current hostname:', window.location.hostname);
+    console.log('- Current origin:', window.location.origin);
+    console.log('- Current href:', window.location.href);
+    console.log('- Firebase auth domain:', auth.config.authDomain);
+    console.log('- Expected domains: spinta.org, www.spinta.org, localhost');
     
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       console.log('Auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
@@ -150,6 +168,35 @@ export const AuthProvider = ({ children }) => {
           console.log('Redirect result found:', result);
         } else {
           console.log('No redirect result found');
+          
+          // If no redirect result but we had a Google Sign-In attempt, check current auth state
+          const wasGoogleSignInAttempt = sessionStorage.getItem('googleSignInAttempt');
+          if (wasGoogleSignInAttempt) {
+            console.log('Google Sign-In attempt detected - checking current auth state...');
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+              console.log('Found authenticated user in Firebase auth:', currentUser);
+              // Manually trigger the auth state
+              const userObj = {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName,
+                emailVerified: currentUser.emailVerified,
+                photoURL: currentUser.photoURL,
+                attributes: {
+                  email: currentUser.email,
+                  name: currentUser.displayName,
+                  email_verified: currentUser.emailVerified
+                },
+                isSignedIn: true
+              };
+              
+              console.log('Manually setting user state from current auth:', userObj);
+              setUser(userObj);
+              setLoading(false);
+              sessionStorage.removeItem('googleSignInAttempt');
+            }
+          }
         }
       } catch (error) {
         console.error('Error handling redirect result:', error);
@@ -413,8 +460,13 @@ export const AuthProvider = ({ children }) => {
       // Log for debugging
       console.log('Starting Google Sign-In with redirect...');
       console.log('Current domain:', window.location.hostname);
+      console.log('Current URL:', window.location.href);
       console.log('Auth instance:', auth);
       console.log('Google provider:', googleProvider);
+      
+      // Store the current path to return to after redirect
+      sessionStorage.setItem('redirectAfterAuth', '/skills');
+      sessionStorage.setItem('googleSignInAttempt', 'true');
       
       // Redirect to Google sign-in (this will leave the page)
       await signInWithRedirect(auth, googleProvider);
@@ -427,6 +479,10 @@ export const AuthProvider = ({ children }) => {
       console.error('Error code:', err.code);
       console.error('Error message:', err.message);
       console.error('Current domain:', window.location.hostname);
+      
+      // Clear the session storage on error
+      sessionStorage.removeItem('googleSignInAttempt');
+      sessionStorage.removeItem('redirectAfterAuth');
       
       // Convert Firebase errors to more user-friendly messages
       let errorMessage = err.message;

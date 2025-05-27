@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Eye, EyeOff, User, Mail, Lock, AlertTriangle, CheckCircle, ArrowRight, GraduationCap } from 'lucide-react';
+import { auth } from '../../firebase/config';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -31,9 +32,23 @@ const LoginPage = () => {
     console.log('LoginPage useEffect: User state changed:', user);
     console.log('LoginPage useEffect: Loading state:', loading);
     
-    if (user) {
+    if (user && user.isSignedIn) {
       console.log('User is authenticated, navigating to /skills');
       navigate('/skills');
+    } else if (!loading && !user) {
+      // Check if we have a successful Google Sign-In attempt but no user state
+      const wasGoogleSignInAttempt = sessionStorage.getItem('googleSignInAttempt');
+      if (wasGoogleSignInAttempt) {
+        console.log('Google Sign-In attempt detected but no user state - checking auth manually...');
+        // Force check the current auth state
+        const currentUser = auth?.currentUser;
+        if (currentUser) {
+          console.log('Found current user in Firebase auth:', currentUser);
+          console.log('Forcing navigation to /skills');
+          sessionStorage.removeItem('googleSignInAttempt');
+          navigate('/skills');
+        }
+      }
     }
   }, [user, navigate, loading]);
 
