@@ -1,4 +1,5 @@
 # Environment-Specific Rendering Troubleshooting Guide
+# Environment-Specific Rendering Troubleshooting Guide
 
 ## Overview
 This guide addresses the specific issue where your React application displays differently between your local development environment and production deployment on Netlify, with the main symptom being elements appearing "zoomed in" or scaled up in production.
