@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthContext';
 import TalkToMe from './Games/TalkToMe';
-import WordTile from './Games/WordTile';
+import SentenceBuilder from './Games/SentenceBuilder';
 import WordDrop from './Games/WordDrop';
 import DragZilla from './Games/DragZilla';
 import CrossRoads from './Games/CrossRoads';
@@ -41,10 +41,10 @@ const GamesHome = () => {
       color: "from-purple-500 to-violet-500"
     },
     {
-      id: 'wordtile',
-      title: "Word Tile",
+      id: 'sentencebuilder',
+      title: "Sentence Builder",
       icon: "grid_view",
-      description: "Arrange word tiles in the correct order to form grammatically correct sentences and improve structure.",
+      description: "Build perfect sentences by arranging scrambled words in the correct order with AI-generated questions.",
       color: "from-cyan-500 to-blue-500"
     },
     {
@@ -84,8 +84,8 @@ const GamesHome = () => {
   // Render active game component
   if (activeGame === 'talktome') {
     return <TalkToMe onBackToGames={handleBackToGames} />;
-  } else if (activeGame === 'wordtile') {
-    return <WordTile onBackToGames={handleBackToGames} />;
+  } else if (activeGame === 'sentencebuilder') {
+    return <SentenceBuilder onBackToGames={handleBackToGames} />;
   } else if (activeGame === 'worddrop') {
     return <WordDrop onBackToGames={handleBackToGames} />;
   } else if (activeGame === 'dragzilla') {
