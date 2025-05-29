@@ -7,6 +7,7 @@ import WordDrop from './Games/WordDrop';
 import DragZilla from './Games/DragZilla';
 import CrossRoads from './Games/CrossRoads';
 import MarkTheWords from './Games/MarkTheWords';
+import Action from './Games/Action/Action';
 
 const GamesHome = () => {
   const navigate = useNavigate();
@@ -74,6 +75,13 @@ const GamesHome = () => {
       icon: "highlight_alt",
       description: "Identify specific parts of speech in sentences to improve your grammar recognition and understanding.",
       color: "from-teal-500 to-cyan-500"
+    },
+    {
+      id: 'action',
+      title: "Action",
+      icon: "directions_run",
+      description: "Look at images and choose the correct verb to complete sentences. Learn action words through visual learning.",
+      color: "from-pink-500 to-rose-500"
     }
   ];
   
@@ -94,6 +102,8 @@ const GamesHome = () => {
     return <CrossRoads onBackToGames={handleBackToGames} />;
   } else if (activeGame === 'markthewords') {
     return <MarkTheWords onBackToGames={handleBackToGames} />;
+  } else if (activeGame === 'action') {
+    return <Action onBackToGames={handleBackToGames} />;
   }
   
   return (
