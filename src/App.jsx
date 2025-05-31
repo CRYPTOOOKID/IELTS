@@ -20,6 +20,11 @@ import SpeakingHome from './components/IELTS/Speaking/SpeakingHome.jsx';
 import ReadingHome from './components/IELTS/Reading/ReadingHome.jsx';
 import ReadingExam from './components/IELTS/Reading/ReadingExam.jsx';
 
+// Import Listening Section
+import ListeningHome from './components/IELTS/Listening/ListeningHome.jsx';
+import ListeningExam from './components/IELTS/Listening/ListeningExam.jsx';
+import ListeningFeedback from './components/IELTS/Listening/ListeningFeedback.jsx';
+
 // Import Toefl UnderConstruction component
 import UnderConstructionPage from './components/Toefl/UnderConstructionPage.jsx';
 // Import Toefl Writing component
@@ -815,7 +820,9 @@ function App() {
               {/* IELTS Routes */}
               <Route path="/ielts/writing" element={<WritingHome />} />
               <Route path="/ielts/speaking" element={<SpeakingHome />} />
-              <Route path="/ielts/listening" element={<ListeningPlaceholder />} />
+              <Route path="/ielts/listening" element={<ListeningHome />} />
+              <Route path="/ielts/listening/exam" element={<ListeningExam />} />
+              <Route path="/ielts/listening/feedback" element={<ListeningFeedback />} />
               <Route path="/ielts/reading" element={<ReadingHome />} />
               <Route path="/ielts/reading/exam" element={<ReadingExam />} />
               <Route path="/ielts/reading/feedback" element={<ReadingFeedback />} />
