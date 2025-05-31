@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -16,7 +16,6 @@ import { ChevronLeft, ChevronRight, Send, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { IeltsTest, IeltsQuestion, UserAnswer, TestState } from '../../../../types/IeltsTypes';
-import Timer from './Timer.tsx';
 import ProgressIndicator from './ProgressIndicator.tsx';
 import ReadingPassage from './ReadingPassage.tsx';
 import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.tsx';
@@ -45,6 +44,29 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (testState.isSubmitted) return;
+
+    const interval = setInterval(() => {
+      setTestState(prev => {
+        if (prev.timeRemaining <= 1) {
+          return { ...prev, timeRemaining: 0 };
+        }
+        return { ...prev, timeRemaining: prev.timeRemaining - 1 };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [testState.isSubmitted]);
+
+  // Handle time up when timeRemaining reaches 0
+  useEffect(() => {
+    if (testState.timeRemaining === 0 && !testState.isSubmitted) {
+      handleTimeUp();
+    }
+  }, [testState.timeRemaining, testState.isSubmitted]);
 
   const currentSection = testData.sections[testState.currentSectionIndex];
   const currentPassage = currentSection?.passages[testState.currentPassageIndex];
@@ -373,12 +395,6 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', position: 'relative' }}>
-      <Timer
-        totalMinutes={testData.estimatedTimeMinutes}
-        onTimeUp={handleTimeUp}
-        isRunning={!testState.isSubmitted}
-      />
-
       {/* Left Sidebar Progress Indicator */}
       <ProgressIndicator
         currentSectionIndex={testState.currentSectionIndex}
@@ -394,6 +410,46 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
         onNavigateToQuestion={handleNavigateToQuestion}
         testData={testData}
       />
+
+      {/* Compact Timer positioned below Progress Indicator */}
+      <Box
+        sx={{
+          position: 'fixed',
+          left: 16,
+          top: 708, // Position below the progress indicator (660 + 32 + 16 for spacing)
+          zIndex: 1000,
+        }}
+      >
+        <Box
+          sx={{
+            width: 220,
+            backgroundColor: 'white',
+            border: '1px solid #e2e8f0',
+            borderRadius: 2,
+            p: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Clock size={18} color="#6b7280" />
+          <Typography
+            variant="body2"
+            fontWeight="bold"
+            sx={{
+              color: '#374151',
+              fontFamily: 'monospace',
+            }}
+          >
+            {(() => {
+              const minutes = Math.floor(testState.timeRemaining / 60);
+              const seconds = testState.timeRemaining % 60;
+              return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            })()}
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Main Content Area - Fixed passage width with flexible questions area */}
       <Container maxWidth={false} sx={{ py: 4, px: 0, ml: '260px', width: 'calc(100vw - 260px)' }}>
