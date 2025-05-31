@@ -21,28 +21,20 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
-// Initialize Google Auth Provider with enhanced configuration
+// Initialize Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  // Add hosted domain if needed for G Suite accounts
-  // hd: 'your-domain.com'
+  prompt: 'select_account'
 });
 
 // Add additional scopes if needed
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
-// Initialize Analytics (only in production to avoid CSP issues in development)
+// Initialize Analytics (optional)
 let analytics;
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-  try {
-    analytics = getAnalytics(app);
-  } catch (error) {
-    console.warn('Failed to initialize Firebase Analytics:', error);
-    // Analytics failed to initialize, continue without it
-    analytics = null;
-  }
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
 }
 
 export { analytics };

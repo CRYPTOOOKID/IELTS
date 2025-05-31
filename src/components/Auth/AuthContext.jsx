@@ -2,9 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithRedirect,
   signInWithPopup,
-  getRedirectResult,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
@@ -26,92 +24,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Handle Google Sign-In redirect result (define this before useEffect)
-  const handleGoogleRedirectResult = async () => {
-    try {
-      const result = await getRedirectResult(auth);
-      
-      if (result) {
-        // User successfully signed in via redirect
-        const firebaseUser = result.user;
-        
-        // Clear the session storage since we're successful
-        sessionStorage.removeItem('googleSignInAttempt');
-        sessionStorage.removeItem('redirectAfterAuth');
-        
-        // Manually update the user state immediately
-        const userObj = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          emailVerified: firebaseUser.emailVerified,
-          photoURL: firebaseUser.photoURL,
-          attributes: {
-            email: firebaseUser.email,
-            name: firebaseUser.displayName,
-            email_verified: firebaseUser.emailVerified,
-            picture: firebaseUser.photoURL
-          },
-          isSignedIn: true
-        };
-        
-        setUser(userObj);
-        
-        // Set loading to false since we're done
-        setLoading(false);
-        setError(null);
-        
-        // Return result in Cognito-like format for compatibility
-        const authResult = {
-          isSignedIn: true,
-          user: userObj
-        };
-        
-        return authResult;
-      } else {
-        // Check if we were expecting a redirect result
-        const wasGoogleSignInAttempt = sessionStorage.getItem('googleSignInAttempt');
-        if (wasGoogleSignInAttempt) {
-          // Don't clear the session storage yet, maybe the result is still coming
-        }
-      }
-      
-      // No redirect result (normal page load)
-      return null;
-      
-    } catch (err) {
-      console.error('Google Sign-In Redirect Error:', err);
-      
-      // Clear session storage on error
-      sessionStorage.removeItem('googleSignInAttempt');
-      sessionStorage.removeItem('redirectAfterAuth');
-      
-      // Convert Firebase errors to more user-friendly messages
-      let errorMessage = err.message;
-      if (err.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = 'An account already exists with the same email address but different sign-in credentials.';
-      } else if (err.code === 'auth/internal-error') {
-        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
-      } else if (err.code === 'auth/configuration-not-found') {
-        errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
-      } else if (err.code === 'auth/unauthorized-domain') {
-        const currentDomain = window.location.hostname;
-        errorMessage = `This domain (${currentDomain}) is not authorized for Google Sign-In. Please contact the administrator to add this domain to Firebase Console under Authentication → Settings → Authorized domains.`;
-      }
-      
-      const error = { ...err, message: errorMessage };
-      setError(error.message);
-      setLoading(false);
-      throw error;
-    }
-  };
-
   // Check if user is authenticated on initial load and listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         // Convert Firebase user to our expected format
-        const userObj = {
+        setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
@@ -124,9 +42,7 @@ export const AuthProvider = ({ children }) => {
             email_verified: firebaseUser.emailVerified
           },
           isSignedIn: true
-        };
-        
-        setUser(userObj);
+        });
       } else {
         setUser(null);
       }
@@ -134,52 +50,8 @@ export const AuthProvider = ({ children }) => {
       setError(null);
     });
 
-    // Check for Google Sign-In redirect result when the component mounts
-    const checkRedirectResult = async () => {
-      try {
-        const result = await handleGoogleRedirectResult();
-        if (result) {
-          // If no redirect result but we had a Google Sign-In attempt, check current auth state
-          const wasGoogleSignInAttempt = sessionStorage.getItem('googleSignInAttempt');
-          if (wasGoogleSignInAttempt) {
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-              // Manually trigger the auth state
-              const userObj = {
-                uid: currentUser.uid,
-                email: currentUser.email,
-                displayName: currentUser.displayName,
-                emailVerified: currentUser.emailVerified,
-                photoURL: currentUser.photoURL,
-                attributes: {
-                  email: currentUser.email,
-                  name: currentUser.displayName,
-                  email_verified: currentUser.emailVerified
-                },
-                isSignedIn: true
-              };
-              
-              setUser(userObj);
-              setLoading(false);
-              sessionStorage.removeItem('googleSignInAttempt');
-            } else {
-              // If we had a sign-in attempt but no user and no redirect result, clear the session
-              sessionStorage.removeItem('googleSignInAttempt');
-              sessionStorage.removeItem('redirectAfterAuth');
-            }
-          }
-        }
-      } catch (error) {
-        setLoading(false);
-      }
-    };
-
-    checkRedirectResult();
-
     // Cleanup subscription on unmount
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   // Function to check the current authentication state
@@ -420,75 +292,52 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Google Sign-In function (popup for localhost, redirect for production)
+  // Google Sign-In function
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      // Log for debugging
+      console.log('Starting Google Sign-In...');
+      console.log('Auth instance:', auth);
+      console.log('Google provider:', googleProvider);
       
-      // TEMPORARY: Use popup for both localhost and production to test domain authorization
-      const usePopup = true; // Set to false to use redirect in production
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
       
-      if (isLocalhost || usePopup) {
-        // Use popup for localhost development or production testing
-        try {
-          const result = await signInWithPopup(auth, googleProvider);
-          const firebaseUser = result.user;
-          
-          // Return result in Cognito-like format for compatibility
-          const authResult = {
-            isSignedIn: true,
-            user: {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
-              emailVerified: firebaseUser.emailVerified,
-              photoURL: firebaseUser.photoURL,
-              attributes: {
-                email: firebaseUser.email,
-                name: firebaseUser.displayName,
-                email_verified: firebaseUser.emailVerified,
-                picture: firebaseUser.photoURL
-              }
-            }
-          };
-          
-          setLoading(false);
-          return authResult;
-          
-        } catch (popupError) {
-          if (!isLocalhost) {
-            // If popup fails in production, don't fall back to redirect since that's also failing
-            throw popupError;
+      console.log('Google Sign-In successful:', firebaseUser);
+      
+      // Return result in Cognito-like format for compatibility
+      const authResult = {
+        isSignedIn: true,
+        user: {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          emailVerified: firebaseUser.emailVerified,
+          photoURL: firebaseUser.photoURL,
+          attributes: {
+            email: firebaseUser.email,
+            name: firebaseUser.displayName,
+            email_verified: firebaseUser.emailVerified,
+            picture: firebaseUser.photoURL
           }
-          // Fall back to redirect only for localhost
         }
-      }
+      };
       
-      // Store the current path to return to after redirect
-      sessionStorage.setItem('redirectAfterAuth', '/skills');
-      sessionStorage.setItem('googleSignInAttempt', 'true');
-      
-      // Redirect to Google sign-in (this will leave the page)
-      await signInWithRedirect(auth, googleProvider);
-      
-      // Note: This function will not continue past this point for redirect
-      
+      return authResult;
     } catch (err) {
       console.error('Google Sign-In Error:', err);
-      
-      // Clear the session storage on error
-      sessionStorage.removeItem('googleSignInAttempt');
-      sessionStorage.removeItem('redirectAfterAuth');
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
       
       // Convert Firebase errors to more user-friendly messages
       let errorMessage = err.message;
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Sign-in was cancelled.';
       } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Browser blocked the sign-in popup. Please allow popups and try again.';
+        errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
       } else if (err.code === 'auth/cancelled-popup-request') {
         errorMessage = 'Only one sign-in request at a time is allowed.';
       } else if (err.code === 'auth/account-exists-with-different-credential') {
@@ -497,15 +346,13 @@ export const AuthProvider = ({ children }) => {
         errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
       } else if (err.code === 'auth/configuration-not-found') {
         errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
-      } else if (err.code === 'auth/unauthorized-domain') {
-        const currentDomain = window.location.hostname;
-        errorMessage = `This domain (${currentDomain}) is not authorized for Google Sign-In. Please contact the administrator to add this domain to Firebase Console under Authentication → Settings → Authorized domains.`;
       }
       
       const error = { ...err, message: errorMessage };
       setError(error.message);
-      setLoading(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -521,7 +368,6 @@ export const AuthProvider = ({ children }) => {
     resendConfirmationCode,
     resetPassword,
     signInWithGoogle, // Google Sign-In function
-    handleGoogleRedirectResult, // Google Sign-In redirect result handler
     checkAuthState
   };
 

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthContext';
 import TalkToMe from './Games/TalkToMe';
-import WordTile from './Games/WordTile';
+import SentenceBuilder from './Games/SentenceBuilder';
 import WordDrop from './Games/WordDrop';
 import DragZilla from './Games/DragZilla';
 import CrossRoads from './Games/CrossRoads';
 import MarkTheWords from './Games/MarkTheWords';
+import Action from './Games/Action/Action';
 
 const GamesHome = () => {
   const navigate = useNavigate();
@@ -41,10 +42,10 @@ const GamesHome = () => {
       color: "from-purple-500 to-violet-500"
     },
     {
-      id: 'wordtile',
-      title: "Word Tile",
+      id: 'sentencebuilder',
+      title: "Sentence Builder",
       icon: "grid_view",
-      description: "Arrange word tiles in the correct order to form grammatically correct sentences and improve structure.",
+      description: "Build perfect sentences by arranging scrambled words in the correct order with AI-generated questions.",
       color: "from-cyan-500 to-blue-500"
     },
     {
@@ -74,6 +75,13 @@ const GamesHome = () => {
       icon: "highlight_alt",
       description: "Identify specific parts of speech in sentences to improve your grammar recognition and understanding.",
       color: "from-teal-500 to-cyan-500"
+    },
+    {
+      id: 'action',
+      title: "Action",
+      icon: "directions_run",
+      description: "Look at images and choose the correct verb to complete sentences. Learn action words through visual learning.",
+      color: "from-pink-500 to-rose-500"
     }
   ];
   
@@ -84,8 +92,8 @@ const GamesHome = () => {
   // Render active game component
   if (activeGame === 'talktome') {
     return <TalkToMe onBackToGames={handleBackToGames} />;
-  } else if (activeGame === 'wordtile') {
-    return <WordTile onBackToGames={handleBackToGames} />;
+  } else if (activeGame === 'sentencebuilder') {
+    return <SentenceBuilder onBackToGames={handleBackToGames} />;
   } else if (activeGame === 'worddrop') {
     return <WordDrop onBackToGames={handleBackToGames} />;
   } else if (activeGame === 'dragzilla') {
@@ -94,6 +102,8 @@ const GamesHome = () => {
     return <CrossRoads onBackToGames={handleBackToGames} />;
   } else if (activeGame === 'markthewords') {
     return <MarkTheWords onBackToGames={handleBackToGames} />;
+  } else if (activeGame === 'action') {
+    return <Action onBackToGames={handleBackToGames} />;
   }
   
   return (

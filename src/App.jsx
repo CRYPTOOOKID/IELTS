@@ -20,6 +20,11 @@ import SpeakingHome from './components/IELTS/Speaking/SpeakingHome.jsx';
 import ReadingHome from './components/IELTS/Reading/ReadingHome.jsx';
 import ReadingExam from './components/IELTS/Reading/ReadingExam.jsx';
 
+// Import Listening Section
+import ListeningHome from './components/IELTS/Listening/ListeningHome.jsx';
+import ListeningExam from './components/IELTS/Listening/ListeningExam.jsx';
+import ListeningFeedback from './components/IELTS/Listening/ListeningFeedback.jsx';
+
 // Import Toefl UnderConstruction component
 import UnderConstructionPage from './components/Toefl/UnderConstructionPage.jsx';
 // Import Toefl Writing component
@@ -28,6 +33,12 @@ import ToeflWritingHome from './components/Toefl/Writing/WritingHome.jsx';
 import ToeflSpeakingHome from './components/Toefl/Speaking/ToeflSpeakingHome.jsx';
 // Import Toefl Reading component
 import ToeflReadingHome from './components/Toefl/Reading/ToeflReadingHome.jsx';
+
+// Import Cambridge components
+import CambridgeHome from './components/Cambdrige/CambridgeHome.jsx';
+import CambridgeWritingHome from './components/Cambdrige/Writing/CambridgeWritingHome.jsx';
+import CambridgeWritingExam from './components/Cambdrige/Writing/CambridgeWritingExam.jsx';
+import CambridgeWritingFeedback from './components/Cambdrige/Writing/CambridgeWritingFeedback.jsx';
 
 // Import Timer context
 import { TimerProvider, useTimer } from './lib/TimerContext.jsx';
@@ -89,6 +100,17 @@ const ExamTypePage = () => {
       iconBg: 'bg-blue-600',
       delay: '0.2s',
       features: ['Academic Focus', 'iBT Format', 'Score 0-120']
+    },
+    {
+      id: 'cambridge',
+      name: 'Cambridge',
+      fullName: 'Cambridge English Qualifications',
+      icon: 'workspace_premium',
+      description: 'Internationally recognized English qualifications',
+      color: 'from-red-500 to-orange-700',
+      iconBg: 'bg-red-600',
+      delay: '0.3s',
+      features: ['5 Levels Available', 'A2 Key to C2 Proficiency', 'Real-world Tasks']
     }
   ];
 
@@ -181,7 +203,7 @@ const ExamTypePage = () => {
             {/* Key Features */}
             <div className="flex justify-center mb-12 space-x-12">
               <div className="text-center">
-                <div className="text-3xl font-bold text-cyan-400">2</div>
+                <div className="text-3xl font-bold text-cyan-400">3</div>
                 <div className="text-sm text-white/60">Tests</div>
               </div>
               <div className="text-center">
@@ -530,6 +552,8 @@ const IELTSSkillsPage = () => <SkillsPage examType="ielts" />;
 // TOEFL Skills Page
 const TOEFLSkillsPage = () => <SkillsPage examType="toefl" />;
 
+const CambridgeSkillsPage = () => <CambridgeHome />;
+
 // Placeholder for Listening section
 const ListeningPlaceholder = () => {
   const navigate = useNavigate();
@@ -788,13 +812,16 @@ function App() {
               <Route path="/skills" element={<ExamTypePage />} />
               <Route path="/ielts-skills" element={<IELTSSkillsPage />} />
               <Route path="/toefl-skills" element={<TOEFLSkillsPage />} />
+              <Route path="/cambridge-skills" element={<CambridgeSkillsPage />} />
               <Route path="/maintenance" element={<MaintenancePage />} />
               <Route path="/listening-maintenance" element={<ListeningMaintenancePage />} />
               
               {/* IELTS Routes */}
               <Route path="/ielts/writing" element={<WritingHome />} />
               <Route path="/ielts/speaking" element={<SpeakingHome />} />
-              <Route path="/ielts/listening" element={<ListeningPlaceholder />} />
+              <Route path="/ielts/listening" element={<ListeningHome />} />
+              <Route path="/ielts/listening/exam" element={<ListeningExam />} />
+              <Route path="/ielts/listening/feedback" element={<ListeningFeedback />} />
               <Route path="/ielts/reading" element={<ReadingHome />} />
               <Route path="/ielts/reading/exam" element={<ReadingExam />} />
               <Route path="/ielts/reading/feedback" element={<ReadingFeedback />} />
@@ -805,6 +832,11 @@ function App() {
               <Route path="/toefl/reading" element={<ToeflReadingHome />} />
               <Route path="/toefl/listening" element={<UnderConstructionPage examType="Listening" />} />
               <Route path="/toefl/reading/exam" element={<ToeflReadingHome />} />
+              
+              {/* Cambridge Routes */}
+              <Route path="/cambridge/writing" element={<CambridgeWritingHome />} />
+              <Route path="/cambridge/writing/exam" element={<CambridgeWritingExam />} />
+              <Route path="/cambridge/writing/feedback" element={<CambridgeWritingFeedback />} />
               
               {/* Play Zone Routes (common for both exam types) */}
               <Route path="/play-zone" element={<PlayZonePlaceholder />} />
