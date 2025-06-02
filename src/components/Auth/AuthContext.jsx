@@ -346,6 +346,8 @@ export const AuthProvider = ({ children }) => {
         errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
       } else if (err.code === 'auth/configuration-not-found') {
         errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
       }
       
       const error = { ...err, message: errorMessage };

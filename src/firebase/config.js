@@ -21,21 +21,19 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
-// Initialize Google Auth Provider
+// Initialize Google Auth Provider with proper configuration
 export const googleProvider = new GoogleAuthProvider();
+
+// Add required scopes for Google Sign-In
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+// Set custom parameters for better UX
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Add additional scopes if needed
-googleProvider.addScope('email');
-googleProvider.addScope('profile');
+// Export analytics if needed
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
-// Initialize Analytics (optional)
-let analytics;
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
-}
-
-export { analytics };
 export default app; 
