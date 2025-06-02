@@ -22,6 +22,7 @@ import ReadingExam from './components/IELTS/Reading/ReadingExam.jsx';
 
 // Import Listening Section
 import ListeningHome from './components/IELTS/Listening/ListeningHome.jsx';
+import ListeningInstructions from './components/IELTS/Listening/ListeningInstructions.jsx';
 import ListeningExam from './components/IELTS/Listening/ListeningExam.jsx';
 import ListeningFeedback from './components/IELTS/Listening/ListeningFeedback.jsx';
 
@@ -311,11 +312,7 @@ const SkillsPage = ({ examType }) => {
   
   const handleSkillSelection = (skill) => {
     resetTimer();
-    if (skill === 'listening') {
-      navigate('/listening-maintenance');
-    } else {
-      navigate(`/${examType}/${skill.toLowerCase()}`);
-    }
+    navigate(`/${examType}/${skill.toLowerCase()}`);
   };
   
   const handleBack = () => {
@@ -819,7 +816,7 @@ function App() {
               {/* IELTS Routes */}
               <Route path="/ielts/writing" element={<WritingHome />} />
               <Route path="/ielts/speaking" element={<SpeakingHome />} />
-              <Route path="/ielts/listening" element={<ListeningHome />} />
+              <Route path="/ielts/listening" element={<ListeningInstructions />} />
               <Route path="/ielts/listening/exam" element={<ListeningExam />} />
               <Route path="/ielts/listening/feedback" element={<ListeningFeedback />} />
               <Route path="/ielts/reading" element={<ReadingHome />} />
