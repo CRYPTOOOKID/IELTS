@@ -7,7 +7,8 @@ import {
   onAuthStateChanged,
   sendEmailVerification,
   updateProfile,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  getRedirectResult
 } from 'firebase/auth';
 import { auth, googleProvider } from '../../firebase/config';
 import logger from '../../utils/logger';
@@ -49,6 +50,22 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       setError(null);
     });
+
+    // Check for redirect result (in case fallback redirect was used)
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('Google Sign-In redirect successful:', result.user);
+          // The user state will be updated automatically by onAuthStateChanged
+        }
+      } catch (error) {
+        console.error('Redirect result error:', error);
+        setError(error.message);
+      }
+    };
+
+    checkRedirectResult();
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
@@ -298,15 +315,56 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      // Log for debugging
+      // Enhanced debugging
       console.log('Starting Google Sign-In...');
+      console.log('Current URL:', window.location.origin);
       console.log('Auth instance:', auth);
       console.log('Google provider:', googleProvider);
+      console.log('Provider custom parameters:', googleProvider.customParameters);
+      console.log('Provider scopes:', googleProvider.scopes);
       
-      const result = await signInWithPopup(auth, googleProvider);
+      // Validate auth configuration
+      if (!auth || !googleProvider) {
+        throw new Error('Firebase auth or Google provider not properly initialized');
+      }
+      
+      // First try popup method
+      let result;
+      try {
+        console.log('Attempting popup sign-in...');
+        result = await signInWithPopup(auth, googleProvider);
+        console.log('Popup sign-in successful');
+      } catch (popupError) {
+        console.log('Popup failed, error details:', {
+          code: popupError.code,
+          message: popupError.message,
+          stack: popupError.stack
+        });
+        
+        // If popup fails, try redirect method as fallback
+        if (popupError.code === 'auth/popup-blocked' || 
+            popupError.code === 'auth/popup-closed-by-user' ||
+            popupError.code === 'auth/cancelled-popup-request' ||
+            popupError.code === 'auth/internal-error') {
+          
+          console.log('Trying redirect method as fallback...');
+          // Import signInWithRedirect dynamically to avoid issues
+          const { signInWithRedirect } = await import('firebase/auth');
+          await signInWithRedirect(auth, googleProvider);
+          return; // Redirect will handle the rest
+        } else {
+          throw popupError; // Re-throw if it's not a popup-specific error
+        }
+      }
+      
       const firebaseUser = result.user;
       
-      console.log('Google Sign-In successful:', firebaseUser);
+      console.log('Google Sign-In successful:', {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        emailVerified: firebaseUser.emailVerified
+      });
       
       // Return result in Cognito-like format for compatibility
       const authResult = {
@@ -328,26 +386,37 @@ export const AuthProvider = ({ children }) => {
       
       return authResult;
     } catch (err) {
-      console.error('Google Sign-In Error:', err);
-      console.error('Error code:', err.code);
-      console.error('Error message:', err.message);
+      console.error('Google Sign-In Error Details:', {
+        code: err.code,
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
       
       // Convert Firebase errors to more user-friendly messages
       let errorMessage = err.message;
       if (err.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Sign-in was cancelled.';
+        errorMessage = 'Sign-in was cancelled by closing the popup window.';
       } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
+        errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.';
       } else if (err.code === 'auth/cancelled-popup-request') {
-        errorMessage = 'Only one sign-in request at a time is allowed.';
+        errorMessage = 'Another sign-in popup is already open. Please close it and try again.';
       } else if (err.code === 'auth/account-exists-with-different-credential') {
         errorMessage = 'An account already exists with the same email address but different sign-in credentials.';
       } else if (err.code === 'auth/internal-error') {
-        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
+        errorMessage = 'Internal error occurred. This might be a configuration issue. Please try again.';
       } else if (err.code === 'auth/configuration-not-found') {
         errorMessage = 'Google Sign-In configuration is missing. Please contact support.';
       } else if (err.code === 'auth/network-request-failed') {
         errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = 'This domain is not authorized for Google Sign-In. Please contact support.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Google Sign-In is not enabled for this project. Please contact support.';
+      } else if (err.message.includes('popup') || err.message.includes('Popup')) {
+        errorMessage = 'Pop-up sign-in failed. Please try again or check your browser settings.';
+      } else if (err.message.includes('configuration') || err.message.includes('not properly initialized')) {
+        errorMessage = 'Google Sign-In is not properly configured. Please contact support.';
       }
       
       const error = { ...err, message: errorMessage };

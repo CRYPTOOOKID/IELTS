@@ -38,6 +38,19 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Skip service worker for Google/Firebase authentication domains
+  if (url.hostname.includes('google.com') || 
+      url.hostname.includes('googleapis.com') || 
+      url.hostname.includes('gstatic.com') ||
+      url.hostname.includes('googletagmanager.com') ||
+      url.hostname.includes('firebase.com') ||
+      url.hostname.includes('firebaseapp.com') ||
+      url.pathname.includes('/__/auth/') ||
+      url.pathname.includes('/__/firebase/')) {
+    // Let these requests go through normally without service worker interference
+    return;
+  }
+
   // Handle image requests from S3
   if (url.hostname.includes('amazonaws.com') && request.destination === 'image') {
     event.respondWith(
@@ -88,12 +101,13 @@ self.addEventListener('fetch', (event) => {
     );
   }
   
-  // Default: network first, fallback to cache
-  else {
+  // Default: network first, fallback to cache (but only for our own domain)
+  else if (url.origin === self.location.origin) {
     event.respondWith(
       fetch(request).catch(() => {
         return caches.match(request);
       })
     );
   }
+  // For external domains not handled above, let them pass through normally
 }); 
