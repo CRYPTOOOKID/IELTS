@@ -40,6 +40,11 @@ import CambridgeHome from './components/Cambdrige/CambridgeHome.jsx';
 import CambridgeWritingHome from './components/Cambdrige/Writing/CambridgeWritingHome.jsx';
 import CambridgeWritingExam from './components/Cambdrige/Writing/CambridgeWritingExam.jsx';
 import CambridgeWritingFeedback from './components/Cambdrige/Writing/CambridgeWritingFeedback.jsx';
+// Import Cambridge Listening components
+import CambridgeListeningHome from './components/Cambdrige/Listening/ListeningHome.jsx';
+import CambridgeListeningInstructions from './components/Cambdrige/Listening/ListeningInstructions.jsx';
+import CambridgeListeningExam from './components/Cambdrige/Listening/ListeningExam.jsx';
+import CambridgeListeningFeedback from './components/Cambdrige/Listening/ListeningFeedback.jsx';
 
 // Import Timer context
 import { TimerProvider, useTimer } from './lib/TimerContext.jsx';
@@ -834,6 +839,12 @@ function App() {
               <Route path="/cambridge/writing" element={<CambridgeWritingHome />} />
               <Route path="/cambridge/writing/exam" element={<CambridgeWritingExam />} />
               <Route path="/cambridge/writing/feedback" element={<CambridgeWritingFeedback />} />
+              
+              {/* Cambridge Listening Routes */}
+              <Route path="/cambridge/listening" element={<CambridgeListeningHome />} />
+              <Route path="/cambridge/listening/instructions" element={<CambridgeListeningInstructions />} />
+              <Route path="/cambridge/listening/exam" element={<CambridgeListeningExam />} />
+              <Route path="/cambridge/listening/feedback" element={<CambridgeListeningFeedback />} />
               
               {/* Play Zone Routes (common for both exam types) */}
               <Route path="/play-zone" element={<PlayZonePlaceholder />} />

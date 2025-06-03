@@ -11,6 +11,8 @@ const CambridgeHome = () => {
   const handleSkillSelection = (skill) => {
     if (skill === 'writing') {
       navigate('/cambridge/writing');
+    } else if (skill === 'listening') {
+      navigate('/cambridge/listening');
     }
     // Other skills are disabled for now
   };
@@ -60,12 +62,12 @@ const CambridgeHome = () => {
       id: 'listening',
       name: 'Listening',
       icon: 'headphones',
-      description: 'Coming soon - Listening skills',
-      color: 'from-gray-400 to-gray-600',
-      iconBg: 'bg-gray-500',
+      description: 'Test your listening comprehension with Cambridge B1 materials',
+      color: 'from-blue-500 to-purple-700',
+      iconBg: 'bg-blue-600',
       delay: '0.3s',
-      available: false,
-      stats: 'Coming soon'
+      available: true,
+      stats: 'B1 Level • 20 Tests • Audio'
     },
     {
       id: 'speaking',
