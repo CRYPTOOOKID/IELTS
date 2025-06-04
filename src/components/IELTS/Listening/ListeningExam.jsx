@@ -154,11 +154,33 @@ const ListeningExam = () => {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch((error) => {
-          console.error('Audio play error:', error);
-          setAudioError(true);
-        });
-        setHasStartedAudio(true);
+        // Try to play even if not fully loaded - let the browser handle buffering
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Audio started playing successfully');
+              setHasStartedAudio(true);
+            })
+            .catch((error) => {
+              console.error('Audio play error:', error);
+              
+              // If it's a loading issue, set loading state but don't show error
+              if (error.name === 'NotAllowedError') {
+                console.log('Audio play blocked by browser - user interaction required');
+              } else if (error.name === 'NotSupportedError') {
+                setAudioError(true);
+              } else {
+                // For other errors (like network issues), keep loading state
+                console.log('Audio not ready yet, keeping loading state');
+                setAudioLoading(true);
+              }
+            });
+        } else {
+          // Fallback for older browsers
+          setHasStartedAudio(true);
+        }
       }
       setIsPlaying(!isPlaying);
     }
@@ -177,6 +199,50 @@ const ListeningExam = () => {
   const handleAudioCanPlay = () => {
     setAudioLoading(false);
     setAudioError(false);
+  };
+
+  // Add new handler for when enough data is loaded to start playing
+  const handleAudioCanPlayThrough = () => {
+    setAudioLoading(false);
+    setAudioError(false);
+    console.log('Audio can play through - enough data buffered');
+  };
+
+  // Add handler for progress event to track buffering
+  const handleAudioProgress = () => {
+    if (audioRef.current && audioRef.current.buffered.length > 0) {
+      const buffered = audioRef.current.buffered;
+      const duration = audioRef.current.duration;
+      if (duration > 0) {
+        const bufferedEnd = buffered.end(buffered.length - 1);
+        const bufferedPercent = (bufferedEnd / duration) * 100;
+        console.log(`Audio buffered: ${bufferedPercent.toFixed(1)}%`);
+        
+        // If we have at least 10% buffered, we can start playing
+        if (bufferedPercent >= 10 && audioLoading) {
+          setAudioLoading(false);
+          console.log('Enough audio buffered to start playing');
+        }
+
+        // Preload next part when current part is 50% buffered
+        if (bufferedPercent >= 50 && currentPart < 4) {
+          preloadNextPartAudio();
+        }
+      }
+    }
+  };
+
+  // Preload next part audio
+  const preloadNextPartAudio = () => {
+    if (currentPart < 4 && testData && testData.parts) {
+      const nextPartData = testData.parts.find(p => p.id === currentPart + 1);
+      if (nextPartData && nextPartData.audioUrl) {
+        const nextAudio = new Audio();
+        nextAudio.preload = 'auto';
+        nextAudio.src = nextPartData.audioUrl;
+        console.log(`Preloading audio for Part ${currentPart + 1}`);
+      }
+    }
   };
 
   const handleAudioError = () => {
@@ -549,14 +615,18 @@ const ListeningExam = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={handlePlayPause}
-                disabled={audioLoading || audioError}
+                disabled={audioError || (audioLoading && (!audioRef.current || !audioRef.current.buffered.length || 
+                  audioRef.current.buffered.length === 0 || 
+                  (audioRef.current.duration > 0 && (audioRef.current.buffered.end(0) / audioRef.current.duration) < 0.05)))}
                 className={`flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ${
                   audioError
                     ? 'bg-red-500 hover:bg-red-600'
                     : !hasStartedAudio 
                     ? 'bg-green-500 hover:bg-green-600 shadow-lg shadow-green-500/50' 
                     : 'bg-blue-500 hover:bg-blue-600'
-                } ${audioLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${(audioError || (audioLoading && (!audioRef.current || !audioRef.current.buffered.length || 
+                  audioRef.current.buffered.length === 0 || 
+                  (audioRef.current.duration > 0 && (audioRef.current.buffered.end(0) / audioRef.current.duration) < 0.05)))) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {audioLoading ? (
                   <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -584,9 +654,34 @@ const ListeningExam = () => {
               )}
               
               {audioLoading && (
-                <span className="text-blue-400 font-medium text-lg">
-                  Loading audio...
-                </span>
+                <div className="flex items-center space-x-3 bg-blue-500/20 border border-blue-400/50 rounded-lg px-4 py-2">
+                  <svg className="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="text-blue-400 font-medium text-lg">
+                    Buffering audio...
+                  </span>
+                  {audioRef.current && audioRef.current.buffered.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-16 h-1 bg-blue-900/50 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-400 rounded-full transition-all duration-300"
+                          style={{ 
+                            width: `${audioRef.current.duration > 0 ? 
+                              (audioRef.current.buffered.end(audioRef.current.buffered.length - 1) / audioRef.current.duration) * 100 : 
+                              0}%` 
+                          }}
+                        ></div>
+                      </div>
+                      <span className="text-blue-400 text-sm">
+                        {audioRef.current.duration > 0 ? 
+                          Math.round((audioRef.current.buffered.end(audioRef.current.buffered.length - 1) / audioRef.current.duration) * 100) : 
+                          0}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
               
               {audioError && (
@@ -896,10 +991,12 @@ const ListeningExam = () => {
         onPause={() => setIsPlaying(false)}
         onLoadStart={handleAudioLoadStart}
         onCanPlay={handleAudioCanPlay}
+        onCanPlayThrough={handleAudioCanPlayThrough}
+        onProgress={handleAudioProgress}
         onError={handleAudioError}
         onTimeUpdate={handleAudioTimeUpdate}
         onLoadedMetadata={handleAudioLoadedMetadata}
-        preload="metadata"
+        preload="auto"
       >
         <source src={currentPartData.audioUrl} type="audio/mpeg" />
         Your browser does not support the audio element.
