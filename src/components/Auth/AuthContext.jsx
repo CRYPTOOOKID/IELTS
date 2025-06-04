@@ -54,14 +54,22 @@ export const AuthProvider = ({ children }) => {
     // Check for redirect result (in case fallback redirect was used)
     const checkRedirectResult = async () => {
       try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          console.log('Google Sign-In redirect successful:', result.user);
-          // The user state will be updated automatically by onAuthStateChanged
+        // Only check for redirect result if we're expecting one
+        // This prevents automatic processing on every page load
+        const isExpectingRedirect = sessionStorage.getItem('google_signin_redirect_pending');
+        
+        if (isExpectingRedirect) {
+          const result = await getRedirectResult(auth);
+          if (result) {
+            console.log('Google Sign-In redirect successful:', result.user);
+            // The user state will be updated automatically by onAuthStateChanged
+            sessionStorage.removeItem('google_signin_redirect_pending');
+          }
         }
       } catch (error) {
         console.error('Redirect result error:', error);
         setError(error.message);
+        sessionStorage.removeItem('google_signin_redirect_pending');
       }
     };
 
@@ -348,6 +356,8 @@ export const AuthProvider = ({ children }) => {
             popupError.code === 'auth/internal-error') {
           
           console.log('Trying redirect method as fallback...');
+          // Set flag to indicate we're expecting a redirect result
+          sessionStorage.setItem('google_signin_redirect_pending', 'true');
           // Import signInWithRedirect dynamically to avoid issues
           const { signInWithRedirect } = await import('firebase/auth');
           await signInWithRedirect(auth, googleProvider);

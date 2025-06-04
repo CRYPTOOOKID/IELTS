@@ -3,7 +3,13 @@
 // For production: Use proper environment variables
 
 export const getGeminiApiKey = () => {
-  // Check for environment variables first
+  // Check for environment variables first (using Vite format)
+  const viteApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (viteApiKey && viteApiKey !== 'your_gemini_api_key_here') {
+    return viteApiKey;
+  }
+  
+  // Legacy support for React App format
   if (typeof window !== 'undefined' && window.REACT_APP_GEMINI_API_KEY) {
     return window.REACT_APP_GEMINI_API_KEY;
   }
@@ -17,7 +23,7 @@ export const getGeminiApiKey = () => {
   }
   
   console.error('❌ API key not configured. Please either:');
-  console.error('1. Set REACT_APP_GEMINI_API_KEY in your .env file, or');
+  console.error('1. Set VITE_GEMINI_API_KEY in your .env file, or');
   console.error('2. Temporarily add your key to src/config/apiConfig.js');
   
   return null;
