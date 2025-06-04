@@ -21,6 +21,9 @@ const ListeningExam = () => {
   const [lastSaved, setLastSaved] = useState(null);
   const [justSaved, setJustSaved] = useState(false);
   const [showRefreshConfirm, setShowRefreshConfirm] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
 
   // Auto-save functionality
   useEffect(() => {
@@ -45,6 +48,30 @@ const ListeningExam = () => {
     return () => clearInterval(autoSaveInterval);
   }, [answers, currentPart]);
 
+  // Cleanup localStorage when component unmounts or user navigates away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem('ielts_listening_answers');
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        localStorage.removeItem('ielts_listening_answers');
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup function for component unmount
+    return () => {
+      localStorage.removeItem('ielts_listening_answers');
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Load saved answers on component mount
   useEffect(() => {
     const savedData = localStorage.getItem('ielts_listening_answers');
@@ -54,9 +81,13 @@ const ListeningExam = () => {
         // Only load if saved within last hour
         if (Date.now() - parsed.timestamp < 3600000) {
           setAnswers(parsed.answers || {});
+        } else {
+          // Clear old saved data
+          localStorage.removeItem('ielts_listening_answers');
         }
       } catch (error) {
         console.error('Error loading saved answers:', error);
+        localStorage.removeItem('ielts_listening_answers');
       }
     }
   }, []);
@@ -153,6 +184,42 @@ const ListeningExam = () => {
     setAudioError(true);
   };
 
+  const handleAudioTimeUpdate = () => {
+    if (audioRef.current) {
+      const current = audioRef.current.currentTime;
+      const duration = audioRef.current.duration;
+      const progress = duration > 0 ? (current / duration) * 100 : 0;
+      
+      setAudioCurrentTime(current);
+      setAudioProgress(progress);
+    }
+  };
+
+  const handleAudioLoadedMetadata = () => {
+    if (audioRef.current) {
+      const duration = audioRef.current.duration;
+      setAudioDuration(duration);
+    }
+  };
+
+  const handleAudioSeek = (e) => {
+    if (audioRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const percentage = (e.clientX - rect.left) / rect.width;
+      const newTime = percentage * audioDuration;
+      audioRef.current.currentTime = newTime;
+      setAudioCurrentTime(newTime);
+      setAudioProgress(percentage * 100);
+    }
+  };
+
+  const formatTime = (time) => {
+    if (!time || isNaN(time)) return '0:00';
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const handleAnswerChange = (questionId, value) => {
     setAnswers(prev => ({
       ...prev,
@@ -169,6 +236,9 @@ const ListeningExam = () => {
       setAudioEnded(false);
       setAudioLoading(false);
       setAudioError(false);
+      setAudioProgress(0);
+      setAudioCurrentTime(0);
+      setAudioDuration(0);
       
       // Reset audio element
       if (audioRef.current) {
@@ -231,6 +301,9 @@ const ListeningExam = () => {
       setAudioEnded(false);
       setAudioLoading(false);
       setAudioError(false);
+      setAudioProgress(0);
+      setAudioCurrentTime(0);
+      setAudioDuration(0);
       
       // Clear auto-saved data
       localStorage.removeItem('ielts_listening_answers');
@@ -527,6 +600,67 @@ const ListeningExam = () => {
                   Audio completed
                 </span>
               )}
+              
+              {/* Audio Progress Indicator */}
+              {(hasStartedAudio || isPlaying) && !audioError && (
+                <div className="flex items-center space-x-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 min-w-[300px]">
+                  {/* Play Status Indicator */}
+                  <div className="flex items-center space-x-2">
+                    {isPlaying ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-green-400 font-medium text-sm">Playing</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                        <span className="text-yellow-400 font-medium text-sm">Paused</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="flex-1 flex items-center space-x-3">
+                    <span className="text-white/70 text-xs font-mono min-w-[35px]">
+                      {formatTime(audioCurrentTime)}
+                    </span>
+                    <div 
+                      className="flex-1 h-2 bg-white/20 rounded-full cursor-pointer group relative overflow-hidden"
+                      onClick={handleAudioSeek}
+                    >
+                      {/* Progress track */}
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-200 relative"
+                        style={{ width: `${audioProgress}%` }}
+                      >
+                        {/* Animated shine effect when playing */}
+                        {isPlaying && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse rounded-full"></div>
+                        )}
+                      </div>
+                      
+                      {/* Hover indicator */}
+                      <div className="absolute top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                           style={{ left: `${audioProgress}%` }}>
+                        <div className="w-4 h-4 bg-white rounded-full shadow-lg border-2 border-blue-500 transform -translate-x-1/2"></div>
+                      </div>
+                    </div>
+                    <span className="text-white/70 text-xs font-mono min-w-[35px]">
+                      {formatTime(audioDuration)}
+                    </span>
+                  </div>
+                  
+                  {/* Audio wave animation when playing */}
+                  {isPlaying && (
+                    <div className="flex items-center space-x-1">
+                      <div className="w-1 h-3 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0ms'}}></div>
+                      <div className="w-1 h-4 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '150ms'}}></div>
+                      <div className="w-1 h-2 bg-cyan-400 rounded-full animate-pulse" style={{animationDelay: '300ms'}}></div>
+                      <div className="w-1 h-5 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '450ms'}}></div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           
@@ -543,22 +677,6 @@ const ListeningExam = () => {
             )}
           </div>
         </div>
-        
-        {/* Hidden audio element */}
-        <audio
-          key={`part-${currentPart}`}
-          ref={audioRef}
-          onEnded={handleAudioEnded}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onLoadStart={handleAudioLoadStart}
-          onCanPlay={handleAudioCanPlay}
-          onError={handleAudioError}
-          preload="metadata"
-        >
-          <source src={currentPartData.audioUrl} type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
       </div>
 
       {/* Main Content */}
@@ -768,6 +886,24 @@ const ListeningExam = () => {
           )}
         </>
       )}
+
+      {/* Hidden audio element */}
+      <audio
+        key={`part-${currentPart}`}
+        ref={audioRef}
+        onEnded={handleAudioEnded}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onLoadStart={handleAudioLoadStart}
+        onCanPlay={handleAudioCanPlay}
+        onError={handleAudioError}
+        onTimeUpdate={handleAudioTimeUpdate}
+        onLoadedMetadata={handleAudioLoadedMetadata}
+        preload="metadata"
+      >
+        <source src={currentPartData.audioUrl} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
     </div>
   );
 };

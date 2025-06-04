@@ -27,55 +27,52 @@ const ListeningInstructions = () => {
   const handleStartExam = async () => {
     setIsLoading(true);
     try {
-      // Use Cambridge API with selected level and random test number (1-20)
-      const testNumber = Math.floor(Math.random() * 20) + 1; // Random test from 1-20
       const level = selectedLevel;
+      const testNumber = Math.floor(Math.random() * 20) + 1;
       
       console.log(`Fetching Cambridge ${level.toUpperCase()} test ${testNumber}...`);
       
-      // Fetch parts sequentially in order (1, 2, 3, 4)
-      const parts = [];
-      let successfulParts = 0;
-      
+      // Fetch all 4 parts in parallel for efficiency
+      const partPromises = [];
       for (let partNumber = 1; partNumber <= 4; partNumber++) {
-        try {
-          console.log(`Fetching part ${partNumber}...`);
-          const response = await fetch(
-            `https://fesix53cz3.execute-api.us-east-1.amazonaws.com/prod/cambridge/listening/${level}/tests/${testNumber}/parts/${partNumber}`
-          );
-          
-          if (!response.ok) {
-            console.warn(`Part ${partNumber} not available (${response.status})`);
-            // If it's part 1 and it fails, we need to try a different test
-            if (partNumber === 1) {
-              throw new Error(`Part 1 is required but not available for test ${testNumber}`);
-            }
-            // For other parts, we can continue without them
-            continue;
-          }
-          
-          const partData = await response.json();
-          parts.push({ partNumber, data: partData });
-          successfulParts++;
-          console.log(`Successfully fetched part ${partNumber}`);
-          
-        } catch (error) {
-          console.error(`Error fetching part ${partNumber}:`, error);
-          // If it's part 1 and it fails, we need to try a different test
-          if (partNumber === 1) {
-            throw new Error(`Failed to fetch required part 1: ${error.message}`);
-          }
-          // For other parts, log the error but continue
-          console.warn(`Skipping part ${partNumber} due to error`);
+        const url = `https://fesix53cz3.execute-api.us-east-1.amazonaws.com/prod/cambridge/listening/${level}/tests/${testNumber}/parts/${partNumber}`;
+        partPromises.push(
+          fetch(url)
+            .then(response => ({
+              partNumber,
+              success: response.ok,
+              status: response.status,
+              data: response.ok ? response.json() : null
+            }))
+            .catch(error => ({
+              partNumber,
+              success: false,
+              error: error.message,
+              data: null
+            }))
+        );
+      }
+      
+      // Wait for all parts to complete
+      const partResults = await Promise.all(partPromises);
+      
+      // Process results and get actual data
+      const parts = [];
+      for (const result of partResults) {
+        if (result.success && result.data) {
+          const partData = await result.data;
+          parts.push({ partNumber: result.partNumber, data: partData });
+          console.log(`Part ${result.partNumber}: Success`);
+        } else {
+          console.warn(`Part ${result.partNumber}: Failed (${result.status || result.error})`);
         }
       }
       
-      // Ensure we have at least part 1
-      if (successfulParts === 0 || !parts.find(p => p.partNumber === 1)) {
-        throw new Error('Could not load any test parts. Please try again.');
-      }
+      console.log(`Successfully loaded ${parts.length} parts:`, parts.map(p => p.partNumber));
       
-      console.log(`Successfully loaded ${successfulParts} parts`);
+      if (parts.length === 0) {
+        throw new Error('No test parts could be loaded. Please try again.');
+      }
       
       // Transform the API response to match our component structure
       const testData = {
@@ -85,27 +82,51 @@ const ListeningInstructions = () => {
         parts: {}
       };
 
-      // Process each successfully fetched part in order
-      parts.sort((a, b) => a.partNumber - b.partNumber).forEach(({ partNumber, data }) => {
+      // Process each successfully fetched part
+      parts.forEach(({ partNumber, data }) => {
+        console.log(`Processing Part ${partNumber}:`, data);
+        
+        // Handle different API response structures
+        let sectionsData;
+        if (data.questions_data && Array.isArray(data.questions_data)) {
+          // Standard structure: data.questions_data is an array of sections
+          sectionsData = data.questions_data.map(section => ({
+            section_id: section.section_id,
+            section_description: section.section_description,
+            question_type: section.question_type,
+            questions: section.questions,
+            matching_options: section.matching_options || undefined
+          }));
+        } else if (data.sections && Array.isArray(data.sections)) {
+          // Direct sections structure (for multiple_matching like Part 4)
+          sectionsData = data.sections.map(section => ({
+            section_id: section.section_id,
+            section_description: section.section_description,
+            question_type: section.question_type,
+            questions: section.questions,
+            matching_options: section.matching_options || undefined
+          }));
+        } else {
+          console.warn(`Part ${partNumber}: Unknown data structure`, data);
+          sectionsData = [];
+        }
+
         testData.parts[partNumber.toString()] = {
           audio_url: data.audio_url,
           part_number: data.part_number,
           total_questions: data.total_questions,
           questions_data: {
-            sections: data.questions_data.map(section => ({
-              section_id: section.section_id,
-              section_description: section.section_description,
-              question_type: section.question_type,
-              questions: section.questions,
-              matching_options: section.matching_options || undefined
-            }))
-          }
+            sections: sectionsData
+          },
+          // Also store direct sections for compatibility
+          sections: sectionsData
         };
       });
       
       console.log('Test data prepared:', testData);
+      console.log('Parts in final test data:', Object.keys(testData.parts));
       
-      // Navigate to exam with real test data - start with part 1
+      // Navigate to exam with test data
       navigate('/cambridge/listening/exam', { 
         state: { 
           testData,

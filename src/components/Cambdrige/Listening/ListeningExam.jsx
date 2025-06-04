@@ -48,6 +48,30 @@ const ListeningExam = () => {
     return () => clearInterval(autoSaveInterval);
   }, [answers, currentPart]);
 
+  // Cleanup localStorage when component unmounts or user navigates away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem('cambridge_listening_answers');
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        localStorage.removeItem('cambridge_listening_answers');
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup function for component unmount
+    return () => {
+      localStorage.removeItem('cambridge_listening_answers');
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Load saved answers on component mount
   useEffect(() => {
     const savedData = localStorage.getItem('cambridge_listening_answers');
@@ -57,9 +81,13 @@ const ListeningExam = () => {
         // Only load if saved within last hour
         if (Date.now() - parsed.timestamp < 3600000) {
           setAnswers(parsed.answers || {});
+        } else {
+          // Clear old saved data
+          localStorage.removeItem('cambridge_listening_answers');
         }
       } catch (error) {
         console.error('Error loading saved answers:', error);
+        localStorage.removeItem('cambridge_listening_answers');
       }
     }
   }, []);
@@ -79,50 +107,132 @@ const ListeningExam = () => {
       setCurrentPart(initialPart);
     }
 
+    console.log('Raw API data received:', apiTestData);
+
     // Transform API data to match component structure
-    const transformedData = {
-      test_id: apiTestData.test_id_composite,
-      level: apiTestData.level,
-      test_number: apiTestData.test_number,
-      parts: Object.keys(apiTestData.parts).map(partNum => {
-        const partData = apiTestData.parts[partNum];
-        
-        // Flatten all questions from all sections in this part
-        const allQuestions = [];
-        let questionCounter = 1; // Start numbering from 1 for each part
-        
-        if (partData.questions_data && partData.questions_data.sections) {
-          partData.questions_data.sections.forEach(section => {
-            section.questions.forEach(question => {
-              // Transform question to include section info and standardize format
-              allQuestions.push({
-                ...question,
-                id: `${partNum}_${questionCounter}`, // Unique ID for each question
-                question_number: questionCounter++,
-                question_type: section.question_type,
-                section_id: section.section_id,
-                section_description: section.section_description,
-                matching_options: section.matching_options,
-                // Transform options to include both letter and text if needed
-                options: question.options ? question.options.map(opt => 
-                  typeof opt === 'object' ? opt.text : opt
-                ) : undefined
+    let transformedData;
+
+    // Check if this is a single part data (like Part 4 directly) or full test data
+    if (apiTestData.sections && !apiTestData.parts) {
+      // This is single part data (like Part 4 multiple_matching format)
+      console.log('Processing single part data with sections');
+      
+      const allQuestions = [];
+      let questionCounter = 1;
+      
+      apiTestData.sections.forEach(section => {
+        console.log(`Processing section:`, section);
+        section.questions.forEach(question => {
+          allQuestions.push({
+            ...question,
+            id: `4_${questionCounter}`, // Assume this is Part 4
+            question_number: questionCounter++,
+            question_type: section.question_type,
+            section_id: section.section_id,
+            section_description: section.section_description,
+            matching_options: section.matching_options,
+            options: question.options ? question.options.map(opt => 
+              typeof opt === 'object' ? opt.text : opt
+            ) : undefined
+          });
+        });
+      });
+
+      transformedData = {
+        test_id: apiTestData.test_id || 'cambridge_test',
+        level: 'c2', // Default for Part 4 multiple matching
+        test_number: 1,
+        parts: [{
+          id: 4,
+          title: 'Part 4',
+          audioUrl: apiTestData.audio_url || '',
+          questions: allQuestions,
+          sections: apiTestData.sections,
+          total_questions: allQuestions.length
+        }]
+      };
+    } else if (apiTestData.parts) {
+      // Standard multi-part test data structure
+      transformedData = {
+        test_id_composite: `cambridge_${apiTestData.level}_test_${apiTestData.test_number}`,
+        level: apiTestData.level,
+        test_number: apiTestData.test_number,
+        parts: Object.keys(apiTestData.parts).map(partNum => {
+          const partData = apiTestData.parts[partNum];
+          
+          console.log(`Processing part ${partNum}:`, partData);
+          
+          // Flatten all questions from all sections in this part
+          const allQuestions = [];
+          let questionCounter = 1; // Start numbering from 1 for each part
+          
+          // Handle different data structures
+          if (partData.questions_data && partData.questions_data.sections) {
+            // Standard structure with questions_data.sections
+            console.log(`Part ${partNum}: Using questions_data.sections structure`);
+            partData.questions_data.sections.forEach(section => {
+              section.questions.forEach(question => {
+                // Transform question to include section info and standardize format
+                allQuestions.push({
+                  ...question,
+                  id: `${partNum}_${questionCounter}`, // Unique ID for each question
+                  question_number: questionCounter++,
+                  question_type: section.question_type,
+                  section_id: section.section_id,
+                  section_description: section.section_description,
+                  matching_options: section.matching_options,
+                  // Transform options to include both letter and text if needed
+                  options: question.options ? question.options.map(opt => 
+                    typeof opt === 'object' ? opt.text : opt
+                  ) : undefined
+                });
               });
             });
-          });
-        }
-        
-        return {
-          id: parseInt(partNum),
-          title: `Part ${partNum}`,
-          audioUrl: partData.audio_url,
-          questions: allQuestions,
-          sections: partData.questions_data?.sections || [],
-          total_questions: partData.total_questions
-        };
-      })
-    };
+          } else if (partData.sections) {
+            // Direct sections structure (for multiple_matching)
+            console.log(`Part ${partNum}: Using direct sections structure`);
+            partData.sections.forEach(section => {
+              console.log(`Processing section:`, section);
+              section.questions.forEach(question => {
+                // Transform question to include section info and standardize format
+                allQuestions.push({
+                  ...question,
+                  id: `${partNum}_${questionCounter}`, // Unique ID for each question
+                  question_number: questionCounter++,
+                  question_type: section.question_type,
+                  section_id: section.section_id,
+                  section_description: section.section_description,
+                  matching_options: section.matching_options,
+                  // Transform options to include both letter and text if needed
+                  options: question.options ? question.options.map(opt => 
+                    typeof opt === 'object' ? opt.text : opt
+                  ) : undefined
+                });
+              });
+            });
+          } else {
+            console.warn(`Part ${partNum}: No valid data structure found`, partData);
+          }
+          
+          console.log(`Part ${partNum}: Generated ${allQuestions.length} questions:`, allQuestions);
+          
+          return {
+            id: parseInt(partNum),
+            title: `Part ${partNum}`,
+            audioUrl: partData.audio_url || '',
+            questions: allQuestions,
+            sections: partData.questions_data?.sections || partData.sections || [],
+            total_questions: partData.total_questions || allQuestions.length
+          };
+        }).filter(part => part.questions.length > 0) // Filter out parts with no questions
+      };
+    } else {
+      console.error('Unknown API data structure:', apiTestData);
+      navigate('/cambridge/listening');
+      return;
+    }
 
+    console.log('Final transformed data:', transformedData);
     setTestData(transformedData);
     setIsLoading(false);
   }, [location.state, navigate]);
@@ -136,7 +246,9 @@ const ListeningExam = () => {
           console.error('Audio play error:', error);
           setAudioError(true);
         });
-        setHasStartedAudio(true);
+        if (!hasStartedAudio) {
+          setHasStartedAudio(true);
+        }
       }
       setIsPlaying(!isPlaying);
     }
@@ -160,6 +272,22 @@ const ListeningExam = () => {
   const handleAudioError = () => {
     setAudioLoading(false);
     setAudioError(true);
+    
+    // Enhanced error logging for debugging
+    console.error('Audio error occurred for Part:', currentPart);
+    console.error('Original audio URL:', currentPartData?.audioUrl);
+    console.error('Normalized audio URL:', normalizeAudioUrl(currentPartData?.audioUrl));
+    console.error('Audio element error:', audioRef.current?.error);
+    
+    if (audioRef.current?.error) {
+      const errorCodes = {
+        1: 'MEDIA_ERR_ABORTED - The user aborted the video playback',
+        2: 'MEDIA_ERR_NETWORK - A network error occurred while fetching the media',
+        3: 'MEDIA_ERR_DECODE - An error occurred while decoding the media',
+        4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - The media format is not supported'
+      };
+      console.error('Error code:', audioRef.current.error.code, '-', errorCodes[audioRef.current.error.code]);
+    }
   };
 
   const handleAudioTimeUpdate = () => {
@@ -199,6 +327,22 @@ const ListeningExam = () => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Normalize audio URL to fix inconsistent capitalization
+  const normalizeAudioUrl = (url) => {
+    if (!url) return '';
+    
+    // Fix inconsistent capitalization in Cambridge audio URLs
+    // Convert paths like /cambridge/C2/ to /cambridge/c2/
+    const normalizedUrl = url.replace(/\/cambridge\/([A-Z]\d+)\//g, (match, level) => {
+      return `/cambridge/${level.toLowerCase()}/`;
+    });
+    
+    console.log('Original URL:', url);
+    console.log('Normalized URL:', normalizedUrl);
+    
+    return normalizedUrl;
   };
 
   const handleAnswerChange = (questionId, value) => {
@@ -313,19 +457,42 @@ const ListeningExam = () => {
 
       // Process each successfully fetched part in order
       parts.sort((a, b) => a.partNumber - b.partNumber).forEach(({ partNumber, data }) => {
+        console.log(`Refresh: Processing Part ${partNumber} data:`, data);
+        
+        // Handle different API response structures
+        let sectionsData;
+        if (data.questions_data && Array.isArray(data.questions_data)) {
+          // Standard structure: data.questions_data is an array of sections
+          sectionsData = data.questions_data.map(section => ({
+            section_id: section.section_id,
+            section_description: section.section_description,
+            question_type: section.question_type,
+            questions: section.questions,
+            matching_options: section.matching_options || undefined
+          }));
+        } else if (data.sections && Array.isArray(data.sections)) {
+          // Direct sections structure (for multiple_matching like Part 4)
+          sectionsData = data.sections.map(section => ({
+            section_id: section.section_id,
+            section_description: section.section_description,
+            question_type: section.question_type,
+            questions: section.questions,
+            matching_options: section.matching_options || undefined
+          }));
+        } else {
+          console.warn(`Refresh: Part ${partNumber}: Unknown data structure`, data);
+          sectionsData = [];
+        }
+
         newTestData.parts[partNumber.toString()] = {
           audio_url: data.audio_url,
           part_number: data.part_number,
           total_questions: data.total_questions,
           questions_data: {
-            sections: data.questions_data.map(section => ({
-              section_id: section.section_id,
-              section_description: section.section_description,
-              question_type: section.question_type,
-              questions: section.questions,
-              matching_options: section.matching_options || undefined
-            }))
-          }
+            sections: sectionsData
+          },
+          // Also store direct sections for compatibility
+          sections: sectionsData
         };
       });
       
@@ -420,6 +587,9 @@ const ListeningExam = () => {
         return 'Complete the form by filling in the missing information.';
       case 'matching':
       case 'Matching':
+      case 'multiple_matching':
+      case 'multiple-matching':
+      case 'Multiple Matching':
         return 'You will hear five different speakers. Match each speaker to the correct option. There are extra options which you do not need to use.';
       case 'note_completion':
       case 'note-completion':
@@ -597,6 +767,308 @@ const ListeningExam = () => {
     );
   };
 
+  // New specialized Part 4 renderer with three-column layout
+  const renderPart4MultipleMatching = (partData) => {
+    if (!partData.sections || partData.sections.length === 0) {
+      return renderMatchingGroup(partData.questions);
+    }
+
+    // Get sections and their questions
+    const sections = partData.sections;
+    const allQuestions = partData.questions;
+    
+    // Group questions by section
+    const sectionQuestions = {};
+    sections.forEach(section => {
+      sectionQuestions[section.section_id] = allQuestions.filter(q => q.section_id === section.section_id);
+    });
+
+    // Calculate total answered questions
+    const totalAnswered = allQuestions.filter(q => answers[q.id]).length;
+    const totalQuestions = allQuestions.length;
+
+    return (
+      <div className="w-full max-w-none mx-auto">
+        {/* Instructions Header */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+          <h4 className="text-2xl font-bold text-green-300 mb-3 flex items-center">
+            <span className="material-icons text-green-400 mr-2 text-2xl">connect_without_contact</span>
+            Part 4: Multiple Matching
+          </h4>
+          <p className="text-green-400 font-medium text-lg mb-4">
+            You will hear five different speakers discussing the same topic. For questions 1-5, choose from the list A-H the feeling each speaker expresses. 
+            For questions 5-10, choose from the list A-H the consequence each speaker mentions. You may use any letter more than once.
+          </p>
+          
+          {/* Overall Progress */}
+          <div className="flex items-center justify-between bg-white/10 rounded-lg p-3">
+            <span className="text-white font-medium">Overall Progress:</span>
+            <div className="flex items-center space-x-3">
+              <span className="text-white font-bold">{totalAnswered}/{totalQuestions} completed</span>
+              <div className="w-32 bg-white/20 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${(totalAnswered / totalQuestions) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Three Column Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
+          {/* Left Column - Section 1 (30%) */}
+          {sections[0] && (
+            <div className="xl:col-span-3">
+              <div className="bg-blue-500/10 border border-blue-400/30 rounded-2xl p-6 h-full">
+                <h5 className="text-xl font-bold text-blue-300 mb-4">
+                  Section 1: Feelings/Attitudes
+                </h5>
+                <p className="text-blue-200 text-sm mb-6 leading-relaxed">
+                  Questions 1-5: 
+                  Choose from list A-H the feeling each speaker expresses.
+                </p>
+                
+                <div className="space-y-4">
+                  {sectionQuestions[sections[0].section_id]?.map((question, index) => {
+                    const userAnswer = answers[question.id];
+                    const speakerNum = index + 1; // Use index to show Speaker 1-5
+                    
+                    return (
+                      <div key={question.id} className="bg-white/10 border border-blue-400/20 rounded-lg p-4 hover:bg-white/20 transition-all duration-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold text-sm">{question.question_number}</span>
+                            </div>
+                            <span className="text-white font-medium">Speaker {speakerNum}</span>
+                          </div>
+                          {userAnswer && (
+                            <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
+                              <span className="text-white font-bold text-sm">{userAnswer}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <select
+                          value={userAnswer || ''}
+                          onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                          className="w-full bg-white/10 border border-blue-400/30 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        >
+                          <option value="" className="bg-gray-800 text-white">Select feeling...</option>
+                          {Object.entries(sections[0].matching_options || {}).map(([letter, text]) => (
+                            <option key={letter} value={letter} className="bg-gray-800 text-white">
+                              {letter} - {text.substring(0, 30)}...
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Middle Column - Options Reference (40%) */}
+          <div className="xl:col-span-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 h-full">
+              <h5 className="text-xl font-bold text-white mb-4 flex items-center">
+                <span className="material-icons text-purple-400 mr-2">list_alt</span>
+                Answer Options Reference
+              </h5>
+              
+              {/* Section 1 Options */}
+              {sections[0] && (
+                <div className="mb-8">
+                  <h6 className="text-lg font-semibold text-blue-300 mb-4">
+                    Feelings/Attitudes (A-H)
+                  </h6>
+                  <div className="space-y-2">
+                    {Object.entries(sections[0].matching_options || {}).map(([letter, text]) => {
+                      const usageCount = sectionQuestions[sections[0].section_id]?.filter(q => answers[q.id] === letter).length || 0;
+                      
+                      return (
+                        <div key={letter} className={`flex items-start space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                          usageCount > 0 ? 'bg-blue-500/20 border border-blue-400/40' : 'bg-white/5 hover:bg-white/10'
+                        }`}>
+                          <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                            usageCount > 0 
+                              ? 'border-blue-400 bg-blue-500 text-white' 
+                              : 'border-white/30 text-white/60'
+                          }`}>
+                            {letter}
+                          </div>
+                          <div className="flex-1">
+                            <span className={`text-sm font-medium leading-relaxed ${
+                              usageCount > 0 ? 'text-blue-200' : 'text-white/80'
+                            }`}>
+                              {text}
+                            </span>
+                            {usageCount > 0 && (
+                              <div className="mt-1">
+                                <span className="text-xs text-blue-300 bg-blue-500/30 px-2 py-1 rounded">
+                                  Used {usageCount}x
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Visual Divider */}
+              <div className="border-t border-white/20 my-6"></div>
+
+              {/* Section 2 Options */}
+              {sections[1] && (
+                <div>
+                  <h6 className="text-lg font-semibold text-green-300 mb-4">
+                    Consequences (A-H)
+                  </h6>
+                  <div className="space-y-2">
+                    {Object.entries(sections[1].matching_options || {}).map(([letter, text]) => {
+                      const usageCount = sectionQuestions[sections[1].section_id]?.filter(q => answers[q.id] === letter).length || 0;
+                      
+                      return (
+                        <div key={letter} className={`flex items-start space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                          usageCount > 0 ? 'bg-green-500/20 border border-green-400/40' : 'bg-white/5 hover:bg-white/10'
+                        }`}>
+                          <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                            usageCount > 0 
+                              ? 'border-green-400 bg-green-500 text-white' 
+                              : 'border-white/30 text-white/60'
+                          }`}>
+                            {letter}
+                          </div>
+                          <div className="flex-1">
+                            <span className={`text-sm font-medium leading-relaxed ${
+                              usageCount > 0 ? 'text-green-200' : 'text-white/80'
+                            }`}>
+                              {text}
+                            </span>
+                            {usageCount > 0 && (
+                              <div className="mt-1">
+                                <span className="text-xs text-green-300 bg-green-500/30 px-2 py-1 rounded">
+                                  Used {usageCount}x
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Section 2 (30%) */}
+          {sections[1] && (
+            <div className="xl:col-span-3">
+              <div className="bg-green-500/10 border border-green-400/30 rounded-2xl p-6 h-full">
+                <h5 className="text-xl font-bold text-green-300 mb-4">
+                  Section 2: Consequences
+                </h5>
+                <p className="text-green-200 text-sm mb-6 leading-relaxed">
+                  Questions 6-10: 
+                  Choose from list A-H the consequence each speaker mentions.
+                </p>
+                
+                <div className="space-y-4">
+                  {sectionQuestions[sections[1].section_id]?.map((question, index) => {
+                    const userAnswer = answers[question.id];
+                    const speakerNum = index + 1; // Use index to show Speaker 1-5
+                    
+                    return (
+                      <div key={question.id} className="bg-white/10 border border-green-400/20 rounded-lg p-4 hover:bg-white/20 transition-all duration-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold text-sm">{question.question_number}</span>
+                            </div>
+                            <span className="text-white font-medium">Speaker {speakerNum}</span>
+                          </div>
+                          {userAnswer && (
+                            <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
+                              <span className="text-white font-bold text-sm">{userAnswer}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <select
+                          value={userAnswer || ''}
+                          onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                          className="w-full bg-white/10 border border-green-400/30 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        >
+                          <option value="" className="bg-gray-800 text-white">Select consequence...</option>
+                          {Object.entries(sections[1].matching_options || {}).map(([letter, text]) => (
+                            <option key={letter} value={letter} className="bg-gray-800 text-white">
+                              {letter} - {text.substring(0, 30)}...
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Summary Bar */}
+        <div className="mt-6 bg-white/10 border border-white/20 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <span className="material-icons text-blue-400">check_circle</span>
+                <span className="text-white font-medium">Completed: {totalAnswered}/{totalQuestions} questions</span>
+              </div>
+              {sections[0] && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-blue-300 text-sm">
+                    Feelings: {sectionQuestions[sections[0].section_id]?.filter(q => answers[q.id]).length || 0}/{sectionQuestions[sections[0].section_id]?.length || 0}
+                  </span>
+                </div>
+              )}
+              {sections[1] && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-green-300 text-sm">
+                    Consequences: {sectionQuestions[sections[1].section_id]?.filter(q => answers[q.id]).length || 0}/{sectionQuestions[sections[1].section_id]?.length || 0}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  // Clear all answers for this part
+                  const newAnswers = { ...answers };
+                  allQuestions.forEach(q => {
+                    delete newAnswers[q.id];
+                  });
+                  setAnswers(newAnswers);
+                }}
+                className="px-4 py-2 bg-red-500/20 border border-red-400/30 text-red-300 rounded-lg hover:bg-red-500/30 transition-all duration-200 flex items-center space-x-2"
+              >
+                <span className="material-icons text-sm">clear</span>
+                <span>Clear All</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderQuestion = (question) => {
     const questionType = question.question_type || question.type;
     const userAnswer = answers[question.id];
@@ -673,12 +1145,116 @@ const ListeningExam = () => {
     );
   }
 
+  // Add error handling for missing test data or current part
+  if (!testData || !testData.parts || testData.parts.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-500/20 border border-red-400/50 rounded-2xl p-8 max-w-md">
+            <span className="material-icons text-red-400 text-6xl mb-4">error</span>
+            <h3 className="text-2xl font-bold text-white mb-4">Test Data Not Available</h3>
+            <p className="text-white/80 mb-6">
+              There was an error loading the test data. Please try again.
+            </p>
+            <button
+              onClick={() => navigate('/cambridge/listening')}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+            >
+              Back to Test Selection
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const currentPartData = testData.parts.find(p => p.id === currentPart);
+  
+  // Add error handling for missing current part data
+  if (!currentPartData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-orange-500/20 border border-orange-400/50 rounded-2xl p-8 max-w-md">
+            <span className="material-icons text-orange-400 text-6xl mb-4">warning</span>
+            <h3 className="text-2xl font-bold text-white mb-4">Part {currentPart} Not Available</h3>
+            <p className="text-white/80 mb-6">
+              Part {currentPart} of this test is not available. Please try a different part or test.
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setCurrentPart(1)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Go to Part 1
+              </button>
+              <button
+                onClick={() => navigate('/cambridge/listening')}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Back to Tests
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Add safety check for questions array
+  if (!currentPartData.questions || currentPartData.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-yellow-500/20 border border-yellow-400/50 rounded-2xl p-8 max-w-md">
+            <span className="material-icons text-yellow-400 text-6xl mb-4">quiz</span>
+            <h3 className="text-2xl font-bold text-white mb-4">No Questions Available</h3>
+            <p className="text-white/80 mb-6">
+              Part {currentPart} doesn't have any questions loaded. This might be a data issue.
+            </p>
+            <div className="flex space-x-4">
+              {currentPart > 1 && (
+                <button
+                  onClick={() => setCurrentPart(currentPart - 1)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Previous Part
+                </button>
+              )}
+              <button
+                onClick={() => navigate('/cambridge/listening')}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Back to Tests
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const questionGroups = groupQuestionsByType(currentPartData.questions);
+  
+  // Check if this is Part 4 with multiple matching sections
+  const isPart4MultipleMatching = currentPart === 4 && 
+    currentPartData.sections && 
+    currentPartData.sections.length > 1 &&
+    questionGroups.some(group => 
+      group.type === 'matching' || 
+      group.type === 'Matching' || 
+      group.type === 'multiple_matching' || 
+      group.type === 'multiple-matching' || 
+      group.type === 'Multiple Matching'
+    );
   
   // Check if there are matching questions that should use full width
   const hasMatchingQuestions = questionGroups.some(group => 
-    group.type === 'matching' || group.type === 'Matching'
+    group.type === 'matching' || 
+    group.type === 'Matching' || 
+    group.type === 'multiple_matching' || 
+    group.type === 'multiple-matching' || 
+    group.type === 'Multiple Matching'
   );
   
   // Split questions into two columns dynamically based on actual number of questions
@@ -842,112 +1418,121 @@ const ListeningExam = () => {
           onLoadedMetadata={handleAudioLoadedMetadata}
           preload="metadata"
         >
-          <source src={currentPartData.audioUrl} type="audio/mpeg" />
+          <source src={normalizeAudioUrl(currentPartData.audioUrl)} type="audio/mpeg" />
           Your browser does not support the audio element.
         </audio>
       </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-8xl mx-auto">
-          {/* Part Header */}
-          <div className="text-center mb-8">
-            <h3 className="text-4xl font-bold text-white mb-2">Cambridge {getLevelInfo().name} {currentPartData.title}</h3>
-            <div className="flex justify-center items-center space-x-4 text-white/70 text-lg">
-              <span>{currentPartData.questions.length} questions</span>
-              {currentPartData.sections.length > 0 && (
-                <>
-                  <span>•</span>
-                  <span>{currentPartData.sections[0].section_description}</span>
-                </>
-              )}
+        {isPart4MultipleMatching ? (
+          // Special Part 4 three-column layout
+          renderPart4MultipleMatching(currentPartData)
+        ) : (
+          <div className="max-w-8xl mx-auto">
+            {/* Part Header */}
+            <div className="text-center mb-8">
+              <h3 className="text-4xl font-bold text-white mb-2">Cambridge {getLevelInfo().name} {currentPartData.title}</h3>
+              <div className="flex justify-center items-center space-x-4 text-white/70 text-lg">
+                <span>{currentPartData.questions.length} questions</span>
+                {currentPartData.sections.length > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>Listening Task</span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between text-base text-white/70 mb-2">
-              <span>Progress</span>
-              <span>{currentPart}/4 parts</span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
-                style={{ width: `${(currentPart / 4) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Questions Layout - Full width for matching, two columns for others */}
-          {hasMatchingQuestions ? (
-            // Full width layout for matching questions
+            {/* Progress Bar */}
             <div className="mb-8">
-              {questionGroups.map((group, groupIndex) => (
-                <div key={groupIndex} className="mb-6">
-                  {group.type === 'matching' || group.type === 'Matching' ? (
-                    renderMatchingGroup(group.questions)
-                  ) : (
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-7 border border-white/20">
-                      <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
-                        <span className="material-icons text-blue-400 mr-2 text-xl">quiz</span>
-                        {group.instructions}
-                      </h4>
-                      <div className="space-y-4">
-                        {group.questions.map(renderQuestion)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+              <div className="flex justify-between text-base text-white/70 mb-2">
+                <span>Progress</span>
+                <span>{currentPart}/4 parts</span>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${(currentPart / 4) * 100}%` }}
+                ></div>
+              </div>
             </div>
-          ) : (
-            // Two column layout for non-matching questions
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" style={{ maxWidth: '110%', margin: '0 auto' }}>
-              {/* Left Column */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-7 border border-white/20">
-                <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
-                  <span className="material-icons text-blue-400 mr-2 text-xl">quiz</span>
-                  Questions 1-{leftQuestions.length}
-                </h4>
-                
-                {/* Group questions by type for left column */}
-                {groupQuestionsByType(leftQuestions).map((group, groupIndex) => (
+
+            {/* Questions Layout - Full width for matching, two columns for others */}
+            {hasMatchingQuestions ? (
+              // Full width layout for matching questions
+              <div className="mb-8">
+                {questionGroups.map((group, groupIndex) => (
                   <div key={groupIndex} className="mb-6">
-                    <p className="text-orange-400 font-bold text-lg mb-4">{group.instructions}</p>
-                    <div className="space-y-4">
-                      {group.questions.map(renderQuestion)}
-                    </div>
+                    {group.type === 'matching' || 
+                     group.type === 'Matching' || 
+                     group.type === 'multiple_matching' || 
+                     group.type === 'multiple-matching' || 
+                     group.type === 'Multiple Matching' ? (
+                      renderMatchingGroup(group.questions)
+                    ) : (
+                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-7 border border-white/20">
+                        <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+                          <span className="material-icons text-blue-400 mr-2 text-xl">quiz</span>
+                          {group.instructions}
+                        </h4>
+                        <div className="space-y-4">
+                          {group.questions.map(renderQuestion)}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
-
-              {/* Right Column */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-7 border border-white/20">
-                <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
-                  <span className="material-icons text-purple-400 mr-2 text-xl">quiz</span>
-                  {rightQuestions.length > 0 ? `Questions ${leftQuestions.length + 1}-${currentPartData.questions.length}` : 'All Questions in Left Column'}
-                </h4>
-                
-                {/* Group questions by type for right column */}
-                {rightQuestions.length > 0 ? (
-                  groupQuestionsByType(rightQuestions).map((group, groupIndex) => (
+            ) : (
+              // Two column layout for non-matching questions
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" style={{ maxWidth: '110%', margin: '0 auto' }}>
+                {/* Left Column */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-7 border border-white/20">
+                  <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+                    <span className="material-icons text-blue-400 mr-2 text-xl">quiz</span>
+                    Questions 1-{leftQuestions.length}
+                  </h4>
+                  
+                  {/* Group questions by type for left column */}
+                  {groupQuestionsByType(leftQuestions).map((group, groupIndex) => (
                     <div key={groupIndex} className="mb-6">
                       <p className="text-orange-400 font-bold text-lg mb-4">{group.instructions}</p>
                       <div className="space-y-4">
                         {group.questions.map(renderQuestion)}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center text-white/50 py-12">
-                    <span className="material-icons text-5xl mb-4">check_circle</span>
-                    <p className="text-lg">All questions for this part are in the left column</p>
-                  </div>
-                )}
+                  ))}
+                </div>
+
+                {/* Right Column */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-7 border border-white/20">
+                  <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+                    <span className="material-icons text-purple-400 mr-2 text-xl">quiz</span>
+                    {rightQuestions.length > 0 ? `Questions ${leftQuestions.length + 1}-${currentPartData.questions.length}` : 'All Questions in Left Column'}
+                  </h4>
+                  
+                  {/* Group questions by type for right column */}
+                  {rightQuestions.length > 0 ? (
+                    groupQuestionsByType(rightQuestions).map((group, groupIndex) => (
+                      <div key={groupIndex} className="mb-6">
+                        <p className="text-orange-400 font-bold text-lg mb-4">{group.instructions}</p>
+                        <div className="space-y-4">
+                          {group.questions.map(renderQuestion)}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-white/50 py-12">
+                      <span className="material-icons text-5xl mb-4">check_circle</span>
+                      <p className="text-lg">All questions for this part are in the left column</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
