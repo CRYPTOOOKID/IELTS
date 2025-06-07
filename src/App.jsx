@@ -26,6 +26,10 @@ import ListeningInstructions from './components/IELTS/Listening/ListeningInstruc
 import ListeningExam from './components/IELTS/Listening/ListeningExam.jsx';
 import ListeningFeedback from './components/IELTS/Listening/ListeningFeedback.jsx';
 
+// Import new IELTS components
+import IELTSTypeSelection from './components/IELTS/IELTSTypeSelection.jsx';
+import IELTSSkillsPage from './components/IELTS/IELTSSkillsPage.jsx';
+
 // Import Toefl UnderConstruction component
 import UnderConstructionPage from './components/Toefl/UnderConstructionPage.jsx';
 // Import Toefl Writing component
@@ -549,7 +553,7 @@ const SkillsPage = ({ examType }) => {
 };
 
 // IELTS Skills Page
-const IELTSSkillsPage = () => <SkillsPage examType="ielts" />;
+const IELTSMainPage = () => <IELTSTypeSelection />;
 
 // TOEFL Skills Page
 const TOEFLSkillsPage = () => <SkillsPage examType="toefl" />;
@@ -812,13 +816,25 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/skills" element={<ExamTypePage />} />
-              <Route path="/ielts-skills" element={<IELTSSkillsPage />} />
+              <Route path="/ielts-skills" element={<IELTSMainPage />} />
               <Route path="/toefl-skills" element={<TOEFLSkillsPage />} />
               <Route path="/cambridge-skills" element={<CambridgeSkillsPage />} />
               <Route path="/maintenance" element={<MaintenancePage />} />
               <Route path="/listening-maintenance" element={<ListeningMaintenancePage />} />
               
               {/* IELTS Routes */}
+              {/* New IELTS type-specific routes */}
+              <Route path="/ielts/:type/skills" element={<IELTSSkillsPage />} />
+              <Route path="/ielts/:type/writing" element={<WritingHome />} />
+              <Route path="/ielts/:type/speaking" element={<SpeakingHome />} />
+              <Route path="/ielts/:type/listening" element={<ListeningInstructions />} />
+              <Route path="/ielts/:type/listening/exam" element={<ListeningExam />} />
+              <Route path="/ielts/:type/listening/feedback" element={<ListeningFeedback />} />
+              <Route path="/ielts/:type/reading" element={<ReadingHome />} />
+              <Route path="/ielts/:type/reading/exam" element={<ReadingExam />} />
+              <Route path="/ielts/:type/reading/feedback" element={<ReadingFeedback />} />
+              
+              {/* Legacy IELTS Routes (for backward compatibility) */}
               <Route path="/ielts/writing" element={<WritingHome />} />
               <Route path="/ielts/speaking" element={<SpeakingHome />} />
               <Route path="/ielts/listening" element={<ListeningInstructions />} />
