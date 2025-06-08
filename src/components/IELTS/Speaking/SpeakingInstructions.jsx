@@ -1,173 +1,151 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSpeakingContext } from './SpeakingContext';
 import { Button } from '../../ui/button';
+import { useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import './speaking.css';
 
 const SpeakingInstructions = () => {
-  const { startTest, fetchTestData, loading, loadingMessage, setLoading, setError, error, resetError, showCountdown, countdownNumber } = useSpeakingContext();
+  const { startTest, setTestDataDirectly, loading, loadingMessage, setLoading, setError, error, resetError } = useSpeakingContext();
+  const { type } = useParams(); // Get IELTS type from URL (academic or general-training)
+  const [isDataReady, setIsDataReady] = useState(false);
+  const [testData, setTestData] = useState(null);
   
-  const handleStartTest = async () => {
+  // Trigger API call when component mounts (like Action game topic selection)
+  useEffect(() => {
+    fetchSpeakingData();
+  }, [type]);
+
+  const fetchSpeakingData = async () => {
     try {
-      setError(null);
+      resetError();
+      setIsDataReady(false);
+      setLoading(true);
       
-      // Fetch test data in background while starting countdown
-      console.log("Starting test and fetching data in background");
-      fetchTestData();
+      // Generate random test number between 1-20
+      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
       
-      // Start the test immediately (shows breathe animation)
-      console.log("Starting test with countdown animation");
-      startTest();
-    } catch (error) {
-      console.error("Error in handleStartTest:", error);
-      setError(`Error starting test: ${error.message}. Using fallback questions.`);
+      // Use the correct IELTS endpoint pattern based on test type
+      const testId = type === 'academic' 
+        ? `ILTS.SPKNG.ACAD.T${randomTestNumber}`
+        : `ILTS.SPKNG.GT.T${randomTestNumber}`;
       
-      // Still start the test even if there was an error, since we have fallback data
-      startTest();
+      const endpoint = `https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testId}`;
+      
+      console.log(`Fetching speaking test: ${testId} from ${endpoint}`);
+      
+      const response = await fetch(endpoint, { 
+        method: 'GET', 
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        let errorPayload = null; 
+        try { errorPayload = await response.json(); } catch (e) {}
+        const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
+        throw new Error(errorMsg);
+      }
+      
+      const data = await response.json();
+      console.log(`Successfully fetched speaking test: ${testId}`);
+      
+      // Set the data both locally and in the context
+      setTestData(data);
+      setTestDataDirectly(data);
+      setIsDataReady(true);
+      
+    } catch (err) {
+      console.error('Error fetching speaking test data:', err);
+      setError(err.message);
+      setIsDataReady(false);
+    } finally {
+      setLoading(false);
     }
   };
   
-  // Show countdown animation when starting test
-  if (showCountdown) {
-    return (
-      <div className="speaking-container">
-        <div className="instructions-container">
-          <div className="speaking-header">
-            <h1 className="speaking-title">IELTS Speaking Practice</h1>
-          </div>
-        
-        <div className="flex flex-col justify-center items-center h-[600px] text-center">
-          {/* Main heading with enhanced styling */}
-          <h2 className="text-4xl font-bold text-gradient mb-12">
-            <span className="breath-text">Take a deep breath</span>
-          </h2>
-          
-          {/* Enhanced countdown animation container */}
-          <div className="countdown-animation">
-            {/* Floating particles background */}
-            <div className="particles-container">
-              {[...Array(15)].map((_, index) => (
-                <div
-                  key={index}
-                  className="floating-particle"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 3}s`,
-                    animationDuration: `${3 + Math.random() * 2}s`
-                  }}
-                />
-              ))}
-            </div>
-            
-            {/* Rotating rings with dots */}
-            <div className="countdown-ring countdown-ring-1">
-              {[...Array(10)].map((_, index) => {
-                const angle = (index / 10) * 2 * Math.PI;
-                const x = 100 * Math.cos(angle);
-                const y = 100 * Math.sin(angle);
-                
-                return (
-                  <div 
-                    key={`dot1-${index}`}
-                    className="countdown-dot"
-                    style={{ 
-                      left: `calc(50% + ${x}px)`, 
-                      top: `calc(50% + ${y}px)`,
-                      opacity: 0.8,
-                      transform: 'translate(-50%, -50%)',
-                      width: '12px',
-                      height: '12px'
-                    }}
-                  />
-                );
-              })}
-            </div>
-            
-            <div className="countdown-ring countdown-ring-2">
-              {[...Array(12)].map((_, index) => {
-                const angle = (index / 12) * 2 * Math.PI;
-                const x = 80 * Math.cos(angle);
-                const y = 80 * Math.sin(angle);
-                
-                return (
-                  <div 
-                    key={`dot2-${index}`}
-                    className="countdown-dot"
-                    style={{ 
-                      left: `calc(50% + ${x}px)`, 
-                      top: `calc(50% + ${y}px)`,
-                      opacity: 0.6,
-                      transform: 'translate(-50%, -50%)',
-                      width: '8px',
-                      height: '8px'
-                    }}
-                  />
-                );
-              })}
-            </div>
-            
-            {/* Central countdown number */}
-            <div className="countdown-center">
-              {countdownNumber > 0 ? (
-                <div className="countdown-number">{countdownNumber}</div>
-              ) : (
-                <div className="countdown-go">GO!</div>
-              )}
-            </div>
-          </div>
-          
-          <div className="countdown-message" style={{ animationDelay: '0.3s' }}>
-            {countdownNumber > 0 
-              ? "Preparing your speaking test..."
-              : "Your test is ready - good luck!"
-            }
-          </div>
-          
-          {/* Breathing guide animation */}
-          <div className="breathing-guide">
-            <div className="breathing-circle" style={{ 
-              animationDuration: `${countdownNumber > 0 ? '4s' : '0s'}`
-            }}></div>
-            <p className="breathing-text">
-              {countdownNumber > 0 ? "Breathe in... and out..." : "Get ready to speak"}
-            </p>
-          </div>
-        </div>
-        </div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="speaking-container">
-      <div className="instructions-container">
-        <div className="speaking-header">
-          <h1 className="speaking-title">IELTS Speaking Practice</h1>
-          <p className="speaking-subtitle">
-            Build confidence and fluency with authentic IELTS speaking tasks
-          </p>
-        
-        {loadingMessage && (
-          <div className="mt-4 p-3 bg-blue-50 text-blue-700 rounded-lg animate-fade-in">
-            {loadingMessage}
-          </div>
-        )}
-        
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg animate-fade-in">
-            {error}
-            <button 
-              onClick={resetError} 
-              className="ml-2 text-sm text-red-800 underline"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
+  const handleStartTest = async () => {
+    if (isDataReady && testData) {
+      try {
+        resetError();
+        startTest(); // This will trigger the context's startTest which shows countdown and then starts the test
+      } catch (err) {
+        console.error('Error starting test:', err);
+        setError('Failed to start the speaking test. Please try again.');
+      }
+    }
+  };
+
+  const handleRetry = () => {
+    fetchSpeakingData();
+  };
+
+  // Determine test type display name
+  const getTestTypeName = () => {
+    if (type === 'academic') return 'Academic';
+    if (type === 'general-training') return 'General Training';
+    return 'IELTS';
+  };
+
+  const renderError = () => (
+    <div className="instructions-container">
+      <div className="speaking-header">
+        <h1 className="speaking-title">IELTS {getTestTypeName()} Speaking Practice</h1>
+        <p className="speaking-subtitle text-red-600">
+          Failed to load speaking test
+        </p>
       </div>
       
       <div className="instructions-card-compact">
-        <h2 className="instructions-title">IELTS Speaking Test Instructions</h2>
+        <div className="text-center p-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+            <span className="material-icons text-red-600 text-2xl">error</span>
+          </div>
+          <h2 className="text-xl font-bold text-red-800 mb-2">Unable to Load Speaking Test</h2>
+          <p className="text-red-600 mb-6">{error}</p>
+          <div className="flex gap-4 justify-center">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleRetry}
+              className="text-lg font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+            >
+              <span className="flex items-center gap-2">
+                <span className="material-icons">refresh</span>
+                Try Again
+              </span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.history.back()}
+              className="text-lg font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 bg-gray-500 hover:bg-gray-600 text-white"
+            >
+              <span className="flex items-center gap-2">
+                <span className="material-icons">arrow_back</span>
+                Go Back
+              </span>
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (error) {
+    return renderError();
+  }
+
+  return (
+    <div className="instructions-container" style={{ maxHeight: '100vh', overflow: 'hidden' }}>
+      <div className="speaking-header">
+        <h1 className="speaking-title">IELTS {getTestTypeName()} Speaking Practice</h1>
+        <p className="speaking-subtitle">
+          Practice your spoken English with our AI-powered speaking assessment system
+        </p>
+      </div>
+      
+      <div className="instructions-card-compact">
+        <h2 className="instructions-title">IELTS {getTestTypeName()} Speaking Test Instructions</h2>
         
         <div className="instructions-content-grid">
           <div className="instruction-block-compact">
@@ -176,7 +154,7 @@ const SpeakingInstructions = () => {
             </div>
             <div className="instruction-details-compact">
               <h3>Test Structure</h3>
-              <p><strong>3 Parts</strong> - Interview, Long Turn, Discussion</p>
+              <p><strong>3 Parts</strong> - Introduction, Topic Card, Discussion</p>
             </div>
           </div>
 
@@ -192,31 +170,31 @@ const SpeakingInstructions = () => {
 
           <div className="instruction-block-compact">
             <div className="instruction-icon-small">
-              <span className="material-icons">chat</span>
+              <span className="material-icons">mic</span>
             </div>
             <div className="instruction-details-compact">
-              <h3>Part 1</h3>
-              <p><strong>Interview</strong> - Personal questions (4-5 min)</p>
+              <h3>Recording</h3>
+              <p><strong>Voice recorded</strong> for AI analysis</p>
             </div>
           </div>
 
           <div className="instruction-block-compact">
             <div className="instruction-icon-small">
-              <span className="material-icons">person</span>
+              <span className="material-icons">analytics</span>
             </div>
             <div className="instruction-details-compact">
-              <h3>Part 2</h3>
-              <p><strong>Long Turn</strong> - Topic presentation (3-4 min)</p>
+              <h3>Assessment</h3>
+              <p><strong>4 Criteria</strong> - Fluency, Vocabulary, Grammar, Pronunciation</p>
             </div>
           </div>
 
           <div className="instruction-block-compact">
             <div className="instruction-icon-small">
-              <span className="material-icons">psychology</span>
+              <span className="material-icons">headset_mic</span>
             </div>
             <div className="instruction-details-compact">
-              <h3>Part 3</h3>
-              <p><strong>Discussion</strong> - Abstract topics (4-5 min)</p>
+              <h3>Requirements</h3>
+              <p><strong>Microphone access</strong> required for recording</p>
             </div>
           </div>
 
@@ -226,37 +204,66 @@ const SpeakingInstructions = () => {
             </div>
             <div className="instruction-details-compact">
               <h3>AI Feedback</h3>
-              <p>Get <strong>detailed analysis</strong> of your performance</p>
+              <p>Get <strong>detailed analysis</strong> and improvement tips</p>
             </div>
           </div>
         </div>
 
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <h3 className="font-bold text-gray-800 mb-2">🎙️ What to Expect:</h3>
+          <ul className="text-gray-700 text-sm space-y-1">
+            <li>• <strong>Part 1:</strong> Personal questions about yourself and familiar topics</li>
+            <li>• <strong>Part 2:</strong> Speak about a topic for 1-2 minutes (with preparation time)</li>
+            <li>• <strong>Part 3:</strong> Discussion of abstract ideas related to Part 2 topic</li>
+            <li>• Each part tests different speaking skills and abilities</li>
+            <li>• AI will analyze your fluency, vocabulary, grammar, and pronunciation</li>
+          </ul>
+        </div>
+
+        <div className="bg-yellow-50 rounded-xl p-4 mb-6 border border-yellow-200">
+          <h3 className="font-bold text-yellow-800 mb-2">⚠️ Important Notes:</h3>
+          <ul className="text-yellow-700 text-sm space-y-1">
+            <li>• Ensure your microphone is working properly</li>
+            <li>• Find a quiet environment for recording</li>
+            <li>• Speak clearly and at a normal pace</li>
+            <li>• Don't worry about perfect pronunciation - focus on communication</li>
+          </ul>
+        </div>
+
         <div className="start-instruction-compact">
           <p className="text-center font-medium text-gray-800">
-            Click "Start Test" to begin your IELTS Speaking practice session.
+            {isDataReady 
+              ? "Your speaking test is ready! Click 'Start Test' to begin."
+              : "Please wait while we prepare your speaking prompts..."
+            }
           </p>
         </div>
         
         <div className="text-center">
-          <Button 
-            onClick={handleStartTest} 
-            disabled={loading} 
-            className="start-button"
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleStartTest}
+            disabled={!isDataReady || loading}
+            className={`text-xl font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
+              (isDataReady && !loading) 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
-            {loading ? (
-              <>
-                <span className="material-icons mr-2 animate-spin">refresh</span>
-                Loading Test...
-              </>
+            {(isDataReady && !loading) ? (
+              <span className="flex items-center gap-3">
+                <span className="material-icons">mic</span>
+                Start Test
+              </span>
             ) : (
-              <>
-                <span className="material-icons mr-2">mic</span>
-                Start Speaking Test
-              </>
+              <span className="flex items-center gap-3">
+                <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                Preparing Test...
+              </span>
             )}
-          </Button>
+          </motion.button>
         </div>
-      </div>
       </div>
     </div>
   );

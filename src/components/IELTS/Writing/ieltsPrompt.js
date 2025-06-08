@@ -1,117 +1,316 @@
 /**
  * IELTS Writing Evaluation Prompt
- * This file contains the prompt template used for AI evaluation of IELTS writing tasks.
+ * This file contains specialized prompt templates for Academic and General Training IELTS writing evaluation.
  */
 
 /**
- * Generates the IELTS evaluation prompt for both Task 1 and Task 2 responses
+ * Generates specialized IELTS evaluation prompts based on test type
  * @param {string} task1Prompt - The text of the Task 1 prompt
  * @param {string} task1Response - The candidate's Task 1 response
  * @param {string} task2Prompt - The text of the Task 2 prompt
  * @param {string} task2Response - The candidate's Task 2 response
+ * @param {string} task1ImageDescription - Description of visual data for Academic Task 1
+ * @param {string} testType - 'academic' or 'general-training'
  * @returns {string} The formatted prompt for the AI model
  */
-export const generateIeltsPrompt = (task1Prompt, task1Response, task2Prompt, task2Response) => {
-  return `**Task:** Evaluate the following written responses to IELTS Writing Tasks 1 and 2 (Academic). Provide band scores (0-9) for each of the four IELTS Writing assessment criteria for both tasks and calculate an overall band score.
+export const generateIeltsPrompt = (task1Prompt, task1Response, task2Prompt, task2Response, task1ImageDescription = null, testType = 'academic') => {
+  
+  if (testType === 'academic') {
+    return generateAcademicPrompt(task1Prompt, task1Response, task2Prompt, task2Response, task1ImageDescription);
+  } else {
+    return generateGeneralTrainingPrompt(task1Prompt, task1Response, task2Prompt, task2Response);
+  }
+};
 
-**Input:**
+/**
+ * Generates Academic IELTS Writing evaluation prompt
+ */
+const generateAcademicPrompt = (task1Prompt, task1Response, task2Prompt, task2Response, imageDescription) => {
+  return `**IELTS Academic Writing Evaluation**
 
-**Task 1:**
-* **Task Prompt:** ${task1Prompt}
-* **Candidate Response:** ${task1Response}
+You are an expert IELTS examiner evaluating Academic Writing responses. Focus on the four IELTS assessment criteria for each task.
 
-**Task 2:**
-* **Task Prompt:** ${task2Prompt}
-* **Candidate Response:** ${task2Response}
+**CANDIDATE RESPONSES:**
 
-**Instructions for AI Evaluation:**
+**TASK 1 - Academic Report Writing**
+**Task Prompt:** ${task1Prompt}
+**Candidate's Response:** ${task1Response}
 
-Evaluate both Task 1 and Task 2 responses based on the following four IELTS Writing criteria. For each criterion in each task:
+**TASK 2 - Academic Essay Writing**
+**Task Prompt:** ${task2Prompt}
+**Candidate's Response:** ${task2Response}
 
-1. Assign a band score from 0 to 9.
-2. Provide at least 3 specific feedback points related to that criterion. These points should be concise and actionable.
+**EVALUATION CRITERIA:**
 
-Then, calculate the overall band scores for each task and the final combined score.
+Evaluate both tasks based on these four IELTS criteria:
 
-**Scoring Criteria and Descriptors:**
-
-**1. Task Achievement / Task Response (TA/TR)**
-
-* **Focus:** Has the candidate fulfilled the task requirements? How accurately, appropriately, and relevantly has the candidate addressed all parts of the prompt?
-
-* **Detailed Descriptors:**
-    * **Task 2 (Academic & General Training):**
-        * **High Band (7-9):** Presents a fully developed response. Clearly addresses all parts of the task. Presents a clear position. Ideas are well-developed, relevant, and logically supported. Essay is well-focused.
-        * **Mid Band (5-6):** Addresses the prompt, but may be underdeveloped. May address all parts, but not equally. Position may be clear but inconsistent. Ideas are relevant but may lack support.
-        * **Low Band (Below 5):** Fails to adequately address the prompt. May present irrelevant ideas. Position may be unclear. Ideas are underdeveloped. Essay may be poorly focused. May not meet word count.
-
-    * **Task 1 (Academic & General Training):**
-      * **High Band (7-9):** Fully satisfies all task requirements. Presents a clear overview of main trends, differences or stages. Clearly presents and highlights key features/bullet points.
-      * **Mid Band (5-6):** Addresses the task requirements, but may have omissions or inconsistencies. Presents an overview, but it may be unclear or lack focus. May present data/features mechanically without highlighting key information.
-      * **Low Band (Below 5):** Fails to address the task adequately. May misinterpret the data/information. Presents little or no overview. May present irrelevant details or data. May not meet minimum word count.
+**1. Task Achievement/Task Response (TA/TR)**
+- Task 1: How well the candidate addressed the task requirements, provided overview, and described key features
+- Task 2: How completely the candidate responded to all parts of the question and developed their position
 
 **2. Coherence and Cohesion (CC)**
-
-* **Focus:** How well is the answer organized and connected? Logical flow of ideas, paragraphing, and use of cohesive devices (linking words, pronouns, conjunctions).
-
-* **Detailed Descriptors:**
-    * **High Band (7-9):** Logically organizes information; clear progression. Uses cohesive devices appropriately. Paragraphing is logical and effective. Easy to follow.
-    * **Mid Band (5-6):** Organizes information coherently, but inconsistencies may exist. Uses cohesive devices, but there may be overuse/underuse. Paragraphing is evident, but may not be logical.
-    * **Low Band (Below 5):** Lacks clear organization. Cohesive devices are used rarely/inaccurately. Paragraphing is inadequate. The response is disjointed.
+- Logical organization of information and ideas
+- Effective use of cohesive devices and paragraphing
+- Clear progression throughout the response
 
 **3. Lexical Resource (LR)**
-
-* **Focus:** Range and accuracy of vocabulary used. Ability to use a variety of words and phrases, including less common vocabulary and paraphrase effectively.
-
-* **Detailed Descriptors:**
-    * **High Band (7-9):** Uses a wide range of vocabulary fluently. Skillfully uses less common vocabulary. Demonstrates sophisticated control. Effective use of paraphrase.
-    * **Mid Band (5-6):** Uses an adequate range of vocabulary. Attempts less common vocabulary, but inaccuracies may exist. Errors in word choice may be present. Some attempt at paraphrase.
-    * **Low Band (Below 5):** Uses a limited range of vocabulary. Frequent errors in word choice. Little or no attempt at paraphrase. Over-reliance on basic vocabulary.
+- Range and accuracy of vocabulary
+- Appropriate word choice and collocation
+- Ability to paraphrase and use less common vocabulary
 
 **4. Grammatical Range and Accuracy (GRA)**
+- Variety of sentence structures
+- Grammatical accuracy and control
+- Appropriate use of complex grammatical forms
 
-* **Focus:** Variety of sentence structures (simple, compound, complex) and grammatical accuracy.
+**ENHANCED SCORING GUIDELINES FOR TASK 2:**
 
-* **Detailed Descriptors:**
-    * **High Band (7-9):** Uses a wide range of structures flexibly and accurately. Majority of sentences are error-free. Sophisticated control of grammar.
-    * **Mid Band (5-6):** Uses a mix of simple and complex forms. Grammatical accuracy is generally good, but errors are present. Errors do not frequently impede communication.
-    * **Low Band (Below 5):** Uses only a limited range of structures. Frequent grammatical errors. Errors in basic grammar are common.
+**Band 9 (Expert):** Exceptional response with sophisticated argumentation, extensive vocabulary, and flawless grammar
+**Band 8 (Very Good):** Strong response with well-developed ideas, wide vocabulary range, and high grammatical accuracy
+**Band 7 (Good):** Solid response addressing all parts with good vocabulary and generally accurate grammar
+**Band 6 (Competent):** Adequate response with relevant ideas, sufficient vocabulary, and acceptable grammar
+**Band 5 (Modest):** Basic response with limited development, restricted vocabulary, and frequent errors
+**Band 4 (Limited):** Minimal response with unclear ideas, basic vocabulary, and many errors
 
-**Scoring Calculation:**
+**TASK 2 SCORING CRITERIA - BE GENEROUS FOR QUALITY CONTENT:**
 
-1. Calculate individual scores for Task 1 and Task 2 by averaging the four criteria scores for each task.
-2. Calculate the final combined score using the formula: (Task 2 Score * 2/3) + (Task 1 Score * 1/3)
-   This weighting reflects the greater complexity of Task 2.
-3. Round the final score to the nearest 0.5 band.
+**Task Response (Band 7-9 indicators):**
+- Addresses all parts of the question ✓
+- Presents a clear position throughout ✓
+- Develops ideas with relevant examples ✓
+- Shows critical thinking and analysis ✓
 
-**Output Format:**
+**Coherence & Cohesion (Band 7-9 indicators):**
+- Clear essay structure (intro, body, conclusion) ✓
+- Logical progression of ideas ✓
+- Effective use of linking words ✓
+- Well-organized paragraphs ✓
+
+**Lexical Resource (Band 7-9 indicators):**
+- Uses a range of vocabulary appropriately ✓
+- Attempts less common vocabulary ✓
+- Shows awareness of style and collocation ✓
+- Minor errors don't impede communication ✓
+
+**Grammatical Range (Band 7-9 indicators):**
+- Uses a variety of sentence structures ✓
+- Attempts complex grammar ✓
+- Majority of sentences are error-free ✓
+- Errors don't impede communication ✓
+
+**IMPORTANT SCORING INSTRUCTIONS:**
+- If a response shows good understanding and development of ideas, start from Band 6-7 baseline
+- Award Band 7+ for responses that address the task well with good language control
+- Award Band 8+ for sophisticated responses with advanced vocabulary and complex grammar
+- Only use Band 5 or below for responses with significant problems in task completion or language
+- Focus on overall communicative effectiveness rather than minor errors
+
+**REQUIRED OUTPUT FORMAT:**
 
 \`\`\`json
 {
   "task1": {
     "criterion_scores": {
-      "task_achievement_response": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] },
-      "coherence_cohesion": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] },
-      "lexical_resource": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] },
-      "grammatical_range_accuracy": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] }
+      "task_achievement_response": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Assessment of how well task requirements were met",
+          "Evaluation of overview and key features coverage", 
+          "Comment on task completion and relevance"
+        ] 
+      },
+      "coherence_cohesion": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Logical organization and structure assessment",
+          "Cohesive devices usage evaluation", 
+          "Paragraphing and progression analysis"
+        ] 
+      },
+      "lexical_resource": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Vocabulary range and accuracy assessment",
+          "Word choice and collocation evaluation", 
+          "Paraphrasing ability analysis"
+        ] 
+      },
+      "grammatical_range_accuracy": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Sentence variety and complexity assessment",
+          "Grammar accuracy evaluation", 
+          "Control of grammatical forms analysis"
+        ] 
+      }
     },
-    "overall_score": "[Task 1 Overall Score]",
-    "strengths": ["strength1", "strength2", "..."],
-    "improvements": ["improvement1", "improvement2", "..."]
+    "overall_score": "[Task 1 Average Score]",
+    "strengths": ["strength1", "strength2", "strength3"],
+    "improvements": ["improvement1", "improvement2", "improvement3"]
   },
   "task2": {
     "criterion_scores": {
-      "task_achievement_response": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] },
-      "coherence_cohesion": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] },
-      "lexical_resource": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] },
-      "grammatical_range_accuracy": { "score": "[Band Score]", "feedback_points": ["point1", "point2", "point3", ...] }
+      "task_achievement_response": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Complete response to question assessment",
+          "Position development and clarity evaluation", 
+          "Argument quality and relevance analysis"
+        ] 
+      },
+      "coherence_cohesion": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Essay structure and organization assessment",
+          "Idea progression and flow evaluation", 
+          "Linking and cohesion analysis"
+        ] 
+      },
+      "lexical_resource": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Academic vocabulary sophistication assessment",
+          "Precision and variety in word choice", 
+          "Natural and appropriate language use"
+        ] 
+      },
+      "grammatical_range_accuracy": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Complex sentence structures usage assessment",
+          "Grammar accuracy in academic writing", 
+          "Variety and sophistication of grammatical forms"
+        ] 
+      }
     },
-    "overall_score": "[Task 2 Overall Score]",
-    "strengths": ["strength1", "strength2", "..."],
-    "improvements": ["improvement1", "improvement2", "..."]
+    "overall_score": "[Task 2 Average Score]",
+    "strengths": ["strength1", "strength2", "strength3"],
+    "improvements": ["improvement1", "improvement2", "improvement3"]
   },
-  "final_score": "[Final Combined Score]",
-  "overall_feedback": "Comprehensive summary of the candidate's performance across both tasks"
+  "final_score": "[Weighted Final Score: (Task1×1/3) + (Task2×2/3)]",
+  "overall_feedback": "Comprehensive evaluation based on IELTS Academic Writing assessment criteria"
 }
-\`\`\``;
+\`\`\`
+
+**FINAL EVALUATION REMINDERS:**
+1. Be generous with scoring for well-developed, coherent responses
+2. Award higher bands (7-8) for responses that effectively communicate ideas
+3. Focus on overall task completion and language proficiency
+4. Minor errors should not significantly lower scores if communication is clear
+5. Task 2 weighted at 67%, Task 1 at 33%`;
+};
+
+/**
+ * Generates General Training IELTS Writing evaluation prompt
+ */
+const generateGeneralTrainingPrompt = (task1Prompt, task1Response, task2Prompt, task2Response) => {
+  return `**IELTS General Training Writing Evaluation**
+
+You are an expert IELTS examiner evaluating General Training Writing responses. Provide precise band scores (0-9) for each criterion and detailed feedback.
+
+**CANDIDATE RESPONSES:**
+
+**TASK 1 - Letter Writing**
+**Task Prompt:** ${task1Prompt}
+**Candidate's Response:** ${task1Response}
+
+**TASK 2 - Essay Writing**
+**Task Prompt:** ${task2Prompt}
+**Candidate's Response:** ${task2Response}
+
+**EVALUATION CRITERIA FOR GENERAL TRAINING WRITING:**
+
+**TASK 1 EVALUATION FOCUS (Letter Writing):**
+- **Task Achievement:** Are all bullet points addressed? Is the purpose clear?
+- **Tone Appropriateness:** Is the tone suitable (formal/semi-formal/informal)?
+- **Letter Format:** Proper greeting, body paragraphs, closing
+- **Content Completeness:** All required information included
+
+**TASK 2 EVALUATION FOCUS (Essay Writing):**
+- **Task Response:** Clear position on the topic with relevant ideas
+- **Personal Examples:** Use of personal experience and general knowledge
+- **Practical Focus:** Real-world application and practical considerations
+- **Opinion Development:** Clear personal stance with supporting reasons
+
+**SCORING CRITERIA:**
+
+1. **Task Achievement/Response (TA/TR)**
+   - Task 1: All bullet points covered, appropriate tone, clear purpose
+   - Task 2: Clear position, relevant ideas, complete response
+
+2. **Coherence and Cohesion (CC)**
+   - Logical organization, clear paragraphing, effective linking
+
+3. **Lexical Resource (LR)**
+   - Appropriate vocabulary for context, natural expressions
+
+4. **Grammatical Range and Accuracy (GRA)**
+   - Variety of structures, accuracy, natural language use
+
+**REQUIRED OUTPUT FORMAT:**
+
+\`\`\`json
+{
+  "task1": {
+    "criterion_scores": {
+      "task_achievement_response": { 
+        "score": "[0-9]", 
+        "feedback_points": [
+          "Comment about bullet points coverage",
+          "Comment about tone appropriateness", 
+          "Comment about letter format and purpose"
+        ] 
+      },
+      "coherence_cohesion": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      },
+      "lexical_resource": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      },
+      "grammatical_range_accuracy": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      }
+    },
+    "overall_score": "[Task 1 Average Score]",
+    "strengths": ["strength1", "strength2", "strength3"],
+    "improvements": ["improvement1", "improvement2", "improvement3"]
+  },
+  "task2": {
+    "criterion_scores": {
+      "task_achievement_response": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      },
+      "coherence_cohesion": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      },
+      "lexical_resource": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      },
+      "grammatical_range_accuracy": { 
+        "score": "[0-9]", 
+        "feedback_points": ["point1", "point2", "point3"] 
+      }
+    },
+    "overall_score": "[Task 2 Average Score]",
+    "strengths": ["strength1", "strength2", "strength3"],
+    "improvements": ["improvement1", "improvement2", "improvement3"]
+  },
+  "final_score": "[Weighted Final Score: (Task1×1/3) + (Task2×2/3)]",
+  "overall_feedback": "Comprehensive evaluation summary focusing on General Training writing requirements"
+}
+\`\`\`
+
+**EVALUATION INSTRUCTIONS:**
+1. For Task 1: Focus on letter writing conventions and bullet point coverage
+2. For Task 2: Evaluate practical reasoning and personal opinion development
+3. Use General Training IELTS band descriptors
+4. Consider real-world communication effectiveness
+5. Provide specific, actionable feedback
+6. Calculate final score with Task 2 weighted at 67%, Task 1 at 33%`;
 };

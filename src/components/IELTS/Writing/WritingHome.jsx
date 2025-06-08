@@ -1,15 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import WritingPage from './writingPage';
 import { useTimer } from '../../../lib/TimerContext';
 import ExamContainer from '../../ui/ExamContainer';
+import { motion } from 'framer-motion';
 
 const WritingHome = () => {
   const navigate = useNavigate();
   const { type } = useParams(); // Get IELTS type from URL (academic or general-training)
   const { resetTimer, setTimerStarted } = useTimer();
   const [showInstructions, setShowInstructions] = useState(true);
+  const [isDataReady, setIsDataReady] = useState(false);
+  const [testData, setTestData] = useState(null);
+  const [error, setError] = useState(null);
   
+  // Trigger API call when component mounts (like Action game topic selection)
+  useEffect(() => {
+    fetchExamData();
+  }, [type]);
+
+  const fetchExamData = async () => {
+    try {
+      setError(null);
+      setIsDataReady(false);
+      
+      // Generate random test number between 1-20
+      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
+      
+      // Use the correct IELTS endpoint pattern based on test type
+      const testId = type === 'academic' 
+        ? `ILTS.WRTNG.ACAD.T${randomTestNumber}`
+        : `ILTS.WRTNG.GT.T${randomTestNumber}`;
+      
+      const endpoint = `https://yeo707lcq4.execute-api.us-east-1.amazonaws.com/writingtest/${testId}`;
+      
+      console.log(`Fetching writing test: ${testId} from ${endpoint}`);
+      
+      const response = await fetch(endpoint, { 
+        method: 'GET', 
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        let errorPayload = null; 
+        try { errorPayload = await response.json(); } catch (e) {}
+        const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
+        throw new Error(errorMsg);
+      }
+      
+      const data = await response.json();
+      console.log(`Successfully fetched writing test: ${testId}`);
+      
+      setTestData(data);
+      setIsDataReady(true);
+      
+    } catch (err) {
+      console.error('Error fetching exam data:', err);
+      setError(err.message);
+      setIsDataReady(false);
+    }
+  };
+
   const handleBackToStart = () => {
     resetTimer();
     // Navigate back to the appropriate skills page based on type
@@ -21,9 +72,15 @@ const WritingHome = () => {
   };
 
   const handleStartNow = () => {
-    // Only start the timer when user clicks "Start Exam"
-    setTimerStarted(true);
-    setShowInstructions(false);
+    if (isDataReady && testData) {
+      // Only start the timer when user clicks "Start Exam" (no loading delay)
+      setTimerStarted(true);
+      setShowInstructions(false);
+    }
+  };
+
+  const handleRetry = () => {
+    fetchExamData();
   };
 
   // Determine test type display name
@@ -57,6 +114,53 @@ const WritingHome = () => {
   };
 
   const testTypeInstructions = getTestTypeInstructions();
+
+  const renderError = () => (
+    <ExamContainer>
+      <div className="instructions-container">
+        <div className="writing-header">
+          <h1 className="writing-title">IELTS {getTestTypeName()} Writing Practice</h1>
+          <p className="writing-subtitle text-red-600">
+            Failed to load exam data
+          </p>
+        </div>
+        
+        <div className="instructions-card-compact">
+          <div className="text-center p-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+              <span className="material-icons text-red-600 text-2xl">error</span>
+            </div>
+            <h2 className="text-xl font-bold text-red-800 mb-2">Unable to Load Exam</h2>
+            <p className="text-red-600 mb-6">{error}</p>
+            <div className="flex gap-4 justify-center">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleRetry}
+                className="text-lg font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="material-icons">refresh</span>
+                  Try Again
+                </span>
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBackToStart}
+                className="text-lg font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 bg-gray-500 hover:bg-gray-600 text-white"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="material-icons">arrow_back</span>
+                  Go Back
+                </span>
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ExamContainer>
+  );
 
   const renderInstructions = () => (
     <ExamContainer>
@@ -138,25 +242,49 @@ const WritingHome = () => {
 
           <div className="start-instruction-compact">
             <p className="text-center font-medium text-gray-800">
-              Click "Start Exam" to begin your IELTS {getTestTypeName()} Writing test.
+              {isDataReady 
+                ? "Your exam is ready! Click 'Start Exam' to begin."
+                : "Please wait while we prepare your exam questions..."
+              }
             </p>
           </div>
           
           <div className="text-center">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleStartNow}
-              className="start-button"
+              disabled={!isDataReady}
+              className={`text-xl font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
+                isDataReady 
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
-              <span className="material-icons mr-2">edit</span>
-              Start Exam
-            </button>
+              {isDataReady ? (
+                <span className="flex items-center gap-3">
+                  <span className="material-icons">edit</span>
+                  Start Exam
+                </span>
+              ) : (
+                <span className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                  Preparing Exam...
+                </span>
+              )}
+            </motion.button>
           </div>
         </div>
       </div>
     </ExamContainer>
   );
 
-  return showInstructions ? renderInstructions() : <WritingPage onBackToStart={handleBackToStart} testType={type} />;
+  // Show error state if there's an error
+  if (error) {
+    return renderError();
+  }
+
+  return showInstructions ? renderInstructions() : <WritingPage onBackToStart={handleBackToStart} testType={type} testData={testData} />;
 };
 
 export default WritingHome;

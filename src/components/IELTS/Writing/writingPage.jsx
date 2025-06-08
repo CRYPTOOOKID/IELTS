@@ -8,8 +8,9 @@ import FeedbackSummary from './FeedbackSummary';
 import { useTimer } from '../../../lib/TimerContext';
 import TimeUpModal from "../../ui/TimeUpModal";
 import ExamContainer from "../../ui/ExamContainer";
+import genAIService from '../../../services/genAIService';
 
-const WritingPage = ({ onBackToStart, testType }) => {
+const WritingPage = ({ onBackToStart, testType, testData }) => {
   const [currentTask, setCurrentTask] = useState('task1');
   const [task1Response, setTask1Response] = useState('');
   const [task2Response, setTask2Response] = useState('');
@@ -35,10 +36,7 @@ const WritingPage = ({ onBackToStart, testType }) => {
   ]);
   const [currentTip, setCurrentTip] = useState(0);
   const [writingQuestions, setWritingQuestions] = useState([]);
-  const [fetchingQuestions, setFetchingQuestions] = useState(true);
   const [showTimeUpModal, setShowTimeUpModal] = useState(false);
-  const [showCountdown, setShowCountdown] = useState(true);
-  const [countdownNumber, setCountdownNumber] = useState(3);
 
   // Get timer context
   const { startTimer, resetTimer, timeRemaining } = useTimer();
@@ -52,189 +50,101 @@ const WritingPage = ({ onBackToStart, testType }) => {
     { number: 5, name: "Finalizing Feedback" }
   ];
 
-  // Generate random test number and construct API endpoint
-  const generateTestEndpoint = () => {
-    // Generate random test number between 1 and 20
-    const randomTestNumber = Math.floor(Math.random() * 20) + 1;
-    
-    // Determine test type based on prop or fallback to general training
-    let testTypeCode;
-    if (testType === 'academic') {
-      testTypeCode = 'ILTS.WRTNG.ACAD';
-    } else if (testType === 'general-training') {
-      testTypeCode = 'ILTS.WRTNG.GT';
-    } else {
-      // Fallback for legacy routes - default to general training
-      testTypeCode = 'ILTS.WRTNG.GT';
-    }
-    
-    const testId = `${testTypeCode}.T${randomTestNumber}`;
-    const apiUrl = `https://yeo707lcq4.execute-api.us-east-1.amazonaws.com/writingtest/${testId}`;
-    
-    console.log(`Generated test endpoint: ${apiUrl} for test type: ${testType || 'legacy'}`);
-    return { apiUrl, testId, testNumber: randomTestNumber };
-  };
-
-  // Fetch writing questions from API on component mount
+  // Process the testData when component mounts or testData changes
   useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        setFetchingQuestions(true);
-        console.log("Fetching writing test data...");
-        
-        const { apiUrl, testId } = generateTestEndpoint();
-        
-        console.log(`Fetching writing test data from: ${apiUrl}`);
-        
-        const response = await fetch(apiUrl, { 
-          method: 'GET', 
-          headers: { 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) {
-          let errorPayload = null; 
-          try { errorPayload = await response.json(); } catch (e) {}
-          const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
-          throw new Error(errorMsg);
-        }
-        
-        const data = await response.json();
-        console.log("Successfully fetched writing test data:", data);
-        console.log("Tasks in response:", data.tasks);
-        console.log("Test type:", testType);
-        console.log("Root level imageUrl:", data.imageUrl);
-        
-        // Log the complete structure for debugging
-        if (data.tasks && data.tasks.length > 0) {
-          console.log("First task structure:", JSON.stringify(data.tasks[0], null, 2));
-          if (data.tasks.length > 1) {
-            console.log("Second task structure:", JSON.stringify(data.tasks[1], null, 2));
-          }
-        }
-        
-        // Transform API response to match our expected question format
-        const transformedQuestions = data.tasks.map(task => {
-          console.log("Processing task:", task);
-          // For task 1
-          if (task.taskNumber === 1) {
-            const questionData = {
-              type: 'task1',
-              taskType: task.taskType,
-              text: task.prompt, // Use prompt from task
-              testId: testId
-            };
+    if (testData && testData.tasks) {
+      const transformedQuestions = testData.tasks.map(task => {
+        // For task 1
+        if (task.taskNumber === 1) {
+          const questionData = {
+            type: 'task1',
+            taskType: task.taskType,
+            text: task.prompt, // Use prompt from task
+            testId: testData.testId || 'default'
+          };
+          
+          // Add specific fields based on test type
+          if (testType === 'academic') {
+            // Academic tests may have imageUrl for visual description tasks
+            const imageUrl = testData.imageUrl || task.imageContent || task.typeImage || task.imageUrl;
             
-            // Add specific fields based on test type
-            if (testType === 'academic') {
-              // Academic tests may have imageUrl for visual description tasks
-              console.log("Processing academic task 1, checking for images...");
-              console.log("Root imageUrl:", data.imageUrl);
-              console.log("Task imageContent:", task.imageContent);
-              console.log("Task typeImage:", task.typeImage);
-              
-              // Check for image in multiple locations:
-              // 1. Root level imageUrl
-              // 2. Task level imageContent
-              // 3. Task level typeImage
-              // 4. Task level imageUrl (fallback)
-              const imageUrl = data.imageUrl || task.imageContent || task.typeImage || task.imageUrl;
-              
-              if (imageUrl && imageUrl.trim() !== '') {
-                questionData.imageUrl = imageUrl;
-                questionData.hasImage = true;
-                console.log("Academic test with image detected:", imageUrl);
-              } else {
-                console.log("Academic test without image - no valid imageUrl found");
-                console.log("Checked: data.imageUrl =", data.imageUrl);
-                console.log("Checked: task.imageContent =", task.imageContent);
-                console.log("Checked: task.typeImage =", task.typeImage);
-                questionData.hasImage = false;
-              }
-              questionData.instructions = task.instructions || "Summarize the information by selecting and reporting the main features, and make comparisons where relevant.";
-              questionData.prompt = task.prompt; // Keep the original prompt
+            if (imageUrl && imageUrl.trim() !== '') {
+              questionData.imageUrl = imageUrl;
+              questionData.hasImage = true;
             } else {
-              // General Training tests have letter writing with situation and bullet points
-              questionData.situation = task.situation || task.prompt;
-              questionData.instructions = task.instructions;
-              questionData.bulletPoints = task.bulletPoints || [];
               questionData.hasImage = false;
             }
             
-            console.log("Transformed task 1 data:", questionData);
-            return questionData;
-          } 
-          // For task 2 (Essay writing - similar for both types)
-          else if (task.taskNumber === 2) {
-            return {
-              type: 'task2',
-              taskType: task.taskType,
-              text: task.prompt,
-              testId: testId
-            };
+            // Store image description for AI context (separate from imageUrl)
+            questionData.imageDescription = task.imageContent || task.imageDescription || null;
+            questionData.instructions = task.instructions || "Summarize the information by selecting and reporting the main features, and make comparisons where relevant.";
+            questionData.prompt = task.prompt; // Keep the original prompt
+          } else {
+            // General Training tests have letter writing with situation and bullet points
+            questionData.situation = task.situation || task.prompt;
+            questionData.instructions = task.instructions;
+            questionData.bulletPoints = task.bulletPoints || [];
+            questionData.hasImage = false;
           }
-        }).filter(Boolean); // Remove any undefined entries
-        
-        setWritingQuestions(transformedQuestions);
-      } catch (error) {
-        console.error("Error fetching writing questions:", error);
-        // Fallback to default questions if API fails
-        const fallbackQuestions = testType === 'academic' ? [
-          {
-            type: "task1",
-            text: "The graph below shows the population changes in a certain country from 1950 to 2050. Summarize the information by selecting and reporting the main features, and make comparisons where relevant.",
-            taskType: "Graph Description",
-            hasImage: true,
-            imageUrl: "https://via.placeholder.com/600x400/3b82f6/ffffff?text=Sample+Chart+for+Academic+Task+1",
-            prompt: "The graph below shows the population changes in a certain country from 1950 to 2050. Summarize the information by selecting and reporting the main features, and make comparisons where relevant."
-          },
-          {
-            type: "task2",
-            text: "Some people believe that universities should focus on providing academic skills rather than preparing students for employment. To what extent do you agree or disagree?",
-            taskType: "Opinion Essay"
-          }
-        ] : [
-          {
-            type: "task1",
-            text: "You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken. Write a letter to the shop manager.",
-            taskType: "Complaint Letter",
-            situation: "You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken.",
-            instructions: "Write a letter to the shop manager. In your letter:",
-            bulletPoints: [
-              "describe the problem with the equipment",
-              "explain what happened when you phoned the shop",
-              "say what you would like the manager to do"
-            ]
-          },
-          {
-            type: "task2",
-            text: "Some people think that parents should teach children how to be good members of society. Others, however, believe that school is the place to learn this. Discuss both these views and give your own opinion.",
-            taskType: "Discussion Essay"
-          }
-        ];
-        
-        setWritingQuestions(fallbackQuestions);
-      } finally {
-        setFetchingQuestions(false);
-      }
-    };
-    
-    fetchQuestions();
-  }, [testType]); // Re-fetch when testType changes
-
-  // Countdown animation effect
-  useEffect(() => {
-    if (showCountdown && !fetchingQuestions) {
-      if (countdownNumber > 0) {
-        const timer = setTimeout(() => {
-          setCountdownNumber(countdownNumber - 1);
-        }, 1000);
-        return () => clearTimeout(timer);
-      } else {
-        // When countdown reaches 0, hide countdown and show the exam
-        setShowCountdown(false);
-      }
+          
+          return questionData;
+        } 
+        // For task 2 (Essay writing - similar for both types)
+        else if (task.taskNumber === 2) {
+          return {
+            type: 'task2',
+            taskType: task.taskType,
+            text: task.prompt,
+            testId: testData.testId || 'default'
+          };
+        }
+      }).filter(Boolean); // Remove any undefined entries
+      
+      setWritingQuestions(transformedQuestions);
+      
+      // Start the timer immediately when the component loads with data
+      startTimer();
+    } else {
+      // Fallback to default questions if no testData provided
+      const fallbackQuestions = testType === 'academic' ? [
+        {
+          type: "task1",
+          text: "The graph below shows the population changes in a certain country from 1950 to 2050. Summarize the information by selecting and reporting the main features, and make comparisons where relevant.",
+          taskType: "Graph Description",
+          hasImage: true,
+          imageUrl: "https://via.placeholder.com/600x400/3b82f6/ffffff?text=Sample+Chart+for+Academic+Task+1",
+          imageDescription: "A line graph showing population changes from 1950 to 2050. The graph displays population in millions on the y-axis and years on the x-axis. The line shows a steady increase from 1950 to 2000, followed by a projected decline from 2000 to 2050. Key data points include: 1950 (25 million), 1980 (45 million), 2000 (60 million), 2020 (55 million), and 2050 (40 million projected).",
+          prompt: "The graph below shows the population changes in a certain country from 1950 to 2050. Summarize the information by selecting and reporting the main features, and make comparisons where relevant."
+        },
+        {
+          type: "task2",
+          text: "Some people believe that universities should focus on providing academic skills rather than preparing students for employment. To what extent do you agree or disagree?",
+          taskType: "Opinion Essay"
+        }
+      ] : [
+        {
+          type: "task1",
+          text: "You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken. Write a letter to the shop manager.",
+          taskType: "Complaint Letter",
+          situation: "You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken.",
+          instructions: "Write a letter to the shop manager. In your letter:",
+          bulletPoints: [
+            "describe the problem with the equipment",
+            "explain what happened when you phoned the shop",
+            "say what you would like the manager to do"
+          ]
+        },
+        {
+          type: "task2",
+          text: "Some people think that parents should teach children how to be good members of society. Others, however, believe that school is the place to learn this. Discuss both these views and give your own opinion.",
+          taskType: "Discussion Essay"
+        }
+      ];
+      
+      setWritingQuestions(fallbackQuestions);
+      startTimer();
     }
-  }, [countdownNumber, showCountdown, fetchingQuestions]);
+  }, [testData, testType, startTimer]);
 
   // Update word count whenever response changes
   useEffect(() => {
@@ -363,7 +273,7 @@ const WritingPage = ({ onBackToStart, testType }) => {
     }
   };
 
-  // Make the API request to DeepSeek for both tasks
+  // Make the API request to GenAI for both tasks
   const generateCombinedFeedback = async () => {
     setIsLoading(true);
     setCurrentStage(0);
@@ -383,177 +293,13 @@ const WritingPage = ({ onBackToStart, testType }) => {
         task1Question ? (task1Question.situation || task1Question.text) : '',
         task1Response,
         task2Question ? task2Question.text : '',
-        task2Response
+        task2Response,
+        null, // Not using image description anymore
+        testType || 'academic' // Pass test type
       );
       
-      console.log("Sending request to DeepSeek API for feedback generation...");
-
-      // Make the API request to DeepSeek
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-44f37e518ea04bf893bfa6083a78c4fb'
-        },
-        body: JSON.stringify({
-          model: "deepseek-reasoner",
-          messages: [
-            { role: "system", content: "You are an IELTS writing evaluator." },
-            { role: "user", content: combinedPrompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 3000
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "Unknown error");
-        console.error("DeepSeek API error response:", errorText);
-        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-      }
-
-      const data = await response.json();
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error("Unexpected response format from DeepSeek API:", data);
-        throw new Error("Received invalid response format from the AI service.");
-      }
-      
-      const assistantMessage = data.choices[0].message.content;
-      console.log("Successfully received feedback from DeepSeek API");
-      
-      // Extract JSON from the response with improved error handling
-      let parsedFeedback;
-      try {
-        // First attempt: Try to extract JSON from markdown code blocks (```json ... ```)
-        const jsonMatch = assistantMessage.match(/```json\n([\s\S]*?)\n```/);
-        
-        if (jsonMatch && jsonMatch[1]) {
-          const jsonText = jsonMatch[1];
-          try {
-            // Attempt to parse the extracted JSON
-            parsedFeedback = JSON.parse(jsonText);
-          } catch (jsonError) {
-            console.error("Error parsing JSON extracted from markdown block, attempting to repair:", jsonError);
-            
-            // Attempt to fix common JSON formatting issues
-            let sanitizedJson = jsonText
-              // Fix unquoted property names
-              .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
-              // Fix single quotes used instead of double quotes
-              .replace(/'/g, '"')
-              // Fix trailing commas in arrays/objects
-              .replace(/,(\s*[}\]])/g, '$1');
-            
-            try {
-              parsedFeedback = JSON.parse(sanitizedJson);
-              console.log("Successfully repaired and parsed JSON");
-            } catch (repairError) {
-              // If still fails, try a more aggressive approach
-              console.error("Failed to repair JSON with first attempt, trying more aggressive repair:", repairError);
-              
-              // Extract what appears to be the JSON structure and try to rebuild it
-              // This creates a minimal valid structure even if some data is lost
-              const fallbackData = createFallbackFeedback(jsonText);
-              parsedFeedback = fallbackData;
-            }
-          }
-        } else {
-          // Second attempt: Try to find JSON without code blocks (sometimes APIs return raw JSON)
-          console.log("No JSON code block found, searching for raw JSON in response");
-          
-          // Try to extract anything that looks like JSON object
-          const possibleJson = assistantMessage.match(/(\{[\s\S]*\})/);
-          
-          if (possibleJson && possibleJson[1]) {
-            try {
-              parsedFeedback = JSON.parse(possibleJson[1]);
-            } catch (rawJsonError) {
-              console.error("Failed to parse raw JSON from response:", rawJsonError);
-              throw new Error("Failed to parse AI feedback: Invalid JSON structure");
-            }
-          } else {
-            console.error("No valid JSON structure found in response");
-            throw new Error("Failed to extract JSON from API response");
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse JSON from API response:", e);
-        
-        // Use fallback feedback as a last resort
-        console.log("Using fallback feedback due to parsing error");
-        parsedFeedback = generateFallbackFeedback();
-      }
-      
-      // Function to create fallback feedback data when JSON parsing fails
-      function createFallbackFeedback(partialJson) {
-        console.log("Creating fallback feedback from partial data");
-        try {
-          // Extract score values if present
-          const task1Score = parseFloat(partialJson.match(/"overall_score"\s*:\s*"?([0-9.]+)"?/)?.[1] || "6.5");
-          const task2Score = parseFloat(partialJson.match(/"task2"[\s\S]*?"overall_score"\s*:\s*"?([0-9.]+)"?/)?.[1] || "7.0");
-          const finalScore = (task1Score * 0.333 + task2Score * 0.667).toFixed(1);
-          
-          return {
-            task1: {
-              overallScore: task1Score,
-              categories: {
-                taskAchievement: { score: 6.5, percentage: 65, comments: ["Addresses the task appropriately"] },
-                coherenceCohesion: { score: 6.5, percentage: 65, comments: ["Logical organization of information"] },
-                lexicalResource: { score: 6.5, percentage: 65, comments: ["Uses adequate range of vocabulary"] },
-                grammaticalRange: { score: 6.5, percentage: 65, comments: ["Uses a mix of simple and complex sentences"] }
-              },
-              strengths: ["Clear structure", "Appropriate response to the task"],
-              improvements: ["Consider using more varied vocabulary", "Pay attention to complex grammatical structures"]
-            },
-            task2: {
-              overallScore: task2Score,
-              categories: {
-                taskAchievement: { score: 7.0, percentage: 70, comments: ["Addresses all parts of the task"] },
-                coherenceCohesion: { score: 7.0, percentage: 70, comments: ["Logical progression of ideas"] },
-                lexicalResource: { score: 7.0, percentage: 70, comments: ["Uses a range of vocabulary with flexibility"] },
-                grammaticalRange: { score: 7.0, percentage: 70, comments: ["Uses a variety of complex structures"] }
-              },
-              strengths: ["Well-developed response", "Clear position throughout"],
-              improvements: ["Minor grammatical errors in complex sentences", "Further examples would strengthen arguments"]
-            },
-            finalScore: parseFloat(finalScore),
-            overallFeedback: "This is a partially generated feedback due to processing issues. Your writing demonstrates good understanding of the IELTS tasks."
-          };
-        } catch (error) {
-          console.error("Error creating fallback feedback from partial data:", error);
-          return generateFallbackFeedback();
-        }
-      }
-      
-      // Function to generate basic fallback feedback when all else fails
-      function generateFallbackFeedback() {
-        return {
-          task1: {
-            overallScore: 6.5,
-            categories: {
-              taskAchievement: { score: 6.5, percentage: 65, comments: ["Addresses the task appropriately", "Covers the main features of the graph/chart", "Presents a clear overview"] },
-              coherenceCohesion: { score: 6.5, percentage: 65, comments: ["Information is arranged coherently", "Uses cohesive devices effectively", "Paragraphing is logical"] },
-              lexicalResource: { score: 6.5, percentage: 65, comments: ["Uses adequate range of vocabulary", "Makes some errors in word choice/formation", "Generally paraphrases successfully"] },
-              grammaticalRange: { score: 6.5, percentage: 65, comments: ["Uses a mix of simple and complex sentences", "Makes some errors but meaning remains clear", "Shows good control of grammar and punctuation"] }
-            },
-            strengths: ["Clear structure", "Appropriate response to the task", "Effective use of language"],
-            improvements: ["Consider using more varied vocabulary", "Pay attention to complex grammatical structures", "Provide more detailed analysis of data"]
-          },
-          task2: {
-            overallScore: 7.0,
-            categories: {
-              taskAchievement: { score: 7.0, percentage: 70, comments: ["Addresses all parts of the task", "Presents a clear position throughout", "Fully developed response"] },
-              coherenceCohesion: { score: 7.0, percentage: 70, comments: ["Logical progression of ideas", "Uses a range of cohesive devices", "Clear central topic in each paragraph"] },
-              lexicalResource: { score: 7.0, percentage: 70, comments: ["Uses a range of vocabulary with flexibility", "Uses less common items with some awareness of style", "Makes occasional errors in word choice"] },
-              grammaticalRange: { score: 7.0, percentage: 70, comments: ["Uses a variety of complex structures", "Majority of sentences are error-free", "Good control of grammar and punctuation"] }
-            },
-            strengths: ["Well-developed response", "Clear position throughout", "Good range of vocabulary"],
-            improvements: ["Minor grammatical errors in complex sentences", "Further examples would strengthen arguments", "More precise word choice in some instances"]
-          },
-          finalScore: 6.8,
-          overallFeedback: "This is generated feedback as we couldn't process your submission. Your writing demonstrates a good understanding of the IELTS writing task requirements. To improve your score, focus on vocabulary precision and grammar in complex sentences."
-        };
-      }
+      // Use the GenAI service instead of DeepSeek
+      const parsedFeedback = await genAIService.generateIELTSWritingFeedback(combinedPrompt);
       
       // Transform the API response to match our feedback format
       const transformedFeedback = {
@@ -562,187 +308,96 @@ const WritingPage = ({ onBackToStart, testType }) => {
           categories: {
             taskAchievement: {
               score: parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score),
-              percentage: parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score) * 10,
-              comments: parsedFeedback.task1.criterion_scores.task_achievement_response.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score) * 10),
+              comments: parsedFeedback.task1.criterion_scores.task_achievement_response.feedback_points
             },
             coherenceCohesion: {
               score: parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score),
-              percentage: parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score) * 10,
-              comments: parsedFeedback.task1.criterion_scores.coherence_cohesion.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score) * 10),
+              comments: parsedFeedback.task1.criterion_scores.coherence_cohesion.feedback_points
             },
             lexicalResource: {
               score: parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score),
-              percentage: parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score) * 10,
-              comments: parsedFeedback.task1.criterion_scores.lexical_resource.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score) * 10),
+              comments: parsedFeedback.task1.criterion_scores.lexical_resource.feedback_points
             },
             grammaticalRange: {
               score: parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score),
-              percentage: parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score) * 10,
-              comments: parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score) * 10),
+              comments: parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.feedback_points
             }
           },
-          strengths: parsedFeedback.task1.strengths || [],
-          improvements: parsedFeedback.task1.improvements || []
+          strengths: parsedFeedback.task1.strengths,
+          improvements: parsedFeedback.task1.improvements
         },
         task2: {
           overallScore: parseFloat(parsedFeedback.task2.overall_score),
           categories: {
             taskAchievement: {
               score: parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score),
-              percentage: parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score) * 10,
-              comments: parsedFeedback.task2.criterion_scores.task_achievement_response.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score) * 10),
+              comments: parsedFeedback.task2.criterion_scores.task_achievement_response.feedback_points
             },
             coherenceCohesion: {
               score: parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score),
-              percentage: parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score) * 10,
-              comments: parsedFeedback.task2.criterion_scores.coherence_cohesion.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score) * 10),
+              comments: parsedFeedback.task2.criterion_scores.coherence_cohesion.feedback_points
             },
             lexicalResource: {
               score: parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score),
-              percentage: parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score) * 10,
-              comments: parsedFeedback.task2.criterion_scores.lexical_resource.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score) * 10),
+              comments: parsedFeedback.task2.criterion_scores.lexical_resource.feedback_points
             },
             grammaticalRange: {
               score: parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score),
-              percentage: parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score) * 10,
-              comments: parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.feedback_points || []
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score) * 10),
+              comments: parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.feedback_points
             }
           },
-          strengths: parsedFeedback.task2.strengths || [],
-          improvements: parsedFeedback.task2.improvements || []
+          strengths: parsedFeedback.task2.strengths,
+          improvements: parsedFeedback.task2.improvements
         },
         finalScore: parseFloat(parsedFeedback.final_score),
-        overallFeedback: parsedFeedback.overall_feedback || "Thank you for your submission. Please review the detailed feedback for areas of strength and improvement."
+        overallFeedback: parsedFeedback.overall_feedback
       };
 
       setFeedback(transformedFeedback);
-      setIsLoading(false);
       setShowFeedback(true);
-    } catch (error) {
-      console.error("Error generating AI feedback:", error);
-      alert("Failed to generate AI feedback. Please try again later.");
       setIsLoading(false);
+    } catch (error) {
+      console.error('Error generating feedback:', error);
       
-      // Fallback to simulated feedback if API fails
+      // Use fallback feedback on error
       const fallbackFeedback = {
         task1: {
           overallScore: 6.5,
           categories: {
-            taskAchievement: {
-              score: 7,
-              percentage: 70,
-              comments: [
-                "You've addressed all parts of the task prompt",
-                "Your main ideas are relevant and well-developed",
-                "You've provided specific examples to support your arguments",
-                "Your response is the appropriate length for the task"
-              ]
-            },
-            coherenceCohesion: {
-              score: 6,
-              percentage: 60,
-              comments: [
-                "Your paragraphing is logical and appropriate",
-                "You use a range of cohesive devices effectively",
-                "Ideas flow naturally from one to the next",
-                "Your introduction and conclusion are well-structured"
-              ]
-            },
-            lexicalResource: {
-              score: 6,
-              percentage: 60,
-              comments: [
-                "You demonstrate a good vocabulary range appropriate to the topic",
-                "You use some less common vocabulary items",
-                "Word forms and collocations are generally accurate",
-                "You effectively paraphrase to avoid repetition"
-              ]
-            },
-            grammaticalRange: {
-              score: 7,
-              percentage: 70,
-              comments: [
-                "You use a mix of simple and complex sentence structures",
-                "Your grammar is generally accurate with only minor errors",
-                "Punctuation is used correctly throughout",
-                "You demonstrate control of complex grammatical forms"
-              ]
-            }
+            taskAchievement: { score: 6.5, percentage: 65, comments: ["Addresses the task appropriately", "Covers the main features of the graph/chart", "Presents a clear overview"] },
+            coherenceCohesion: { score: 6.5, percentage: 65, comments: ["Information is arranged coherently", "Uses cohesive devices effectively", "Paragraphing is logical"] },
+            lexicalResource: { score: 6.5, percentage: 65, comments: ["Uses adequate range of vocabulary", "Makes some errors in word choice/formation", "Generally paraphrases successfully"] },
+            grammaticalRange: { score: 6.5, percentage: 65, comments: ["Uses a mix of simple and complex sentences", "Makes some errors but meaning remains clear", "Shows good control of grammar and punctuation"] }
           },
-          strengths: [
-            "Clear overall structure with introduction, body paragraphs, and conclusion",
-            "Good use of linking words to connect ideas",
-            "Relevant examples to support main points"
-          ],
-          improvements: [
-            "More varied vocabulary would enhance the response",
-            "Some grammatical errors in complex sentences",
-            "More detailed analysis of the data would improve the response"
-          ]
+          strengths: ["Clear structure", "Appropriate response to the task", "Effective use of language"],
+          improvements: ["Consider using more varied vocabulary", "Pay attention to complex grammatical structures", "Provide more detailed analysis of data"]
         },
         task2: {
           overallScore: 7.0,
           categories: {
-            taskAchievement: {
-              score: 7,
-              percentage: 70,
-              comments: [
-                "You've addressed all parts of the task prompt",
-                "Your main ideas are relevant and well-developed",
-                "Your position is clear and consistent throughout",
-                "You've provided specific examples to support your arguments"
-              ]
-            },
-            coherenceCohesion: {
-              score: 7,
-              percentage: 70,
-              comments: [
-                "Your paragraphing is logical and appropriate",
-                "You use a range of cohesive devices effectively",
-                "Ideas flow naturally from one to the next",
-                "Your introduction and conclusion are well-structured"
-              ]
-            },
-            lexicalResource: {
-              score: 7,
-              percentage: 70,
-              comments: [
-                "You demonstrate a wide vocabulary range appropriate to the topic",
-                "You use less common vocabulary items with precision",
-                "Word forms and collocations are generally accurate",
-                "You effectively paraphrase to avoid repetition"
-              ]
-            },
-            grammaticalRange: {
-              score: 7,
-              percentage: 70,
-              comments: [
-                "You use a mix of simple and complex sentence structures",
-                "Your grammar is generally accurate with only minor errors",
-                "Punctuation is used correctly throughout",
-                "You demonstrate control of complex grammatical forms"
-              ]
-            }
+            taskAchievement: { score: 7.0, percentage: 70, comments: ["Addresses all parts of the task", "Presents a clear position throughout", "Fully developed response"] },
+            coherenceCohesion: { score: 7.0, percentage: 70, comments: ["Logical progression of ideas", "Uses a range of cohesive devices", "Clear central topic in each paragraph"] },
+            lexicalResource: { score: 7.0, percentage: 70, comments: ["Uses a range of vocabulary with flexibility", "Uses less common items with some awareness of style", "Makes occasional errors in word choice"] },
+            grammaticalRange: { score: 7.0, percentage: 70, comments: ["Uses a variety of complex structures", "Majority of sentences are error-free", "Good control of grammar and punctuation"] }
           },
-          strengths: [
-            "Clear overall structure with introduction, body paragraphs, and conclusion",
-            "Good use of linking words to connect ideas",
-            "Relevant examples to support main points"
-          ],
-          improvements: [
-            "More varied vocabulary would enhance the response",
-            "Some grammatical errors in complex sentences",
-            "Introduction could more clearly state your position",
-            "Conclusion could more effectively summarize your arguments"
-          ]
+          strengths: ["Well-developed response", "Clear position throughout", "Good range of vocabulary"],
+          improvements: ["Minor grammatical errors in complex sentences", "Further examples would strengthen arguments", "More precise word choice in some instances"]
         },
         finalScore: 6.8,
-        overallFeedback: "API connection failed. This is simulated feedback. Your writing demonstrates understanding of the IELTS writing task requirements. To improve, focus on vocabulary precision and grammar in complex sentences."
+        overallFeedback: "This is generated feedback as we couldn't process your submission. Your writing demonstrates a good understanding of the IELTS writing task requirements. To improve your score, focus on vocabulary precision and grammar in complex sentences."
       };
-      
+
       setFeedback(fallbackFeedback);
-      setIsLoading(false);
       setShowFeedback(true);
+      setIsLoading(false);
     }
   };
 
@@ -794,143 +449,7 @@ const WritingPage = ({ onBackToStart, testType }) => {
     </div>
   );
 
-  // Render the countdown animation
-  const renderCountdown = () => {
-    // Calculate positions for dots and sparkles
-    const getRandomPosition = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-    
-    // Create array of dots for the rings
-    const createDots = (count) => {
-      const dots = [];
-      const radius = 110; // Ring radius
-      
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * 2 * Math.PI;
-        const x = radius * Math.cos(angle);
-        const y = radius * Math.sin(angle);
-        
-        dots.push({ x, y });
-      }
-      
-      return dots;
-    };
-    
-    // Create array of random sparkle positions
-    const createSparkles = (count) => {
-      const sparkles = [];
-      
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * 2 * Math.PI;
-        const distance = getRandomPosition(60, 160);
-        const x = distance * Math.cos(angle);
-        const y = distance * Math.sin(angle);
-        
-        sparkles.push({ x, y });
-      }
-      
-      return sparkles;
-    };
-    
-    const dots = createDots(8);
-    const sparkles = createSparkles(6);
-    
-    return (
-      <div className="flex flex-col justify-center items-center h-[600px] text-center">
-        {/* Main heading */}
-        <h2 className="text-4xl font-bold text-primary-deep mb-12">
-          <span className="breath-text">Take a deep breath</span>
-        </h2>
-        
-        {/* Countdown animation container */}
-        <div className="countdown-animation">
-          {/* Rotating rings with dots */}
-          <div className="countdown-ring countdown-ring-1">
-            {dots.map((dot, index) => (
-              <div 
-                key={`dot1-${index}`}
-                className="countdown-dot"
-                style={{ 
-                  left: `calc(50% + ${dot.x}px)`, 
-                  top: `calc(50% + ${dot.y}px)`,
-                  opacity: 0.8,
-                  transform: 'translate(-50%, -50%)'
-                }}
-              />
-            ))}
-          </div>
-          
-          <div className="countdown-ring countdown-ring-2">
-            {dots.map((dot, index) => (
-              <div 
-                key={`dot2-${index}`}
-                className="countdown-dot"
-                style={{ 
-                  left: `calc(50% + ${dot.x}px)`, 
-                  top: `calc(50% + ${dot.y}px)`,
-                  opacity: 0.5,
-                  transform: 'translate(-50%, -50%) scale(0.7)'
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Random sparkles */}
-          {sparkles.map((sparkle, index) => (
-            <div
-              key={`sparkle-${index}`}
-              className="countdown-sparkle"
-              style={{
-                left: `calc(50% + ${sparkle.x}px)`,
-                top: `calc(50% + ${sparkle.y}px)`,
-                transform: 'translate(-50%, -50%)'
-              }}
-            />
-          ))}
-          
-          {/* Main countdown number */}
-          <div className="countdown-number">
-            {countdownNumber > 0 ? countdownNumber : (
-              <div className="countdown-go">Go!</div>
-            )}
-          </div>
-        </div>
-        
-        {/* Message that changes based on countdown state */}
-        <div className="countdown-message" style={{ animationDelay: '0.3s' }}>
-          {countdownNumber > 0 
-            ? "Prepare your thoughts..."
-            : "Your exam is ready!"
-          }
-        </div>
-        
-        {/* Show arrow icon when countdown finishes */}
-        {countdownNumber === 0 && (
-          <div className="mt-16" style={{ animation: 'fadeInUp 0.5s ease-out 0.7s both' }}>
-            <svg className="w-14 h-14 mx-auto text-primary animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const renderWritingTask = () => {
-    // Show countdown animation if in countdown mode
-    if (showCountdown) {
-      return renderCountdown();
-    }
-    
-    // If still fetching questions, hide the spinner since we'll handle this with the countdown
-    if (fetchingQuestions) {
-      return (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-deep"></div>
-          <p className="ml-4 text-lg text-gray-700">Loading questions...</p>
-        </div>
-      );
-    }
-
     // Find the current task
     const currentTaskData = writingQuestions.find(q => q.type === currentTask);
     
@@ -1089,16 +608,12 @@ const WritingPage = ({ onBackToStart, testType }) => {
                             alt="Task 1 Visual Data - Chart/Graph/Diagram" 
                             className="academic-task-image mx-auto block"
                             onLoad={(e) => {
-                              console.log("Image loaded successfully:", currentTaskData.imageUrl);
-                              console.log("Image dimensions:", e.target.naturalWidth, "x", e.target.naturalHeight);
                               e.target.style.display = 'block';
                               if (e.target.nextSibling) {
                                 e.target.nextSibling.style.display = 'none';
                               }
                             }}
                             onError={(e) => {
-                              console.error("Image failed to load:", currentTaskData.imageUrl);
-                              console.error("Image error event:", e);
                               e.target.style.display = 'none';
                               if (e.target.nextSibling) {
                                 e.target.nextSibling.style.display = 'block';
@@ -1144,6 +659,7 @@ const WritingPage = ({ onBackToStart, testType }) => {
                           <div className="mt-2 p-2 bg-yellow-100 rounded">
                             <div>hasImage: {String(currentTaskData.hasImage)}</div>
                             <div>imageUrl: {currentTaskData.imageUrl || 'null'}</div>
+                            <div>imageDescription: {currentTaskData.imageDescription || 'null'}</div>
                           </div>
                         </details>
                       </div>
@@ -1331,36 +847,131 @@ const WritingPage = ({ onBackToStart, testType }) => {
   };
 
   const renderLoading = () => (
-    <div className="loading-container">
-      <h3 className="loading-title">Analyzing Your IELTS Writing Responses...</h3>
-      
-      <div className="loading-stages">
-        {loadingStages.map((stage, index) => (
-          <div key={index} className="loading-stage">
-            <div
-              className={`stage-circle ${
-                index < currentStage ? 'completed' :
-                index === currentStage ? 'active' : ''
-              }`}
-            >
-              <span className="stage-number">
-                {index < currentStage ? '✓' : stage.number}
-              </span>
-            </div>
-            <span className="stage-name">{stage.name}</span>
+    <div className="enhanced-loading-container">
+      <div className="loading-background-animation">
+        {/* Floating particles */}
+        <div className="particles-container">
+          {[...Array(15)].map((_, index) => (
+            <div 
+              key={`particle-${index}`}
+              className="floating-particle"
+              style={{ 
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${3 + Math.random() * 2}s`
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Geometric shapes */}
+        <div className="geometric-shapes">
+          <div className="shape shape-1"></div>
+          <div className="shape shape-2"></div>
+          <div className="shape shape-3"></div>
+        </div>
+      </div>
+
+      <div className="loading-content">
+        {/* Header with animated icon */}
+        <div className="loading-header">
+          <div className="animated-icon-container">
+            <span className="material-icons loading-icon">auto_awesome</span>
+            <div className="icon-ripple"></div>
           </div>
-        ))}
-      </div>
-      
-      <div className="loading-progress">
-        <div
-          className="progress-fill"
-          style={{ width: `${loadingProgress}%` }}
-        ></div>
-      </div>
-      
-      <div className="loading-tip">
-        <span><strong>IELTS Tip:</strong> {loadingTips[currentTip]}</span>
+          <h3 className="loading-title">
+            Crafting Your Personalized Feedback
+          </h3>
+          <p className="loading-subtitle">
+            Our AI is analyzing your writing with expert precision
+          </p>
+        </div>
+
+        {/* Enhanced progress visualization */}
+        <div className="progress-visualization">
+          <div className="circular-progress">
+            <svg className="progress-ring" width="120" height="120">
+              <circle 
+                className="progress-ring-background"
+                stroke="#e5e7eb"
+                strokeWidth="8"
+                fill="transparent"
+                r="52"
+                cx="60"
+                cy="60"
+              />
+              <circle 
+                className="progress-ring-progress"
+                stroke="#3b82f6"
+                strokeWidth="8"
+                fill="transparent"
+                r="52"
+                cx="60"
+                cy="60"
+                style={{
+                  strokeDasharray: `${2 * Math.PI * 52}`,
+                  strokeDashoffset: `${2 * Math.PI * 52 * (1 - loadingProgress / 100)}`
+                }}
+              />
+            </svg>
+            <div className="progress-percentage">
+              {Math.round(loadingProgress)}%
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic stages with better animations */}
+        <div className="enhanced-loading-stages">
+          {loadingStages.map((stage, index) => (
+            <div key={index} className={`enhanced-stage ${
+              index < currentStage ? 'completed' :
+              index === currentStage ? 'active' : 'pending'
+            }`}>
+              <div className="stage-indicator">
+                <div className="stage-circle">
+                  {index < currentStage ? (
+                    <span className="material-icons stage-check">check</span>
+                  ) : index === currentStage ? (
+                    <div className="stage-spinner"></div>
+                  ) : (
+                    <span className="stage-number">{stage.number}</span>
+                  )}
+                </div>
+                {index < loadingStages.length - 1 && (
+                  <div className={`stage-connector ${index < currentStage ? 'completed' : ''}`}></div>
+                )}
+              </div>
+              <div className="stage-content">
+                <h4 className="stage-title">{stage.name}</h4>
+                <p className="stage-description">
+                  {index === 0 && "Examining your responses for structure and content"}
+                  {index === 1 && "Evaluating how well you addressed the task requirements"}
+                  {index === 2 && "Analyzing vocabulary, grammar, and coherence"}
+                  {index === 3 && "Computing your band scores across all criteria"}
+                  {index === 4 && "Preparing personalized improvement suggestions"}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Rotating tips with smooth transitions */}
+        <div className="enhanced-loading-tips">
+          <div className="tip-container">
+            <div className="tip-icon">
+              <span className="material-icons">lightbulb</span>
+            </div>
+            <div className="tip-content">
+              <h4>IELTS Writing Tip</h4>
+              <p className="tip-text">{loadingTips[currentTip]}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Motivational message */}
+        <div className="motivation-message">
+          <p>✨ Great job completing your writing test! Your detailed feedback is almost ready.</p>
+        </div>
       </div>
     </div>
   );

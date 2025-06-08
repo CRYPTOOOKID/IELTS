@@ -383,6 +383,12 @@ export const SpeakingProvider = ({ children }) => {
     setError(null);
   };
 
+  // Function to set test data directly (for use by instructions component)
+  const setTestDataDirectly = (data) => {
+    setTestData(data);
+    setUsingFallback(false);
+  };
+
   // Value object to be provided by the context
   const value = {
     testData,
@@ -404,6 +410,7 @@ export const SpeakingProvider = ({ children }) => {
     showFeedback,
     setShowFeedback,
     fetchTestData,
+    setTestDataDirectly,
     startTest,
     nextPart,
     updateTranscription,

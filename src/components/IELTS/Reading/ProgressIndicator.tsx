@@ -40,8 +40,11 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   testData.sections.forEach((section: any, sectionIndex: number) => {
     section.passages.forEach((passage: any, passageIndex: number) => {
       passage.questions.forEach((question: any, questionIndex: number) => {
-        if (question.questionType === 'MATCHING_HEADINGS' && question.items?.length > 0) {
-          // For MATCHING_HEADINGS, create individual entries for each item
+        // Handle multi-item question types that need to be expanded into individual question numbers
+        const multiItemTypes = ['MATCHING_HEADINGS', 'MATCH_SENTENCE_ENDINGS', 'MATCHING_FEATURES'];
+        
+        if (multiItemTypes.includes(question.questionType) && question.items?.length > 0) {
+          // For multi-item questions, create individual entries for each item
           question.items.forEach((item: any, itemIndex: number) => {
             questionNumbers.push({
               questionNumber: question.questionNumber + itemIndex,

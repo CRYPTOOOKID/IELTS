@@ -138,6 +138,8 @@ const ReadingFeedback = () => {
         return Array.isArray(answer) ? answer[0] : answer;
         
       case 'TRUE_FALSE_NOT_GIVEN':
+      case 'IDENTIFYING_INFORMATION':
+      case 'IDENTIFYING_WRITERS_VIEWS':
         return Array.isArray(answer) ? answer[0] : answer;
         
       case 'SENTENCE_COMPLETION':
@@ -145,9 +147,11 @@ const ReadingFeedback = () => {
         return Array.isArray(answer) ? answer[0] : answer;
         
       case 'MATCHING_HEADINGS':
+      case 'MATCH_SENTENCE_ENDINGS':
+      case 'MATCHING_FEATURES':
         if (typeof answer === 'object' && !Array.isArray(answer)) {
           return Object.entries(answer)
-            .map(([item, heading]) => `${item} → ${heading}`)
+            .map(([item, selection]) => `${item} → ${selection}`)
             .join('; ');
         }
         return 'No answer selected';
@@ -156,7 +160,11 @@ const ReadingFeedback = () => {
         return Array.isArray(answer) ? answer[0] : answer;
         
       default:
-        return Array.isArray(answer) ? answer[0] : answer;
+        // Handle any unknown question types safely
+        if (typeof answer === 'object' && !Array.isArray(answer)) {
+          return JSON.stringify(answer);
+        }
+        return Array.isArray(answer) ? answer[0] : String(answer);
     }
   };
 
@@ -170,8 +178,8 @@ const ReadingFeedback = () => {
     return question.items.map(item => ({
       itemText: item.itemText,
       userAnswer: answer[item.itemText] || 'No answer',
-      correctAnswer: item.correctHeading,
-      isCorrect: answer[item.itemText] === item.correctHeading
+      correctAnswer: item.correctHeading || item.correctAnswer || 'N/A',
+      isCorrect: answer[item.itemText] === (item.correctHeading || item.correctAnswer)
     }));
   };
 
@@ -182,15 +190,17 @@ const ReadingFeedback = () => {
     const answer = userAnswer.answer;
     const correctAnswer = question.correctAnswer.toLowerCase().trim();
     
-    if (question.questionType === 'MATCHING_HEADINGS') {
+    // Handle multi-item question types
+    if (['MATCHING_HEADINGS', 'MATCH_SENTENCE_ENDINGS', 'MATCHING_FEATURES'].includes(question.questionType)) {
       if (typeof answer === 'object' && !Array.isArray(answer)) {
         return question.items?.every(item => 
-          answer[item.itemText] === item.correctHeading
+          answer[item.itemText] === (item.correctHeading || item.correctAnswer)
         ) || false;
       }
       return false;
     }
     
+    // Handle single-answer question types
     const userAnswerText = Array.isArray(answer) 
       ? answer[0]?.toLowerCase().trim() 
       : String(answer).toLowerCase().trim();
@@ -205,15 +215,42 @@ const ReadingFeedback = () => {
     
     allQuestions.forEach(question => {
       const type = question.questionType;
+      const multiItemTypes = ['MATCHING_HEADINGS', 'MATCH_SENTENCE_ENDINGS', 'MATCHING_FEATURES'];
+      
       if (!typeStats[type]) {
         typeStats[type] = { correct: 0, total: 0 };
       }
       
-      typeStats[type].total++;
-      
-      const userAnswer = userAnswers?.get(question.questionNumber);
-      if (isAnswerCorrect(question, userAnswer)) {
-        typeStats[type].correct++;
+      // For multi-item question types, count each item as a separate question
+      if (multiItemTypes.includes(question.questionType) && question.items?.length > 0) {
+        // Add the number of items to the total
+        typeStats[type].total += question.items.length;
+        
+        // Check each item's answer for correctness
+        question.items.forEach((item, itemIndex) => {
+          const subQuestionNumber = question.questionNumber + itemIndex;
+          const userAnswer = userAnswers?.get(subQuestionNumber);
+          
+          if (userAnswer && userAnswer.answer) {
+            const answer = userAnswer.answer;
+            if (typeof answer === 'object' && !Array.isArray(answer)) {
+              // Check if this specific item was answered correctly
+              const userAnswerForItem = answer[item.itemText];
+              const correctAnswer = item.correctHeading || item.correctAnswer;
+              if (userAnswerForItem === correctAnswer) {
+                typeStats[type].correct++;
+              }
+            }
+          }
+        });
+      } else {
+        // For single questions, count normally
+        typeStats[type].total++;
+        
+        const userAnswer = userAnswers?.get(question.questionNumber);
+        if (isAnswerCorrect(question, userAnswer)) {
+          typeStats[type].correct++;
+        }
       }
     });
     
@@ -509,66 +546,54 @@ const ReadingFeedback = () => {
                           const userAnswer = userAnswers?.get(question.questionNumber);
                           const isCorrect = isAnswerCorrect(question, userAnswer);
 
-                          // Handle grouped questions (like MATCHING_HEADINGS)
-                          if (question.questionType === 'MATCHING_HEADINGS' && question.items) {
+                          // Handle grouped questions (multi-item question types) - treat each item as individual question
+                          if (['MATCHING_HEADINGS', 'MATCH_SENTENCE_ENDINGS', 'MATCHING_FEATURES'].includes(question.questionType) && question.items) {
                             const groupedAnswers = formatGroupedAnswer(question, userAnswer);
-                            const allCorrect = groupedAnswers.every(item => item.isCorrect);
-                            const questionRange = `${question.questionNumber}-${question.questionNumber + question.items.length - 1}`;
-
-                            return (
-                              <div key={question.questionNumber} className={`question-card-fixed grouped ${allCorrect ? 'correct' : 'incorrect'}`}>
-                                <div className="question-header-fixed">
-                                  <div className="question-number-badge-fixed">
-                                    Q{questionRange}
+                            
+                            // Render each item as an individual question card
+                            return groupedAnswers.map((item, itemIndex) => {
+                              const questionNumber = question.questionNumber + itemIndex;
+                              
+                              return (
+                                <div key={`${question.questionNumber}-${itemIndex}`} className={`question-card-fixed ${item.isCorrect ? 'correct' : 'incorrect'}`}>
+                                  <div className="question-header-fixed">
+                                    <div className="question-number-badge-fixed">
+                                      Q{questionNumber}
+                                    </div>
+                                    <div className="question-type-badge-fixed">
+                                      {question.questionType.replace(/_/g, ' ')}
+                                    </div>
+                                    <div className={`result-badge-fixed ${item.isCorrect ? 'correct' : 'incorrect'}`}>
+                                      <span className="material-icons">
+                                        {item.isCorrect ? 'check_circle' : 'cancel'}
+                                      </span>
+                                    </div>
                                   </div>
-                                  <div className="question-type-badge-fixed">
-                                    {question.questionType.replace(/_/g, ' ')}
-                                  </div>
-                                  <div className={`result-badge-fixed ${allCorrect ? 'correct' : 'incorrect'}`}>
-                                    <span className="material-icons">
-                                      {allCorrect ? 'check_circle' : 'cancel'}
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                <div className="question-content-fixed">
-                                  <p className="question-text-fixed">{question.questionText}</p>
                                   
-                                  <div className="grouped-answers-grid">
-                                    {groupedAnswers.map((item, itemIndex) => (
-                                      <div key={itemIndex} className={`grouped-answer-item ${item.isCorrect ? 'correct' : 'incorrect'}`}>
-                                        <div className="grouped-answer-header">
-                                          <span className="item-label">{item.itemText}:</span>
-                                          <div className={`mini-result-badge ${item.isCorrect ? 'correct' : 'incorrect'}`}>
-                                            <span className="material-icons">
-                                              {item.isCorrect ? 'check' : 'close'}
-                                            </span>
-                                          </div>
-                                        </div>
-                                        
-                                        <div className="grouped-answer-content">
-                                          <div className="answer-block-fixed">
-                                            <span className="answer-label-fixed">Your Answer:</span>
-                                            <span className={`answer-text-fixed ${item.isCorrect ? 'correct' : 'incorrect'}`}>
-                                              {item.userAnswer}
-                                            </span>
-                                          </div>
-                                          
-                                          {!item.isCorrect && (
-                                            <div className="answer-block-fixed">
-                                              <span className="answer-label-fixed">Correct Answer:</span>
-                                              <span className="answer-text-fixed correct">
-                                                {item.correctAnswer}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </div>
+                                  <div className="question-content-fixed">
+                                    <p className="question-text-fixed">{item.itemText}</p>
+                                    
+                                    <div className="answers-comparison-fixed">
+                                      <div className="answer-block-fixed">
+                                        <span className="answer-label-fixed">Your Answer:</span>
+                                        <span className={`answer-text-fixed ${item.isCorrect ? 'correct' : 'incorrect'}`}>
+                                          {item.userAnswer}
+                                        </span>
                                       </div>
-                                    ))}
+                                      
+                                      {!item.isCorrect && (
+                                        <div className="answer-block-fixed">
+                                          <span className="answer-label-fixed">Correct Answer:</span>
+                                          <span className="answer-text-fixed correct">
+                                            {item.correctAnswer}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
+                              );
+                            });
                           }
 
                           // Regular single questions
@@ -611,7 +636,7 @@ const ReadingFeedback = () => {
                               </div>
                             </div>
                           );
-                        }).filter(Boolean)}
+                        }).flat().filter(Boolean)}
                       </div>
                     </div>
                   ))}

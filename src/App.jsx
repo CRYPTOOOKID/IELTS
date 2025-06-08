@@ -1,3 +1,7 @@
+// Import global logger configuration FIRST to override console methods
+import './utils/globalLogger.js';
+import { logger } from './utils/globalLogger.js';
+
 import React, { useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 
@@ -83,7 +87,7 @@ const ExamTypePage = () => {
       await signOut();
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
       setIsLoggingOut(false);
     }
   };
@@ -341,7 +345,7 @@ const SkillsPage = ({ examType }) => {
       await signOut();
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
       setIsLoggingOut(false);
     }
   };
@@ -596,7 +600,7 @@ const PlayZonePlaceholder = () => {
       await signOut();
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
       setIsLoggingOut(false);
     }
   };

@@ -23,6 +23,11 @@ import TrueFalseNotGivenQuestion from './questions/TrueFalseNotGivenQuestion.tsx
 import SentenceCompletionQuestion from './questions/SentenceCompletionQuestion.tsx';
 import MatchingHeadingsQuestion from './questions/MatchingHeadingsQuestion.tsx';
 import ParagraphMatchingQuestion from './questions/ParagraphMatchingQuestion.tsx';
+import MatchSentenceEndingsQuestion from './questions/MatchSentenceEndingsQuestion.tsx';
+import IdentifyingWritersViewsQuestion from './questions/IdentifyingWritersViewsQuestion.tsx';
+import IdentifyingInformationQuestion from './questions/IdentifyingInformationQuestion.tsx';
+import MatchingFeaturesQuestion from './questions/MatchingFeaturesQuestion.tsx';
+import { logger } from '../../../utils/globalLogger.js';
 
 interface IeltsReadingTestProps {
   testData: IeltsTest;
@@ -32,12 +37,87 @@ interface IeltsReadingTestProps {
 
 const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit, onExit }) => {
   const navigate = useNavigate();
+  
+  // Debug logging to see the exact data structure
+  logger.log('IeltsReadingTest received testData:', testData);
+  logger.log('testData.sections:', testData?.sections);
+  logger.log('sections type and length:', typeof testData?.sections, testData?.sections?.length);
+  
+  // Add safety checks for testData
+  if (!testData) {
+    logger.error('IeltsReadingTest: testData is null or undefined');
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>Test Data Error</Typography>
+          <Typography>No test data provided. Please go back and try again.</Typography>
+          {onExit && (
+            <Button onClick={onExit} sx={{ mt: 2 }} variant="outlined">
+              Go Back
+            </Button>
+          )}
+        </Alert>
+      </Container>
+    );
+  }
+  
+  if (!testData.sections) {
+    logger.error('IeltsReadingTest: testData.sections is missing');
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>Test Data Error</Typography>
+          <Typography>Test data is missing sections. Received keys: {Object.keys(testData).join(', ')}</Typography>
+          {onExit && (
+            <Button onClick={onExit} sx={{ mt: 2 }} variant="outlined">
+              Go Back
+            </Button>
+          )}
+        </Alert>
+      </Container>
+    );
+  }
+  
+  if (!Array.isArray(testData.sections)) {
+    logger.error('IeltsReadingTest: testData.sections is not an array, type:', typeof testData.sections);
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>Test Data Error</Typography>
+          <Typography>Test sections data is not in the expected format (not an array). Type: {typeof testData.sections}</Typography>
+          {onExit && (
+            <Button onClick={onExit} sx={{ mt: 2 }} variant="outlined">
+              Go Back
+            </Button>
+          )}
+        </Alert>
+      </Container>
+    );
+  }
+  
+  if (testData.sections.length === 0) {
+    logger.error('IeltsReadingTest: testData.sections is empty');
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>Test Data Error</Typography>
+          <Typography>Test sections array is empty. No questions to display.</Typography>
+          {onExit && (
+            <Button onClick={onExit} sx={{ mt: 2 }} variant="outlined">
+              Go Back
+            </Button>
+          )}
+        </Alert>
+      </Container>
+    );
+  }
+
   const [testState, setTestState] = useState<TestState>({
     currentSectionIndex: 0,
     currentPassageIndex: 0,
     currentQuestionIndex: 0,
     userAnswers: new Map(),
-    timeRemaining: testData.estimatedTimeMinutes * 60,
+    timeRemaining: (testData.estimatedTimeMinutes || 60) * 60,
     isSubmitted: false,
   });
 
@@ -68,18 +148,57 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
     }
   }, [testState.timeRemaining, testState.isSubmitted]);
 
-  const currentSection = testData.sections[testState.currentSectionIndex];
-  const currentPassage = currentSection?.passages[testState.currentPassageIndex];
-  const currentQuestion = currentPassage?.questions[testState.currentQuestionIndex];
+  // Add safety checks for accessing current data
+  const getCurrentSection = () => {
+    if (!testData.sections || testState.currentSectionIndex >= testData.sections.length) {
+      return null;
+    }
+    return testData.sections[testState.currentSectionIndex];
+  };
 
+  const getCurrentPassage = () => {
+    const currentSection = getCurrentSection();
+    if (!currentSection?.passages || testState.currentPassageIndex >= currentSection.passages.length) {
+      return null;
+    }
+    return currentSection.passages[testState.currentPassageIndex];
+  };
+
+  const getCurrentQuestion = () => {
+    const currentPassage = getCurrentPassage();
+    if (!currentPassage?.questions || testState.currentQuestionIndex >= currentPassage.questions.length) {
+      return null;
+    }
+    return currentPassage.questions[testState.currentQuestionIndex];
+  };
+
+  const currentSection = getCurrentSection();
+  const currentPassage = getCurrentPassage();
+  const currentQuestion = getCurrentQuestion();
+
+  // Add safety check to getAllQuestions
   const getAllQuestions = useCallback((): IeltsQuestion[] => {
+    if (!testData.sections) return [];
     return testData.sections.flatMap(section =>
-      section.passages.flatMap(passage => passage.questions)
+      section.passages?.flatMap(passage => passage.questions || []) || []
     );
   }, [testData]);
 
   const getTotalQuestions = useCallback((): number => {
-    return getAllQuestions().length;
+    const allQuestions = getAllQuestions();
+    let totalQuestions = 0;
+    
+    allQuestions.forEach(question => {
+      // For grouped question types, count each item as a separate question
+      if (['MATCHING_HEADINGS', 'MATCH_SENTENCE_ENDINGS', 'MATCHING_FEATURES'].includes(question.questionType) && question.items && question.items.length > 0) {
+        totalQuestions += question.items.length;
+      } else {
+        // For single questions, count normally
+        totalQuestions++;
+      }
+    });
+    
+    return totalQuestions;
   }, [getAllQuestions]);
 
   const getAnsweredCount = useCallback((): number => {
@@ -90,6 +209,7 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
   const calculateResults = useCallback(() => {
     const allQuestions = getAllQuestions();
     let correctAnswers = 0;
+    let totalQuestions = 0;
     const questionResults: Array<{
       question: IeltsQuestion;
       userAnswer: UserAnswer | undefined;
@@ -98,20 +218,38 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
 
     allQuestions.forEach(question => {
       const userAnswer = testState.userAnswers.get(question.questionNumber);
-      const isCorrect = userAnswer ? isAnswerCorrect(question, userAnswer) : false;
       
-      if (isCorrect) {
-        correctAnswers++;
+      // For grouped question types, count each item as a separate question
+      if (['MATCHING_HEADINGS', 'MATCH_SENTENCE_ENDINGS', 'MATCHING_FEATURES'].includes(question.questionType) && question.items && question.items.length > 0) {
+        // Add the number of items to the total count
+        totalQuestions += question.items.length;
+        
+        // Check each item's answer for correctness
+        question.items.forEach((item, itemIndex) => {
+          if (userAnswer && typeof userAnswer.answer === 'object' && !Array.isArray(userAnswer.answer)) {
+            const userAnswerForItem = userAnswer.answer[item.itemText];
+            const correctAnswer = item.correctHeading || item.correctAnswer;
+            if (userAnswerForItem === correctAnswer) {
+              correctAnswers++;
+            }
+          }
+        });
+      } else {
+        // For single questions, count normally
+        totalQuestions++;
+        const isCorrect = userAnswer ? isAnswerCorrect(question, userAnswer) : false;
+        if (isCorrect) {
+          correctAnswers++;
+        }
       }
 
       questionResults.push({
         question,
         userAnswer,
-        isCorrect,
+        isCorrect: userAnswer ? isAnswerCorrect(question, userAnswer) : false,
       });
     });
 
-    const totalQuestions = allQuestions.length;
     const answeredCount = testState.userAnswers.size;
     const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
     const bandScore = calculateIeltsBandScore(correctAnswers, totalQuestions);
@@ -120,7 +258,7 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
       totalQuestions,
       answeredCount,
       correctAnswers,
-      incorrectAnswers: answeredCount - correctAnswers,
+      incorrectAnswers: totalQuestions - correctAnswers,
       unansweredQuestions: totalQuestions - answeredCount,
       score,
       bandScore,
@@ -145,7 +283,29 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
       return false;
     }
     
-    // For all other question types including PARAGRAPH_MATCHING
+    if (question.questionType === 'MATCH_SENTENCE_ENDINGS') {
+      // For match sentence endings, check if all items are correctly matched
+      if (typeof userAnswer.answer === 'object' && !Array.isArray(userAnswer.answer)) {
+        const userMapping = userAnswer.answer as { [key: string]: string };
+        return question.items?.every(item => 
+          userMapping[item.itemText] === item.correctAnswer
+        ) || false;
+      }
+      return false;
+    }
+    
+    if (question.questionType === 'MATCHING_FEATURES') {
+      // For matching features, check if all items are correctly matched
+      if (typeof userAnswer.answer === 'object' && !Array.isArray(userAnswer.answer)) {
+        const userMapping = userAnswer.answer as { [key: string]: string };
+        return question.items?.every(item => 
+          userMapping[item.itemText] === item.correctAnswer
+        ) || false;
+      }
+      return false;
+    }
+    
+    // For all other question types including PARAGRAPH_MATCHING, IDENTIFYING_INFORMATION, IDENTIFYING_WRITERS_VIEWS
     const userAnswerText = Array.isArray(userAnswer.answer) 
       ? userAnswer.answer[0]?.toLowerCase().trim() 
       : String(userAnswer.answer).toLowerCase().trim();
@@ -240,6 +400,8 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
 
   const navigateToQuestion = (direction: 'next' | 'prev') => {
     const allQuestions = getAllQuestions();
+    if (allQuestions.length === 0 || !currentQuestion) return;
+    
     const currentQuestionGlobalIndex = allQuestions.findIndex(q => q.questionNumber === currentQuestion?.questionNumber);
     
     let newGlobalIndex;
@@ -250,19 +412,27 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
     }
     
     const targetQuestion = allQuestions[newGlobalIndex];
+    if (!targetQuestion) return;
     
     // Find the section, passage, and question indices for the target question
     let targetSectionIndex = 0;
     let targetPassageIndex = 0;
     let targetQuestionIndex = 0;
     
+    // Add safety checks for the nested loops
+    if (!testData.sections) return;
+    
     for (let sIndex = 0; sIndex < testData.sections.length; sIndex++) {
       const section = testData.sections[sIndex];
+      if (!section?.passages) continue;
+      
       for (let pIndex = 0; pIndex < section.passages.length; pIndex++) {
         const passage = section.passages[pIndex];
+        if (!passage?.questions) continue;
+        
         for (let qIndex = 0; qIndex < passage.questions.length; qIndex++) {
           const question = passage.questions[qIndex];
-          if (question.questionNumber === targetQuestion.questionNumber) {
+          if (question?.questionNumber === targetQuestion.questionNumber) {
             targetSectionIndex = sIndex;
             targetPassageIndex = pIndex;
             targetQuestionIndex = qIndex;
@@ -320,6 +490,11 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
     if (!currentQuestion) return null;
 
     const userAnswer = testState.userAnswers.get(currentQuestion.questionNumber);
+    
+    // Debug logging to help identify the issue
+    logger.log('Current question type:', currentQuestion.questionType);
+    logger.log('Question type length:', currentQuestion.questionType.length);
+    logger.log('Question type encoded:', JSON.stringify(currentQuestion.questionType));
 
     switch (currentQuestion.questionType) {
       case 'MULTIPLE_CHOICE':
@@ -381,6 +556,56 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
             question={currentQuestion}
             selectedAnswer={paragraphAnswer as string}
             onAnswerChange={(answer: string) => handleAnswerChange(currentQuestion.questionNumber, answer)}
+          />
+        );
+      
+      case 'MATCH_SENTENCE_ENDINGS':
+        const sentenceMatchingAnswers = userAnswer?.answer && typeof userAnswer.answer === 'object' && !Array.isArray(userAnswer.answer)
+          ? userAnswer.answer as { [key: string]: string }
+          : {};
+        
+        return (
+          <MatchSentenceEndingsQuestion
+            question={currentQuestion}
+            selectedAnswers={sentenceMatchingAnswers}
+            onAnswerChange={handleMatchingAnswerChange}
+          />
+        );
+      
+      case 'IDENTIFYING_WRITERS_VIEWS':
+        const writersViewAnswer = userAnswer && Array.isArray(userAnswer.answer) 
+          ? userAnswer.answer[0] || '' 
+          : userAnswer?.answer || '';
+        return (
+          <IdentifyingWritersViewsQuestion
+            question={currentQuestion}
+            selectedAnswer={writersViewAnswer as string}
+            onAnswerChange={(answer: string) => handleAnswerChange(currentQuestion.questionNumber, answer)}
+          />
+        );
+      
+      case 'IDENTIFYING_INFORMATION':
+        const identifyingInfoAnswer = userAnswer && Array.isArray(userAnswer.answer) 
+          ? userAnswer.answer[0] || '' 
+          : userAnswer?.answer || '';
+        return (
+          <IdentifyingInformationQuestion
+            question={currentQuestion}
+            selectedAnswer={identifyingInfoAnswer as string}
+            onAnswerChange={(answer: string) => handleAnswerChange(currentQuestion.questionNumber, answer)}
+          />
+        );
+      
+      case 'MATCHING_FEATURES':
+        const matchingFeaturesAnswers = userAnswer?.answer && typeof userAnswer.answer === 'object' && !Array.isArray(userAnswer.answer)
+          ? userAnswer.answer as { [key: string]: string }
+          : {};
+        
+        return (
+          <MatchingFeaturesQuestion
+            question={currentQuestion}
+            selectedAnswers={matchingFeaturesAnswers}
+            onAnswerChange={handleMatchingAnswerChange}
           />
         );
       
@@ -532,35 +757,204 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
       </Container>
 
       {/* Submit Confirmation Dialog */}
-      <Dialog open={showSubmitDialog} onClose={() => setShowSubmitDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Send size={24} color="#10b981" />
-            <Typography variant="h5" fontWeight="bold">
-              Submit Test
+      <Dialog 
+        open={showSubmitDialog} 
+        onClose={() => setShowSubmitDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            minHeight: '400px',
+            overflow: 'hidden'
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1, pt: 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center', 
+            gap: 2,
+            textAlign: 'center'
+          }}>
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(10px)',
+              border: '2px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <Send size={40} color="white" />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" sx={{ color: 'white' }}>
+              Ready to Submit?
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)', maxWidth: '300px' }}>
+              Let's review your progress before submitting your IELTS Reading test
             </Typography>
           </Box>
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            You have answered {getAnsweredCount()} out of {getTotalQuestions()} questions. 
-          </Typography>
+        
+        <DialogContent sx={{ px: 4, py: 3 }}>
+          {/* Progress Stats Cards */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
+            <Box sx={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              borderRadius: 2,
+              p: 3,
+              textAlign: 'center',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <Typography variant="h3" fontWeight="bold" sx={{ color: '#10b981' }}>
+                {getAnsweredCount()}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                Answered
+              </Typography>
+            </Box>
+            
+            <Box sx={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              borderRadius: 2,
+              p: 3,
+              textAlign: 'center',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <Typography variant="h3" fontWeight="bold" sx={{ color: 'white' }}>
+                {getTotalQuestions()}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                Total Questions
+              </Typography>
+            </Box>
+          </Box>
 
+          {/* Progress Bar */}
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                Completion Progress
+              </Typography>
+              <Typography variant="body2" fontWeight="bold" sx={{ color: 'white' }}>
+                {Math.round((getAnsweredCount() / getTotalQuestions()) * 100)}%
+              </Typography>
+            </Box>
+            <Box sx={{
+              width: '100%',
+              height: 8,
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: 4,
+              overflow: 'hidden'
+            }}>
+              <Box sx={{
+                width: `${(getAnsweredCount() / getTotalQuestions()) * 100}%`,
+                height: '100%',
+                backgroundColor: '#10b981',
+                borderRadius: 4,
+                transition: 'width 0.3s ease'
+              }} />
+            </Box>
+          </Box>
+
+          {/* Warning for unanswered questions */}
           {getAnsweredCount() < getTotalQuestions() && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              You have {getTotalQuestions() - getAnsweredCount()} unanswered questions.
-            </Alert>
+            <Box sx={{
+              background: 'rgba(255, 152, 0, 0.2)',
+              border: '1px solid rgba(255, 152, 0, 0.4)',
+              borderRadius: 2,
+              p: 2.5,
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <Box sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: 'rgba(255, 152, 0, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: '#ff9800' }}>
+                  !
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1" fontWeight="bold" sx={{ color: 'white', mb: 0.5 }}>
+                  {getTotalQuestions() - getAnsweredCount()} Questions Remaining
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  You can still go back and answer them, or submit as is.
+                </Typography>
+              </Box>
+            </Box>
           )}
 
-          <Typography variant="body2" color="text.secondary">
-            Once you submit, you cannot go back to change your answers. Are you sure you want to submit your test?
-          </Typography>
+          {/* Final confirmation text */}
+          <Box sx={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: 2,
+            p: 2.5,
+            textAlign: 'center',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500 }}>
+              Once submitted, you cannot change your answers.
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mt: 0.5 }}>
+              Are you ready to see your results?
+            </Typography>
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setShowSubmitDialog(false)} variant="outlined">
+        
+        <DialogActions sx={{ p: 4, gap: 2 }}>
+          <Button 
+            onClick={() => setShowSubmitDialog(false)} 
+            variant="outlined"
+            size="large"
+            sx={{ 
+              flex: 1,
+              py: 1.5,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+              color: 'white',
+              fontWeight: 'bold',
+              borderRadius: 2,
+              '&:hover': {
+                borderColor: 'white',
+                background: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
             Back to Test
           </Button>
-          <Button onClick={handleSubmit} variant="contained" color="success" size="large">
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained"
+            size="large"
+            sx={{ 
+              flex: 1.5,
+              py: 1.5,
+              background: 'linear-gradient(45deg, #10b981, #059669)',
+              fontWeight: 'bold',
+              borderRadius: 2,
+              boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #059669, #047857)',
+                boxShadow: '0 6px 25px rgba(16, 185, 129, 0.6)'
+              }
+            }}
+          >
             Submit & View Results
           </Button>
         </DialogActions>

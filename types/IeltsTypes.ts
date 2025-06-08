@@ -3,7 +3,7 @@
 export interface IeltsQuestion {
   questionNumber: number;
   questionText: string;
-  questionType: 'MULTIPLE_CHOICE' | 'TRUE_FALSE_NOT_GIVEN' | 'SENTENCE_COMPLETION' | 'SHORT_ANSWER' | 'MATCHING_HEADINGS' | 'PARAGRAPH_MATCHING';
+  questionType: 'MULTIPLE_CHOICE' | 'TRUE_FALSE_NOT_GIVEN' | 'SENTENCE_COMPLETION' | 'SHORT_ANSWER' | 'MATCHING_HEADINGS' | 'PARAGRAPH_MATCHING' | 'MATCH_SENTENCE_ENDINGS' | 'IDENTIFYING_WRITERS_VIEWS' | 'IDENTIFYING_INFORMATION' | 'MATCHING_FEATURES';
   correctAnswer?: string;
   maxWords?: number; // For sentence completion and short answer questions
   options?: Array<{ [key: string]: string }>; // For multiple choice questions
@@ -11,7 +11,11 @@ export interface IeltsQuestion {
   items?: Array<{
     itemText: string;
     correctHeading?: string;
+    correctAnswer?: string; // For match sentence endings
   }>; // For matching questions
+  stems?: string[]; // For match sentence endings questions
+  endings?: Array<{ [key: string]: string }>; // For match sentence endings questions
+  passageReference?: string; // For referencing the passage
 }
 
 export interface IeltsPassage {
