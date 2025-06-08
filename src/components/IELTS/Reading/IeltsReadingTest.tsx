@@ -27,6 +27,7 @@ import MatchSentenceEndingsQuestion from './questions/MatchSentenceEndingsQuesti
 import IdentifyingWritersViewsQuestion from './questions/IdentifyingWritersViewsQuestion.tsx';
 import IdentifyingInformationQuestion from './questions/IdentifyingInformationQuestion.tsx';
 import MatchingFeaturesQuestion from './questions/MatchingFeaturesQuestion.tsx';
+import RefreshTestButton from '../RefreshTestButton';
 import { logger } from '../../../utils/globalLogger.js';
 
 interface IeltsReadingTestProps {
@@ -124,6 +125,7 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [refreshLoading, setRefreshLoading] = useState(false);
 
   // Timer countdown effect
   useEffect(() => {
@@ -479,6 +481,30 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
     setTimeout(() => {
       handleSubmit();
     }, 3000);
+  };
+
+  const confirmRefreshTest = async () => {
+    setRefreshLoading(true);
+    
+    try {
+      // Generate a random test number between 1 and 20 for reading tests
+      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
+      
+      // Navigate back to reading home with a flag to load a new test
+      navigate('/ielts/reading', { 
+        state: { 
+          refreshTest: true,
+          testNumber: randomTestNumber
+        },
+        replace: true
+      });
+      
+    } catch (error) {
+      console.error('Error refreshing reading test:', error);
+      alert('Failed to load new test. Please try again.');
+    } finally {
+      setRefreshLoading(false);
+    }
   };
 
   const isLastQuestion = () => {
@@ -984,6 +1010,13 @@ const IeltsReadingTest: React.FC<IeltsReadingTestProps> = ({ testData, onSubmit,
         autoHideDuration={2000}
         onClose={() => setSnackbarMessage('')}
         message={snackbarMessage}
+      />
+
+      {/* Refresh Test Button */}
+      <RefreshTestButton
+        testType="reading test"
+        isLoading={refreshLoading}
+        onRefreshTest={confirmRefreshTest}
       />
     </Box>
   );

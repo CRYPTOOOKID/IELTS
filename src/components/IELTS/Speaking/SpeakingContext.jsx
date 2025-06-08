@@ -15,7 +15,7 @@ export const useSpeakingContext = () => {
 };
 
 // Provider component
-export const SpeakingProvider = ({ children }) => {
+export const SpeakingProvider = ({ children, type = 'general-training' }) => {
   const [testData, setTestData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -70,8 +70,11 @@ export const SpeakingProvider = ({ children }) => {
     console.log("Fetching speaking test data...");
     
     try {
-      // Use the correct endpoint for speaking test
-      const testIdToFetch = "speaking_gt_1";
+      // Generate random test number between 1-20 and use the correct IELTS endpoint pattern
+      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
+      const testIdToFetch = type === 'academic' 
+        ? `ILTS.SPKNG.ACAD.T${randomTestNumber}`
+        : `ILTS.SPKNG.GT.T${randomTestNumber}`;
       const apiUrl = `https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testIdToFetch}`;
       
       console.log(`Fetching speaking test data from: ${apiUrl}`);
@@ -280,7 +283,7 @@ export const SpeakingProvider = ({ children }) => {
       });
       
       // Call the AI API
-      const API_KEY = "AIzaSyA6MdoSLwUd2D8kf1goBDg-92nvMTq2j9A";
+      const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
       const MODEL = "gemini-2.0-flash-lite";
       const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
       
@@ -383,6 +386,14 @@ export const SpeakingProvider = ({ children }) => {
     setError(null);
   };
 
+  // Function to refresh the test with new data
+  const refreshTest = async () => {
+    setLoading(true);
+    resetTest(); // Reset all test state
+    await fetchTestData(); // Fetch new test data
+    setLoading(false);
+  };
+
   // Function to set test data directly (for use by instructions component)
   const setTestDataDirectly = (data) => {
     setTestData(data);
@@ -418,6 +429,7 @@ export const SpeakingProvider = ({ children }) => {
     resetTest,
     getFeedback,
     hasSpoken,
+    refreshTest,
   };
 
   return (

@@ -3,6 +3,7 @@ import { useSpeakingContext } from './SpeakingContext';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import useSpeechRecognition from './useSpeechRecognition';
+import RefreshTestButton from '../RefreshTestButton';
 import './speaking.css';
 
 // Part 1 Component
@@ -14,12 +15,15 @@ export const Part1 = () => {
     isRecording,
     updateTranscription,
     toggleRecording,
-    setError
+    setError,
+    refreshTest,
+    loading
   } = useSpeakingContext();
   
   const { isSupported, startRecognition } = useSpeechRecognition();
   const recognitionRef = useRef(null);
   const [currentTranscript, setCurrentTranscript] = useState('');
+  const [refreshLoading, setRefreshLoading] = useState(false);
   
   const startRecording = (questionIndex) => {
     // If already recording, stop the recognition
@@ -77,6 +81,19 @@ export const Part1 = () => {
     
     // Toggle recording state
     toggleRecording(1, questionIndex);
+  };
+  
+  const confirmRefreshTest = async () => {
+    setRefreshLoading(true);
+    
+    try {
+      await refreshTest();
+    } catch (error) {
+      console.error('Error refreshing speaking test:', error);
+      alert('Failed to load new test. Please try again.');
+    } finally {
+      setRefreshLoading(false);
+    }
   };
   
   // Get the questions from the test data
@@ -159,6 +176,13 @@ export const Part1 = () => {
           </svg>
         </Button>
       </div>
+
+      {/* Refresh Test Button */}
+      <RefreshTestButton
+        testType="speaking test"
+        isLoading={refreshLoading || loading}
+        onRefreshTest={confirmRefreshTest}
+      />
     </div>
   );
 };

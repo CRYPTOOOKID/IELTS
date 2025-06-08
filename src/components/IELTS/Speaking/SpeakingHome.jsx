@@ -1,12 +1,13 @@
 import React from 'react';
-import { useSpeakingContext } from './SpeakingContext';
+import { useParams } from 'react-router-dom';
+import { useSpeakingContext, SpeakingProvider } from './SpeakingContext';
 import SpeakingInstructions from './SpeakingInstructions';
 import { Part1, Part2, Part3 } from './SpeakingParts';
 import SpeakingFeedback from './SpeakingFeedback';
 import { Button } from '../../ui/button';
 import './speaking.css';
 
-const SpeakingHome = () => {
+const SpeakingHomeContent = () => {
   const {
     testData,
     loading,
@@ -115,6 +116,16 @@ const SpeakingHome = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const SpeakingHome = () => {
+  const { type } = useParams(); // Get IELTS type from URL (academic or general-training)
+  
+  return (
+    <SpeakingProvider type={type}>
+      <SpeakingHomeContent />
+    </SpeakingProvider>
   );
 };
 

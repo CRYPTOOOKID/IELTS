@@ -9,6 +9,7 @@ import { useTimer } from '../../../lib/TimerContext';
 import TimeUpModal from "../../ui/TimeUpModal";
 import ExamContainer from "../../ui/ExamContainer";
 import genAIService from '../../../services/genAIService';
+import RefreshTestButton from '../RefreshTestButton';
 import { logger } from '../../../utils/globalLogger.js';
 import { logProductionError } from '../../../utils/envCheck.js';
 
@@ -39,6 +40,7 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
   const [currentTip, setCurrentTip] = useState(0);
   const [writingQuestions, setWritingQuestions] = useState([]);
   const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
 
   // Get timer context
   const { startTimer, resetTimer, timeRemaining } = useTimer();
@@ -422,6 +424,23 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
     } else {
       resetTimer();
       onBackToStart();
+    }
+  };
+
+  const confirmRefreshTest = async () => {
+    setRefreshLoading(true);
+    
+    try {
+      // Navigate back to writing home to get a new test
+      // The home component should handle generating a new random test
+      resetTimer();
+      onBackToStart(); // This will navigate back to the WritingHome component
+      
+    } catch (error) {
+      console.error('Error refreshing writing test:', error);
+      alert('Failed to load new test. Please try again.');
+    } finally {
+      setRefreshLoading(false);
     }
   };
 
@@ -852,6 +871,13 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
             </div>
           </div>
         </div>
+
+        {/* Refresh Test Button */}
+        <RefreshTestButton
+          testType="writing test"
+          isLoading={refreshLoading}
+          onRefreshTest={confirmRefreshTest}
+        />
       </div>
     );
   };

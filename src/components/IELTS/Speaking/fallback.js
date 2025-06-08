@@ -1,6 +1,6 @@
 // Fallback data for IELTS Speaking test in case API calls fail
 const fallbackData = {
-  "testId": "speaking_gt_2",
+  "testId": "ILTS.SPKNG.GT.T2",
   "Part1": [
     "Let's talk about your accommodation. What kind of home do you live in?",
     "Do you plan to live there for a long time? Why or why not?",

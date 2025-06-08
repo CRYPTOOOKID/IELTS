@@ -18,7 +18,6 @@ import ReadingFeedback from './components/IELTS/Reading/ReadingFeedback';
 import { AuthProvider, useAuth } from './components/Auth/AuthContext.jsx';
 
 // Import Speaking section
-import { SpeakingProvider } from './components/IELTS/Speaking/SpeakingContext.jsx';
 import SpeakingHome from './components/IELTS/Speaking/SpeakingHome.jsx';
 // Import Reading Section
 import ReadingHome from './components/IELTS/Reading/ReadingHome.jsx';
@@ -813,69 +812,67 @@ function App() {
   
   return (
     <AuthProvider>
-      <SpeakingProvider>
-        <TimerProvider>
-          <div className="app-container">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/skills" element={<ExamTypePage />} />
-              <Route path="/ielts-skills" element={<IELTSMainPage />} />
-              <Route path="/toefl-skills" element={<TOEFLSkillsPage />} />
-              <Route path="/cambridge-skills" element={<CambridgeSkillsPage />} />
-              <Route path="/maintenance" element={<MaintenancePage />} />
-              <Route path="/listening-maintenance" element={<ListeningMaintenancePage />} />
-              
-              {/* IELTS Routes */}
-              {/* New IELTS type-specific routes */}
-              <Route path="/ielts/:type/skills" element={<IELTSSkillsPage />} />
-              <Route path="/ielts/:type/writing" element={<WritingHome />} />
-              <Route path="/ielts/:type/speaking" element={<SpeakingHome />} />
-              <Route path="/ielts/:type/listening" element={<ListeningInstructions />} />
-              <Route path="/ielts/:type/listening/exam" element={<ListeningExam />} />
-              <Route path="/ielts/:type/listening/feedback" element={<ListeningFeedback />} />
-              <Route path="/ielts/:type/reading" element={<ReadingHome />} />
-              <Route path="/ielts/:type/reading/exam" element={<ReadingExam />} />
-              <Route path="/ielts/:type/reading/feedback" element={<ReadingFeedback />} />
-              
-              {/* Legacy IELTS Routes (for backward compatibility) */}
-              <Route path="/ielts/writing" element={<WritingHome />} />
-              <Route path="/ielts/speaking" element={<SpeakingHome />} />
-              <Route path="/ielts/listening" element={<ListeningInstructions />} />
-              <Route path="/ielts/listening/exam" element={<ListeningExam />} />
-              <Route path="/ielts/listening/feedback" element={<ListeningFeedback />} />
-              <Route path="/ielts/reading" element={<ReadingHome />} />
-              <Route path="/ielts/reading/exam" element={<ReadingExam />} />
-              <Route path="/ielts/reading/feedback" element={<ReadingFeedback />} />
-              
-              {/* TOEFL Routes */}
-              <Route path="/toefl/writing" element={<ToeflWritingHome />} />
-              <Route path="/toefl/speaking" element={<ToeflSpeakingHome />} />
-              <Route path="/toefl/reading" element={<ToeflReadingHome />} />
-              <Route path="/toefl/listening" element={<UnderConstructionPage examType="Listening" />} />
-              <Route path="/toefl/reading/exam" element={<ToeflReadingHome />} />
-              
-              {/* Cambridge Routes */}
-              <Route path="/cambridge/writing" element={<CambridgeWritingHome />} />
-              <Route path="/cambridge/writing/exam" element={<CambridgeWritingExam />} />
-              <Route path="/cambridge/writing/feedback" element={<CambridgeWritingFeedback />} />
-              
-              {/* Cambridge Listening Routes */}
-              <Route path="/cambridge/listening" element={<CambridgeListeningHome />} />
-              <Route path="/cambridge/listening/instructions" element={<CambridgeListeningInstructions />} />
-              <Route path="/cambridge/listening/exam" element={<CambridgeListeningExam />} />
-              <Route path="/cambridge/listening/feedback" element={<CambridgeListeningFeedback />} />
-              
-              {/* Play Zone Routes (common for both exam types) */}
-              <Route path="/play-zone" element={<PlayZonePlaceholder />} />
-              <Route path="/play-zone/learn" element={<LearnHome />} />
-              <Route path="/play-zone/learn/:topicId" element={<LearnTopics />} />
-              <Route path="/play-zone/games" element={<GamesHome />} />
-              <Route path="/play-zone/flashcards" element={<FlashCards />} />
-            </Routes>
-          </div>
-        </TimerProvider>
-      </SpeakingProvider>
+      <TimerProvider>
+        <div className="app-container">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/skills" element={<ExamTypePage />} />
+            <Route path="/ielts-skills" element={<IELTSMainPage />} />
+            <Route path="/toefl-skills" element={<TOEFLSkillsPage />} />
+            <Route path="/cambridge-skills" element={<CambridgeSkillsPage />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
+            <Route path="/listening-maintenance" element={<ListeningMaintenancePage />} />
+            
+            {/* IELTS Routes */}
+            {/* New IELTS type-specific routes */}
+            <Route path="/ielts/:type/skills" element={<IELTSSkillsPage />} />
+            <Route path="/ielts/:type/writing" element={<WritingHome />} />
+            <Route path="/ielts/:type/speaking" element={<SpeakingHome />} />
+            <Route path="/ielts/:type/listening" element={<ListeningInstructions />} />
+            <Route path="/ielts/:type/listening/exam" element={<ListeningExam />} />
+            <Route path="/ielts/:type/listening/feedback" element={<ListeningFeedback />} />
+            <Route path="/ielts/:type/reading" element={<ReadingHome />} />
+            <Route path="/ielts/:type/reading/exam" element={<ReadingExam />} />
+            <Route path="/ielts/:type/reading/feedback" element={<ReadingFeedback />} />
+            
+            {/* Legacy IELTS Routes (for backward compatibility) */}
+            <Route path="/ielts/writing" element={<WritingHome />} />
+            <Route path="/ielts/speaking" element={<SpeakingHome />} />
+            <Route path="/ielts/listening" element={<ListeningInstructions />} />
+            <Route path="/ielts/listening/exam" element={<ListeningExam />} />
+            <Route path="/ielts/listening/feedback" element={<ListeningFeedback />} />
+            <Route path="/ielts/reading" element={<ReadingHome />} />
+            <Route path="/ielts/reading/exam" element={<ReadingExam />} />
+            <Route path="/ielts/reading/feedback" element={<ReadingFeedback />} />
+            
+            {/* TOEFL Routes */}
+            <Route path="/toefl/writing" element={<ToeflWritingHome />} />
+            <Route path="/toefl/speaking" element={<ToeflSpeakingHome />} />
+            <Route path="/toefl/reading" element={<ToeflReadingHome />} />
+            <Route path="/toefl/listening" element={<UnderConstructionPage examType="Listening" />} />
+            <Route path="/toefl/reading/exam" element={<ToeflReadingHome />} />
+            
+            {/* Cambridge Routes */}
+            <Route path="/cambridge/writing" element={<CambridgeWritingHome />} />
+            <Route path="/cambridge/writing/exam" element={<CambridgeWritingExam />} />
+            <Route path="/cambridge/writing/feedback" element={<CambridgeWritingFeedback />} />
+            
+            {/* Cambridge Listening Routes */}
+            <Route path="/cambridge/listening" element={<CambridgeListeningHome />} />
+            <Route path="/cambridge/listening/instructions" element={<CambridgeListeningInstructions />} />
+            <Route path="/cambridge/listening/exam" element={<CambridgeListeningExam />} />
+            <Route path="/cambridge/listening/feedback" element={<CambridgeListeningFeedback />} />
+            
+            {/* Play Zone Routes (common for both exam types) */}
+            <Route path="/play-zone" element={<PlayZonePlaceholder />} />
+            <Route path="/play-zone/learn" element={<LearnHome />} />
+            <Route path="/play-zone/learn/:topicId" element={<LearnTopics />} />
+            <Route path="/play-zone/games" element={<GamesHome />} />
+            <Route path="/play-zone/flashcards" element={<FlashCards />} />
+          </Routes>
+        </div>
+      </TimerProvider>
     </AuthProvider>
   );
 }
