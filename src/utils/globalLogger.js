@@ -45,14 +45,43 @@ const originalConsole = {
 // Override console methods globally
 const initializeGlobalLogger = () => {
   if (!isDevelopment()) {
-    // In production, replace all console methods with empty functions
+    // In production, replace all console methods with selective functions
     Object.keys(originalConsole).forEach(method => {
       if (method === 'error') {
         // Keep error logging in production for critical issues
         console[method] = (...args) => {
-          // Only log actual errors, not debug error messages
-          if (args.some(arg => arg instanceof Error)) {
+          // Log actual Error objects and API-related errors
+          const shouldLog = args.some(arg => 
+            arg instanceof Error || 
+            (typeof arg === 'string' && (
+              arg.includes('API') || 
+              arg.includes('fetch') || 
+              arg.includes('request failed') ||
+              arg.includes('network') ||
+              arg.includes('status') ||
+              arg.includes('Error:') ||
+              arg.includes('Failed to')
+            ))
+          );
+          
+          if (shouldLog) {
             originalConsole.error(...args);
+          }
+        };
+      } else if (method === 'warn') {
+        // Keep warnings for important production issues
+        console[method] = (...args) => {
+          const shouldLog = args.some(arg => 
+            typeof arg === 'string' && (
+              arg.includes('API') || 
+              arg.includes('network') ||
+              arg.includes('Warning:') ||
+              arg.includes('Failed')
+            )
+          );
+          
+          if (shouldLog) {
+            originalConsole.warn(...args);
           }
         };
       } else {

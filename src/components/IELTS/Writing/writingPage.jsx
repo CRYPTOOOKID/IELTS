@@ -9,6 +9,8 @@ import { useTimer } from '../../../lib/TimerContext';
 import TimeUpModal from "../../ui/TimeUpModal";
 import ExamContainer from "../../ui/ExamContainer";
 import genAIService from '../../../services/genAIService';
+import { logger } from '../../../utils/globalLogger.js';
+import { logProductionError } from '../../../utils/envCheck.js';
 
 const WritingPage = ({ onBackToStart, testType, testData }) => {
   const [currentTask, setCurrentTask] = useState('task1');
@@ -299,6 +301,7 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
       );
       
       // Use the GenAI service instead of DeepSeek
+      logger.log('Generating IELTS writing feedback...');
       const parsedFeedback = await genAIService.generateIELTSWritingFeedback(combinedPrompt);
       
       // Transform the API response to match our feedback format
@@ -306,25 +309,25 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
         task1: {
           overallScore: parseFloat(parsedFeedback.task1.overall_score),
           categories: {
-            taskAchievement: {
-              score: parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score) * 10),
-              comments: parsedFeedback.task1.criterion_scores.task_achievement_response.feedback_points
+            taskAchievement: { 
+              score: parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.task_achievement_response.score) * 10), 
+              comments: parsedFeedback.task1.criterion_scores.task_achievement_response.feedback_points 
             },
-            coherenceCohesion: {
-              score: parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score) * 10),
-              comments: parsedFeedback.task1.criterion_scores.coherence_cohesion.feedback_points
+            coherenceCohesion: { 
+              score: parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.coherence_cohesion.score) * 10), 
+              comments: parsedFeedback.task1.criterion_scores.coherence_cohesion.feedback_points 
             },
-            lexicalResource: {
-              score: parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score) * 10),
-              comments: parsedFeedback.task1.criterion_scores.lexical_resource.feedback_points
+            lexicalResource: { 
+              score: parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.lexical_resource.score) * 10), 
+              comments: parsedFeedback.task1.criterion_scores.lexical_resource.feedback_points 
             },
-            grammaticalRange: {
-              score: parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score) * 10),
-              comments: parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.feedback_points
+            grammaticalRange: { 
+              score: parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.score) * 10), 
+              comments: parsedFeedback.task1.criterion_scores.grammatical_range_accuracy.feedback_points 
             }
           },
           strengths: parsedFeedback.task1.strengths,
@@ -333,25 +336,25 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
         task2: {
           overallScore: parseFloat(parsedFeedback.task2.overall_score),
           categories: {
-            taskAchievement: {
-              score: parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score) * 10),
-              comments: parsedFeedback.task2.criterion_scores.task_achievement_response.feedback_points
+            taskAchievement: { 
+              score: parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.task_achievement_response.score) * 10), 
+              comments: parsedFeedback.task2.criterion_scores.task_achievement_response.feedback_points 
             },
-            coherenceCohesion: {
-              score: parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score) * 10),
-              comments: parsedFeedback.task2.criterion_scores.coherence_cohesion.feedback_points
+            coherenceCohesion: { 
+              score: parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.coherence_cohesion.score) * 10), 
+              comments: parsedFeedback.task2.criterion_scores.coherence_cohesion.feedback_points 
             },
-            lexicalResource: {
-              score: parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score) * 10),
-              comments: parsedFeedback.task2.criterion_scores.lexical_resource.feedback_points
+            lexicalResource: { 
+              score: parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.lexical_resource.score) * 10), 
+              comments: parsedFeedback.task2.criterion_scores.lexical_resource.feedback_points 
             },
-            grammaticalRange: {
-              score: parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score),
-              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score) * 10),
-              comments: parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.feedback_points
+            grammaticalRange: { 
+              score: parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score), 
+              percentage: Math.round(parseFloat(parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.score) * 10), 
+              comments: parsedFeedback.task2.criterion_scores.grammatical_range_accuracy.feedback_points 
             }
           },
           strengths: parsedFeedback.task2.strengths,
@@ -361,11 +364,18 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
         overallFeedback: parsedFeedback.overall_feedback
       };
 
+      logger.log('Successfully generated and transformed IELTS writing feedback');
       setFeedback(transformedFeedback);
       setShowFeedback(true);
       setIsLoading(false);
     } catch (error) {
-      console.error('Error generating feedback:', error);
+      logProductionError('IELTS Writing Feedback Generation', error, {
+        hasTask1Question: !!task1Question,
+        hasTask2Question: !!task2Question,
+        task1ResponseLength: task1Response?.length || 0,
+        task2ResponseLength: task2Response?.length || 0,
+        testType: testType
+      });
       
       // Use fallback feedback on error
       const fallbackFeedback = {

@@ -1,22 +1,33 @@
 // Browser-compatible GenAI service using Gemini REST API directly
+import { logger } from '../utils/globalLogger.js';
+import { checkEnvironment, logProductionError } from '../utils/envCheck.js';
+
 class GenAIService {
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
     
+    // Check environment on initialization
+    const envStatus = checkEnvironment();
+    
     if (!this.apiKey) {
-      console.warn('VITE_GEMINI_API_KEY not found in environment variables');
+      logger.error('VITE_GEMINI_API_KEY not found in environment variables');
+      logger.error('Environment status:', envStatus);
+    } else {
+      logger.log('GenAI Service initialized successfully');
     }
   }
 
   async generateSentences(difficulty = 'easy', count = 5) {
     if (!this.apiKey) {
-      console.warn('No API key available, using fallback sentences');
+      logger.error('No API key available for GenAI service, using fallback sentences');
       return this.getFallbackSentences(difficulty, count);
     }
 
     try {
       const prompt = this.createPrompt(difficulty, count);
+      
+      logger.log(`Making API request to: ${this.baseUrl}`);
       
       const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
         method: 'POST',
@@ -39,25 +50,33 @@ class GenAIService {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        const errorMsg = `API request failed: ${response.status} ${response.statusText} - ${errorText}`;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
       
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error('Invalid response format from API');
+        const errorMsg = 'Invalid response format from API';
+        logger.error(errorMsg, data);
+        throw new Error(errorMsg);
       }
 
       const generatedText = data.candidates[0].content.parts[0].text;
       const sentences = this.parseSentenceResponse(generatedText);
       
       if (sentences.length === 0) {
-        throw new Error('No valid sentences generated');
+        const errorMsg = 'No valid sentences generated';
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
       }
 
+      logger.log(`Successfully generated ${sentences.length} sentences`);
       return sentences;
     } catch (error) {
-      console.error('Error generating sentences with GenAI:', error);
+      logger.error('Error generating sentences with GenAI:', error.message);
       return this.getFallbackSentences(difficulty, count);
     }
   }
@@ -145,7 +164,7 @@ Generate ${count} sentences now:`;
       // Find JSON array in the response
       const jsonMatch = cleanText.match(/\[[\s\S]*\]/);
       if (!jsonMatch) {
-        console.warn('No JSON array found in response:', responseText);
+        logger.warn('No JSON array found in response:', responseText.substring(0, 200) + '...');
         return [];
       }
 
@@ -174,11 +193,11 @@ Generate ${count} sentences now:`;
         sentence.jumbled.length === sentence.correct.length
       );
 
-      console.log('Successfully parsed sentences:', validSentences.length);
+      logger.log('Successfully parsed sentences:', validSentences.length);
       return validSentences;
     } catch (error) {
-      console.error('Error parsing GenAI response:', error);
-      console.log('Raw response:', responseText);
+      logger.error('Error parsing GenAI response:', error.message);
+      logger.log('Raw response:', responseText.substring(0, 200) + '...');
       return [];
     }
   }
@@ -382,11 +401,13 @@ Generate ${count} sentences now:`;
 
   async generateIELTSWritingFeedback(prompt) {
     if (!this.apiKey) {
-      console.warn('No API key available, using fallback feedback');
+      logger.error('No API key available for IELTS feedback, using fallback feedback');
       return this.getFallbackIELTSFeedback();
     }
 
     try {
+      logger.log('Making IELTS writing feedback API request');
+      
       const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
@@ -409,16 +430,21 @@ Generate ${count} sentences now:`;
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => "Unknown error");
-        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+        const errorMsg = `IELTS feedback API request failed with status ${response.status}: ${errorText}`;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
       
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error("Received invalid response format from the AI service.");
+        const errorMsg = "Received invalid response format from the AI service for IELTS feedback";
+        logger.error(errorMsg, data);
+        throw new Error(errorMsg);
       }
 
       const generatedText = data.candidates[0].content.parts[0].text;
+      logger.log('Successfully received IELTS feedback response from API');
       
       // Parse the JSON response
       let parsedFeedback;
@@ -430,7 +456,9 @@ Generate ${count} sentences now:`;
           const jsonText = jsonMatch[1];
           try {
             parsedFeedback = JSON.parse(jsonText);
+            logger.log('Successfully parsed IELTS feedback JSON from markdown blocks');
           } catch (jsonError) {
+            logger.warn('Failed to parse JSON from markdown blocks, attempting to fix formatting');
             // Attempt to fix common JSON formatting issues
             let sanitizedJson = jsonText
               .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
@@ -439,7 +467,9 @@ Generate ${count} sentences now:`;
             
             try {
               parsedFeedback = JSON.parse(sanitizedJson);
+              logger.log('Successfully parsed IELTS feedback JSON after formatting fixes');
             } catch (repairError) {
+              logger.error('Failed to parse JSON even after formatting fixes:', repairError.message);
               parsedFeedback = this.getFallbackIELTSFeedback();
             }
           }
@@ -450,19 +480,25 @@ Generate ${count} sentences now:`;
           if (possibleJson && possibleJson[1]) {
             try {
               parsedFeedback = JSON.parse(possibleJson[1]);
+              logger.log('Successfully parsed IELTS feedback JSON without code blocks');
             } catch (rawJsonError) {
+              logger.error('Failed to parse raw JSON from response:', rawJsonError.message);
               parsedFeedback = this.getFallbackIELTSFeedback();
             }
           } else {
+            logger.error('No JSON found in IELTS feedback response');
+            logger.log('Response text:', generatedText.substring(0, 500) + '...');
             parsedFeedback = this.getFallbackIELTSFeedback();
           }
         }
       } catch (e) {
+        logger.error('Unexpected error parsing IELTS feedback response:', e.message);
         parsedFeedback = this.getFallbackIELTSFeedback();
       }
 
       return parsedFeedback;
     } catch (error) {
+      logger.error('Error generating IELTS writing feedback:', error.message);
       return this.getFallbackIELTSFeedback();
     }
   }
