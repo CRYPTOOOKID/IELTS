@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import { useSpeakingContext } from './SpeakingContext';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import useSpeechRecognition from './useSpeechRecognition';
@@ -7,23 +6,19 @@ import RefreshTestButton from '../RefreshTestButton';
 import './speaking.css';
 
 // Part 1 Component
-export const Part1 = () => {
-  const {
-    testData,
-    nextPart,
-    transcriptions,
-    isRecording,
-    updateTranscription,
-    toggleRecording,
-    setError,
-    refreshTest,
-    loading
-  } = useSpeakingContext();
-  
+export const Part1 = ({ 
+  testData, 
+  transcriptions, 
+  isRecording, 
+  updateTranscription, 
+  toggleRecording, 
+  nextPart,
+  onBack 
+}) => {
   const { isSupported, startRecognition } = useSpeechRecognition();
   const recognitionRef = useRef(null);
   const [currentTranscript, setCurrentTranscript] = useState('');
-  const [refreshLoading, setRefreshLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   const startRecording = (questionIndex) => {
     // If already recording, stop the recognition
@@ -83,19 +78,6 @@ export const Part1 = () => {
     toggleRecording(1, questionIndex);
   };
   
-  const confirmRefreshTest = async () => {
-    setRefreshLoading(true);
-    
-    try {
-      await refreshTest();
-    } catch (error) {
-      console.error('Error refreshing speaking test:', error);
-      alert('Failed to load new test. Please try again.');
-    } finally {
-      setRefreshLoading(false);
-    }
-  };
-  
   // Get the questions from the test data
   const questions = testData?.Part1 || [];
   
@@ -106,6 +88,9 @@ export const Part1 = () => {
         <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
           <h2 className="text-xl font-semibold text-yellow-700 mb-2">No Questions Available</h2>
           <p className="text-yellow-600">Could not load Part 1 questions. Please try restarting the test.</p>
+          <Button onClick={onBack} className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
+            Return to Instructions
+          </Button>
         </div>
       </div>
     );
@@ -113,6 +98,15 @@ export const Part1 = () => {
   
   return (
     <div className="max-w-5xl mx-auto">
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={() => setError(null)} className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white">
+            Dismiss
+          </Button>
+        </div>
+      )}
+      
       <div className="text-center mb-10 animate-fade-in">
         <h1 className="text-4xl font-bold mb-3" style={{
           background: "var(--primary-gradient)",
@@ -176,40 +170,65 @@ export const Part1 = () => {
           </svg>
         </Button>
       </div>
-
-      {/* Refresh Test Button */}
-      <RefreshTestButton
-        testType="speaking test"
-        isLoading={refreshLoading || loading}
-        onRefreshTest={confirmRefreshTest}
-      />
     </div>
   );
 };
 
 // Part 2 Component
-export const Part2 = () => {
-  const {
-    testData,
-    nextPart,
-    transcriptions,
-    isRecording,
-    updateTranscription,
-    toggleRecording,
-    setError
-  } = useSpeakingContext();
-  
+export const Part2 = ({ 
+  testData, 
+  transcriptions, 
+  isRecording, 
+  updateTranscription, 
+  toggleRecording, 
+  nextPart,
+  onBack 
+}) => {
   const { isSupported, startRecognition } = useSpeechRecognition();
   const recognitionRef = useRef(null);
   const [currentTranscript, setCurrentTranscript] = useState('');
+  const [error, setError] = useState(null);
+  const [preparationTime, setPreparationTime] = useState(60); // 1 minute preparation
+  const [isPreparationPhase, setIsPreparationPhase] = useState(true);
+  const [speakingTime, setSpeakingTime] = useState(120); // 2 minutes speaking
+  const [isSpeakingPhase, setIsSpeakingPhase] = useState(false);
+  
+  // Timer effect for preparation phase
+  React.useEffect(() => {
+    if (isPreparationPhase && preparationTime > 0) {
+      const timer = setTimeout(() => {
+        setPreparationTime(preparationTime - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (isPreparationPhase && preparationTime === 0) {
+      setIsPreparationPhase(false);
+      setIsSpeakingPhase(true);
+    }
+  }, [preparationTime, isPreparationPhase]);
+  
+  // Timer effect for speaking phase
+  React.useEffect(() => {
+    if (isSpeakingPhase && speakingTime > 0 && !isRecording.part2) {
+      const timer = setTimeout(() => {
+        setSpeakingTime(speakingTime - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (isSpeakingPhase && speakingTime === 0) {
+      // Time's up, stop recording if active
+      if (isRecording.part2) {
+        toggleRecordingHandler();
+      }
+      setIsSpeakingPhase(false);
+    }
+  }, [speakingTime, isSpeakingPhase, isRecording.part2]);
   
   const toggleRecordingHandler = () => {
-    // If already recording, stop the recognition
     if (isRecording.part2) {
+      // Stop recording
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-          console.log('Speech recognition stopped for Part 2');
+          console.log('Speech recognition stopped');
         } catch (error) {
           console.error('Error stopping speech recognition:', error);
         }
@@ -221,20 +240,14 @@ export const Part2 = () => {
         updateTranscription(2, 0, currentTranscript);
       }
     } else {
-      // Stop any existing recognition before starting a new one
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-          console.log('Stopping previous speech recognition');
-        } catch (error) {
-          console.error('Error stopping previous speech recognition:', error);
-        }
-        recognitionRef.current = null;
-      }
-      
-      // Start new recording
+      // Start recording
       if (!isSupported) {
         setError('Speech recognition is not supported in your browser. Please try using Chrome, Edge, or Safari.');
+        return;
+      }
+      
+      if (isPreparationPhase) {
+        setError('Please wait for the preparation time to finish before recording.');
         return;
       }
       
@@ -261,27 +274,47 @@ export const Part2 = () => {
     toggleRecording(2, 0);
   };
   
-  // Get the Part 2 data from the test data
-  const part2Data = testData?.Part2 || {
-    title: "No topic available",
-    cues: [],
-    final_question: ""
+  const skipPreparation = () => {
+    setIsPreparationPhase(false);
+    setIsSpeakingPhase(true);
+    setPreparationTime(0);
   };
   
+  // Get the Part 2 data
+  const part2Data = testData?.Part2;
+  
   // Validate data before rendering
-  if (!part2Data.title || !Array.isArray(part2Data.cues) || part2Data.cues.length === 0) {
+  if (!part2Data || !part2Data.title) {
     return (
       <div className="max-w-5xl mx-auto">
         <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
-          <h2 className="text-xl font-semibold text-yellow-700 mb-2">Invalid Data</h2>
-          <p className="text-yellow-600">Could not load Part 2 question data. Please try restarting the test.</p>
+          <h2 className="text-xl font-semibold text-yellow-700 mb-2">No Topic Available</h2>
+          <p className="text-yellow-600">Could not load Part 2 topic. Please try restarting the test.</p>
+          <Button onClick={onBack} className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
+            Return to Instructions
+          </Button>
         </div>
       </div>
     );
   }
   
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
   return (
     <div className="max-w-5xl mx-auto">
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={() => setError(null)} className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white">
+            Dismiss
+          </Button>
+        </div>
+      )}
+      
       <div className="text-center mb-10 animate-fade-in">
         <h1 className="text-4xl font-bold mb-3" style={{
           background: "var(--primary-gradient)",
@@ -291,68 +324,84 @@ export const Part2 = () => {
         }}>
           Speaking Test - Part 2
         </h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          You will be given a topic to talk about for 1-2 minutes. You have 1 minute to prepare your response.
-        </p>
+        
+        {isPreparationPhase && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h2 className="text-xl font-semibold text-blue-800 mb-2">Preparation Time</h2>
+            <p className="text-blue-600 mb-2">You have 1 minute to prepare your answer. Make notes if needed.</p>
+            <div className="text-2xl font-bold text-blue-800">{formatTime(preparationTime)}</div>
+            <Button onClick={skipPreparation} className="mt-2 text-sm bg-blue-600 hover:bg-blue-700 text-white">
+              Skip Preparation
+            </Button>
+          </div>
+        )}
+        
+        {isSpeakingPhase && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h2 className="text-xl font-semibold text-green-800 mb-2">Speaking Time</h2>
+            <p className="text-green-600 mb-2">Speak for 1-2 minutes about the topic below.</p>
+            <div className="text-2xl font-bold text-green-800">{formatTime(speakingTime)}</div>
+          </div>
+        )}
       </div>
       
-      <div className="animate-scale-in" style={{ animationDelay: "0.3s" }}>
-        <Card className="p-8 mb-10 speaking-question-card cue-card">
-          <h2 className="text-2xl font-bold mb-8 text-center">{part2Data.title}</h2>
-          
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-indigo-800">You should say:</h3>
-            <ul className="space-y-3">
+      <Card className="p-8 speaking-question-card mb-8">
+        <h2 className="text-2xl font-bold mb-4">{part2Data.title}</h2>
+        
+        {part2Data.cues && Array.isArray(part2Data.cues) && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">You should say:</h3>
+            <ul className="list-disc list-inside space-y-2 text-gray-700">
               {part2Data.cues.map((cue, index) => (
-                <li key={index} className="cue-item">{cue}</li>
+                <li key={index}>{cue}</li>
               ))}
             </ul>
           </div>
-          
-          {part2Data.final_question && (
-            <p className="text-lg font-medium text-indigo-700 mb-8 italic">{part2Data.final_question}</p>
-          )}
-          
-          <div className="flex justify-center mt-10">
-            <Button
-              onClick={toggleRecordingHandler}
-              className={`flex items-center justify-center rounded-full w-24 h-24 mic-button-large ${
-                isRecording.part2
-                  ? 'recording'
-                  : ''
-              }`}
-              aria-label={isRecording.part2 ? "Stop recording" : "Start recording"}
-            >
-              {isRecording.part2 ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-              )}
-            </Button>
+        )}
+        
+        {part2Data.final_question && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="font-medium">{part2Data.final_question}</p>
           </div>
-          <p className="text-center text-indigo-600 font-medium mt-4">
-            {isRecording.part2 ? "Recording in progress..." : "Click the microphone to begin speaking"}
-          </p>
-        </Card>
+        )}
+        
+        {transcriptions.part2 && (
+          <div className="transcription-area mt-6">
+            <h3 className="transcription-label">Your Answer:</h3>
+            <p className="transcription-text">{transcriptions.part2}</p>
+          </div>
+        )}
+      </Card>
+      
+      <div className="text-center mb-8">
+        <Button
+          onClick={toggleRecordingHandler}
+          disabled={isPreparationPhase}
+          className={`mic-button-large ${
+            isRecording.part2 ? 'recording' : ''
+          } ${isPreparationPhase ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label={isRecording.part2 ? "Stop recording" : "Start recording"}
+        >
+          {isRecording.part2 ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+              </svg>
+              Stop Recording
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+              {isPreparationPhase ? 'Preparing...' : 'Start Recording'}
+            </>
+          )}
+        </Button>
       </div>
       
-      {transcriptions.part2 && (
-        <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <Card className="p-8 mb-10 speaking-question-card">
-            <h3 className="text-xl font-semibold mb-4 text-indigo-800">Your Response:</h3>
-            <div className="transcription-area">
-              <p className="transcription-text">{transcriptions.part2}</p>
-            </div>
-          </Card>
-        </div>
-      )}
-      
-      <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+      <div className="text-center mb-16 animate-fade-in">
         <Button
           onClick={nextPart}
           className="nav-button px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-medium rounded-xl shadow-lg"
@@ -368,20 +417,19 @@ export const Part2 = () => {
 };
 
 // Part 3 Component
-export const Part3 = () => {
-  const {
-    testData,
-    transcriptions,
-    isRecording,
-    updateTranscription,
-    toggleRecording,
-    getFeedback,
-    setError
-  } = useSpeakingContext();
-  
+export const Part3 = ({ 
+  testData, 
+  transcriptions, 
+  isRecording, 
+  updateTranscription, 
+  toggleRecording, 
+  showFeedbackPage,
+  onBack 
+}) => {
   const { isSupported, startRecognition } = useSpeechRecognition();
   const recognitionRef = useRef(null);
   const [currentTranscript, setCurrentTranscript] = useState('');
+  const [error, setError] = useState(null);
   
   const startRecording = (questionIndex) => {
     // If already recording, stop the recognition
@@ -389,7 +437,7 @@ export const Part3 = () => {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-          console.log('Speech recognition stopped for Part 3');
+          console.log('Speech recognition stopped');
         } catch (error) {
           console.error('Error stopping speech recognition:', error);
         }
@@ -441,6 +489,23 @@ export const Part3 = () => {
     toggleRecording(3, questionIndex);
   };
   
+  // Check if user has spoken in any part
+  const hasSpoken = () => {
+    const hasSpokenPart1 = transcriptions.part1.some(answer => answer.trim().length > 0);
+    const hasSpokenPart2 = transcriptions.part2.trim().length > 0;
+    const hasSpokenPart3 = transcriptions.part3.some(answer => answer.trim().length > 0);
+    
+    return hasSpokenPart1 || hasSpokenPart2 || hasSpokenPart3;
+  };
+  
+  const handleGetFeedback = () => {
+    if (!hasSpoken()) {
+      setError("You need to record at least one answer before getting feedback.");
+      return;
+    }
+    showFeedbackPage();
+  };
+  
   // Get the questions from the test data
   const questions = testData?.Part3 || [];
   
@@ -451,19 +516,25 @@ export const Part3 = () => {
         <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md">
           <h2 className="text-xl font-semibold text-yellow-700 mb-2">No Questions Available</h2>
           <p className="text-yellow-600">Could not load Part 3 questions. Please try restarting the test.</p>
+          <Button onClick={onBack} className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
+            Return to Instructions
+          </Button>
         </div>
       </div>
     );
   }
   
-  const hasSpoken = () => {
-    return transcriptions.part1.some(text => text.trim() !== "") || 
-           transcriptions.part2.trim() !== "" || 
-           transcriptions.part3.some(text => text.trim() !== "");
-  };
-  
   return (
     <div className="max-w-5xl mx-auto">
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={() => setError(null)} className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white">
+            Dismiss
+          </Button>
+        </div>
+      )}
+      
       <div className="text-center mb-10 animate-fade-in">
         <h1 className="text-4xl font-bold mb-3" style={{
           background: "var(--primary-gradient)",
@@ -474,7 +545,7 @@ export const Part3 = () => {
           Speaking Test - Part 3
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          Answer the following questions related to the topic from Part 2. These questions will be more abstract and require deeper analysis.
+          Discuss more abstract ideas and issues. These questions are related to the topic in Part 2.
         </p>
       </div>
       
@@ -518,28 +589,15 @@ export const Part3 = () => {
       
       <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
         <Button
-          onClick={getFeedback}
-          disabled={!hasSpoken()}
-          className={`nav-button px-10 py-4 text-white text-lg font-medium rounded-xl shadow-lg ${!hasSpoken() ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-emerald-600'}`}
+          onClick={handleGetFeedback}
+          className="nav-button px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-medium rounded-xl shadow-lg"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline-block" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          <span className="mr-2">Get AI Feedback</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
-          Complete Test & Get Feedback
         </Button>
-        <p className="mt-4 text-slate-600 text-sm">
-          {!hasSpoken() ? 
-            "Please record at least one answer before completing the test." : 
-            "Click the button above to complete the test and get AI feedback on your performance."}
-        </p>
       </div>
     </div>
   );
-};
-
-// Default export for backward compatibility if needed
-export default {
-  Part1,
-  Part2,
-  Part3
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useSpeakingContext } from './SpeakingContext';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
+import { feedbackPrompt } from './prompt.js';
 import './speaking.css';
 
 // Enhanced Radar chart component
@@ -198,14 +198,14 @@ const FeedbackCard = ({ title, color, icon, children, delay = 0 }) => {
   
   return (
     <div className="animate-fade-in" style={{ animationDelay: `${delay}s` }}>
-      <Card className={`feedback-card ${colors.bg} ${colors.border}`}>
-        <div className="feedback-card-header">
-          <div className={`feedback-card-icon ${colors.icon}`}>
-            {icon}
+      <Card className={`p-8 ${colors.bg} ${colors.border} border-2 shadow-xl rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1`}>
+        <div className="flex items-center mb-6">
+          <div className={`w-12 h-12 rounded-xl ${colors.icon} flex items-center justify-center mr-4 shadow-lg`}>
+            <span className="material-icons text-xl">{icon}</span>
           </div>
-          <h2 className={`text-xl font-semibold ${colors.title}`}>{title}</h2>
+          <h3 className={`text-2xl font-bold ${colors.title}`}>{title}</h3>
         </div>
-        <div className="feedback-card-content">
+        <div className="text-gray-700 leading-relaxed">
           {children}
         </div>
       </Card>
@@ -215,59 +215,72 @@ const FeedbackCard = ({ title, color, icon, children, delay = 0 }) => {
 
 // Enhanced Skill meter component
 const SkillMeter = ({ value, color, label, delay = 0 }) => {
+  const [animatedValue, setAnimatedValue] = useState(0);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimatedValue(value);
+    }, delay * 1000 + 500);
+    
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  
+  const percentage = (animatedValue / 9) * 100;
+  
   const colorMap = {
-    indigo: {
-      text: "text-indigo-700",
-      value: "text-indigo-600",
-      fill: "bg-gradient-to-r from-indigo-500 to-indigo-600"
-    },
-    purple: {
-      text: "text-purple-700",
-      value: "text-purple-600",
-      fill: "bg-gradient-to-r from-purple-500 to-purple-600"
-    },
-    pink: {
-      text: "text-pink-700",
-      value: "text-pink-600",
-      fill: "bg-gradient-to-r from-pink-500 to-pink-600"
-    }
+    indigo: "from-indigo-500 to-indigo-600",
+    purple: "from-purple-500 to-purple-600",
+    pink: "from-pink-500 to-pink-600"
   };
   
-  const colors = colorMap[color] || colorMap.indigo;
-  
-  // Calculate the actual width percentage based on the value
-  const widthPercentage = Math.min((value / 9) * 100, 100);
-  
   return (
-    <div className="skill-meter animate-fade-in" style={{ animationDelay: `${delay}s` }}>
-      <div className="skill-meter-label">
-        <span className={`font-medium ${colors.text}`}>{label}</span>
-        <span className={`font-medium ${colors.value}`}>{value}/9</span>
-      </div>
-      <div className="skill-meter-track">
-        <div
-          className={`skill-meter-fill ${colors.fill}`}
-          style={{
-            width: `${widthPercentage}%`,
-            transition: 'width 1.2s cubic-bezier(0.165, 0.84, 0.44, 1)',
-            animationDelay: `${delay + 0.2}s`
-          }}
-        ></div>
+    <div className="animate-fade-in" style={{ animationDelay: `${delay}s` }}>
+      <div className="text-center p-6 bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4">{label}</h4>
+        <div className="relative w-24 h-24 mx-auto mb-4">
+          <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="8"
+              fill="transparent"
+              className="text-gray-200"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="8"
+              fill="transparent"
+              strokeDasharray={`${percentage * 2.51} 251`}
+              className={`text-${color}-500 transition-all duration-1000 ease-out`}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-bold text-gray-800">{animatedValue.toFixed(1)}</span>
+          </div>
+        </div>
+        <div className="text-sm text-gray-600">out of 9.0</div>
       </div>
     </div>
   );
 };
 
-const SpeakingFeedback = () => {
-  const {
-    feedback,
-    feedbackLoading,
-    resetTest,
-    error,
-  } = useSpeakingContext();
-  
+const SpeakingFeedback = ({ testData, transcriptions, onBack }) => {
+  const [feedback, setFeedback] = useState(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [progressPercentage, setProgressPercentage] = useState(0);
+  
+  // Generate feedback when component mounts
+  useEffect(() => {
+    generateFeedback();
+  }, []);
   
   // Set up the progress animation when feedbackLoading changes
   useEffect(() => {
@@ -294,6 +307,145 @@ const SpeakingFeedback = () => {
       }
     };
   }, [feedbackLoading]);
+
+  const generateFeedback = async () => {
+    if (!testData) return;
+    
+    // Check if the user has spoken at all
+    const hasSpoken = () => {
+      const hasSpokenPart1 = transcriptions.part1.some(answer => answer.trim().length > 0);
+      const hasSpokenPart2 = transcriptions.part2.trim().length > 0;
+      const hasSpokenPart3 = transcriptions.part3.some(answer => answer.trim().length > 0);
+      
+      return hasSpokenPart1 || hasSpokenPart2 || hasSpokenPart3;
+    };
+    
+    if (!hasSpoken()) {
+      setError("You need to record at least one answer before getting feedback.");
+      setFeedbackLoading(false);
+      return;
+    }
+    
+    try {
+      setFeedbackLoading(true);
+      setError(null);
+      
+      // The API now returns data directly in the structure we need
+      const part1Questions = testData.Part1;
+      const part2Question = {
+        title: testData.Part2.title,
+        cues: testData.Part2.cues,
+        final_question: testData.Part2.final_question
+      };
+      const part3Questions = testData.Part3;
+      
+      // Combine questions and answers
+      const part1Data = part1Questions.map((question, index) => ({
+        question,
+        answer: transcriptions.part1[index]
+      }));
+      
+      const part2Data = {
+        question: part2Question,
+        answer: transcriptions.part2
+      };
+      
+      const part3Data = part3Questions.map((question, index) => ({
+        question,
+        answer: transcriptions.part3[index]
+      }));
+      
+      // Combine all parts
+      const testContent = {
+        part1: part1Data,
+        part2: part2Data,
+        part3: part3Data
+      };
+      
+      // Format the content for the AI
+      let promptContent = "IELTS Speaking Test Responses:\n\n";
+      
+      // Part 1
+      promptContent += "PART 1 - Introduction and Interview:\n";
+      part1Data.forEach((item, index) => {
+        promptContent += `Q${index + 1}: ${item.question}\n`;
+        promptContent += `A${index + 1}: ${item.answer || "[No response recorded]"}\n\n`;
+      });
+      
+      // Part 2
+      promptContent += "PART 2 - Long Turn:\n";
+      promptContent += `Topic: ${part2Data.question.title}\n`;
+      if (part2Data.question.cues && Array.isArray(part2Data.question.cues)) {
+        promptContent += "Cues:\n";
+        part2Data.question.cues.forEach((cue, index) => {
+          promptContent += `- ${cue}\n`;
+        });
+      }
+      if (part2Data.question.final_question) {
+        promptContent += `Final Question: ${part2Data.question.final_question}\n`;
+      }
+      promptContent += `Response: ${part2Data.answer || "[No response recorded]"}\n\n`;
+      
+      // Part 3
+      promptContent += "PART 3 - Discussion:\n";
+      part3Data.forEach((item, index) => {
+        promptContent += `Q${index + 1}: ${item.question}\n`;
+        promptContent += `A${index + 1}: ${item.answer || "[No response recorded]"}\n\n`;
+      });
+      
+      // Get the Gemini API key from environment variables
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error('Gemini API key not found. Please check your environment configuration.');
+      }
+      
+      // Call the Gemini API
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: feedbackPrompt + "\n\n" + promptContent
+            }]
+          }]
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error('Invalid response format from Gemini API');
+      }
+      
+      const feedbackText = data.candidates[0].content.parts[0].text;
+      
+      // Parse the JSON response
+      let parsedFeedback;
+      try {
+        parsedFeedback = JSON.parse(feedbackText);
+      } catch (parseError) {
+        console.error('Failed to parse feedback JSON:', parseError);
+        throw new Error('Failed to parse AI feedback. Please try again.');
+      }
+      
+      setFeedback(parsedFeedback);
+      
+    } catch (err) {
+      console.error('Error getting feedback:', err);
+      setError(`Failed to get AI feedback: ${err.message}`);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
 
   if (feedbackLoading) {
     return (
@@ -359,7 +511,7 @@ const SpeakingFeedback = () => {
             <p className="text-red-700 mb-8 text-center text-lg">{error}</p>
             <div className="flex justify-center">
               <Button
-                onClick={resetTest}
+                onClick={onBack}
                 className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-300 text-lg font-medium"
               >
                 Back to Instructions
@@ -388,7 +540,7 @@ const SpeakingFeedback = () => {
             <p className="text-amber-700 mb-8 text-center text-lg">Please complete the speaking test to receive feedback.</p>
             <div className="flex justify-center">
               <Button
-                onClick={resetTest}
+                onClick={onBack}
                 className="px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-300 text-lg font-medium"
               >
                 Back to Instructions
@@ -460,183 +612,64 @@ const SpeakingFeedback = () => {
               Overview
             </button>
             <button
-              onClick={() => setActiveTab('details')}
-              className={`tab-button ${activeTab === 'details' ? 'active' : ''}`}
+              onClick={() => setActiveTab('detailed')}
+              className={`tab-button ${activeTab === 'detailed' ? 'active' : ''}`}
             >
               Detailed Analysis
             </button>
           </div>
         </div>
-        
-        {activeTab === 'overview' ? (
-          <div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-              <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-                <Card className="p-8 bg-white shadow-xl rounded-xl h-full">
-                  <h2 className="text-2xl font-bold mb-6" style={{
-                    background: "var(--primary-gradient)",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    color: "transparent"
-                  }}>
-                    Performance Summary
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed text-lg">{overallFeedback}</p>
-                </Card>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="space-y-12">
+            {/* Radar Chart and Skill Meters */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="animate-fade-in" style={{ animationDelay: "0.7s" }}>
+                <h3 className="text-2xl font-bold text-center mb-8 text-indigo-800">Performance Overview</h3>
+                <RadarChart scores={radarScores} />
               </div>
               
-              <div className="animate-fade-in" style={{ animationDelay: "0.8s" }}>
-                <Card className="p-8 bg-white shadow-xl rounded-xl h-full">
-                  <h2 className="text-2xl font-bold mb-6 text-center" style={{
-                    background: "var(--primary-gradient)",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    color: "transparent"
-                  }}>
-                    Skill Balance
-                  </h2>
-                  <RadarChart scores={radarScores} />
-                </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <SkillMeter value={fluencyScore} color="indigo" label="Fluency" delay={0.9} />
+                <SkillMeter value={vocabularyScore} color="purple" label="Vocabulary" delay={1.1} />
+                <SkillMeter value={grammarScore} color="pink" label="Grammar" delay={1.3} />
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-              <SkillMeter
-                value={fluencyScore.toFixed(1)}
-                color="indigo"
-                label="Fluency & Coherence"
-                delay={0.9}
-              />
-              <SkillMeter
-                value={vocabularyScore.toFixed(1)}
-                color="purple"
-                label="Lexical Resource"
-                delay={1.0}
-              />
-              <SkillMeter
-                value={grammarScore.toFixed(1)}
-                color="pink"
-                label="Grammatical Range"
-                delay={1.1}
-              />
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-              {/* Fluency and Coherence */}
-              <FeedbackCard
-                title="Fluency & Coherence"
-                color="indigo"
-                delay={0.6}
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                  </svg>
-                }
-              >
-                <div className="feedback-card-section">
-                  <div className="feedback-card-section-title text-indigo-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Strengths
-                  </div>
-                  <p className="text-gray-700">{fluencyAndCoherence.strengths}</p>
-                </div>
-                
-                <div className="feedback-card-section">
-                  <div className="feedback-card-section-title text-indigo-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                    Areas to Enhance
-                  </div>
-                  <p className="text-gray-700">{fluencyAndCoherence.areasForImprovement}</p>
-                </div>
-              </FeedbackCard>
-              
-              {/* Lexical Resource */}
-              <FeedbackCard
-                title="Vocabulary"
-                color="purple"
-                delay={0.8}
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                }
-              >
-                <div className="feedback-card-section">
-                  <div className="feedback-card-section-title text-purple-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Strengths
-                  </div>
-                  <p className="text-gray-700">{lexicalResource.strengths}</p>
-                </div>
-                
-                <div className="feedback-card-section">
-                  <div className="feedback-card-section-title text-purple-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                    Areas to Enhance
-                  </div>
-                  <p className="text-gray-700">{lexicalResource.areasForImprovement}</p>
-                </div>
-              </FeedbackCard>
-              
-              {/* Grammatical Range and Accuracy */}
-              <FeedbackCard
-                title="Grammar"
-                color="pink"
-                delay={1.0}
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                }
-              >
-                <div className="feedback-card-section">
-                  <div className="feedback-card-section-title text-pink-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Strengths
-                  </div>
-                  <p className="text-gray-700">{grammaticalRangeAndAccuracy.strengths}</p>
-                </div>
-                
-                <div className="feedback-card-section">
-                  <div className="feedback-card-section-title text-pink-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                    Areas to Enhance
-                  </div>
-                  <p className="text-gray-700">{grammaticalRangeAndAccuracy.areasForImprovement}</p>
-                </div>
-              </FeedbackCard>
-            </div>
+
+            {/* Overall Feedback */}
+            <FeedbackCard title="Overall Assessment" color="indigo" icon="assessment" delay={1.5}>
+              <p className="text-lg leading-relaxed">{overallFeedback}</p>
+            </FeedbackCard>
           </div>
         )}
-        
+
+        {activeTab === 'detailed' && (
+          <div className="space-y-8">
+            <FeedbackCard title="Fluency and Coherence" color="indigo" icon="record_voice_over" delay={0.7}>
+              <p className="text-lg leading-relaxed">{fluencyAndCoherence}</p>
+            </FeedbackCard>
+            
+            <FeedbackCard title="Lexical Resource (Vocabulary)" color="purple" icon="library_books" delay={0.9}>
+              <p className="text-lg leading-relaxed">{lexicalResource}</p>
+            </FeedbackCard>
+            
+            <FeedbackCard title="Grammatical Range and Accuracy" color="pink" icon="spellcheck" delay={1.1}>
+              <p className="text-lg leading-relaxed">{grammaticalRangeAndAccuracy}</p>
+            </FeedbackCard>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="text-center mt-16 animate-fade-in" style={{ animationDelay: "1.2s" }}>
-          <Button
-            onClick={resetTest}
-            className="nav-button px-10 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-medium rounded-xl shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline-block" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-            </svg>
-            Start New Test
-          </Button>
-          <p className="mt-4 text-gray-600 text-sm">
-            Ready to improve? Take another test to track your progress.
-          </p>
+        <div className="text-center mt-16 animate-fade-in" style={{ animationDelay: "1.7s" }}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={onBack}
+              className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-300 text-lg font-medium"
+            >
+              Take Another Test
+            </Button>
+          </div>
         </div>
       </div>
     </div>

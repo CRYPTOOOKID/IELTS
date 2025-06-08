@@ -32,6 +32,47 @@
   --glass-border: rgba(255, 255, 255, 0.3);
 }
 
+/* Enhanced Button Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes buttonPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+}
+
+@keyframes progressGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+  }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Speaking Start Button Styles */
 .speaking-start-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -70,6 +111,19 @@
 .speaking-start-button.loading {
   background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
   cursor: not-allowed;
+}
+
+.speaking-start-button.preparing {
+  animation: buttonPulse 2s infinite;
+}
+
+.speaking-start-button.ready {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+/* Enhanced Progress Bar */
+.progress-bar {
+  animation: progressGlow 2s infinite;
 }
 
 /* Spinner Animation */

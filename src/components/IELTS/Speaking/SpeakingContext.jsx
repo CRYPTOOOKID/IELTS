@@ -39,11 +39,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  // Reset state when component mounts
-  useEffect(() => {
-    resetTest();
-  }, []);
-
   // Countdown animation effect
   useEffect(() => {
     if (showCountdown) {
@@ -60,60 +55,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
       }
     }
   }, [countdownNumber, showCountdown]);
-
-  // Function to fetch test data from HTTP API with fallback (inspired by writing test pattern)
-  const fetchTestData = async () => {
-    setError(null);
-    setLoadingMessage('Loading speaking test data...');
-    setUsingFallback(false);
-    
-    console.log("Fetching speaking test data...");
-    
-    try {
-      // Generate random test number between 1-20 and use the correct IELTS endpoint pattern
-      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
-      const testIdToFetch = type === 'academic' 
-        ? `ILTS.SPKNG.ACAD.T${randomTestNumber}`
-        : `ILTS.SPKNG.GT.T${randomTestNumber}`;
-      const apiUrl = `https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testIdToFetch}`;
-      
-      console.log(`Fetching speaking test data from: ${apiUrl}`);
-      
-      const response = await fetch(apiUrl, { 
-        method: 'GET', 
-        headers: { 'Accept': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        let errorPayload = null; 
-        try { errorPayload = await response.json(); } catch (e) {}
-        const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
-        throw new Error(errorMsg);
-      }
-      
-      const data = await response.json();
-      console.log("Successfully fetched speaking test data:", data);
-      
-      // Set the data
-      setTestData(data);
-      
-      setLoadingMessage('Successfully loaded test data');
-      console.log('Successfully loaded test data');
-      
-      // Clear the success message after 3 seconds
-      setTimeout(() => {
-        setLoadingMessage('');
-      }, 3000);
-    } catch (err) {
-      console.error(`Error fetching test data from API:`, err);
-      setError(`Error loading test data: ${err.message}. Using fallback data.`);
-      console.log("Using fallback data due to error");
-      
-      // Use fallback data
-      setTestData(fallbackData);
-      setUsingFallback(true);
-    }
-  };
 
   // Start the test by showing countdown first
   const startTest = () => {
@@ -386,14 +327,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
     setError(null);
   };
 
-  // Function to refresh the test with new data
-  const refreshTest = async () => {
-    setLoading(true);
-    resetTest(); // Reset all test state
-    await fetchTestData(); // Fetch new test data
-    setLoading(false);
-  };
-
   // Function to set test data directly (for use by instructions component)
   const setTestDataDirectly = (data) => {
     setTestData(data);
@@ -409,6 +342,7 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
     setError,
     resetError,
     loadingMessage,
+    setLoadingMessage,
     showInstructions,
     currentPart,
     usingFallback,
@@ -420,7 +354,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
     feedbackLoading,
     showFeedback,
     setShowFeedback,
-    fetchTestData,
     setTestDataDirectly,
     startTest,
     nextPart,
@@ -429,7 +362,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
     resetTest,
     getFeedback,
     hasSpoken,
-    refreshTest,
   };
 
   return (
