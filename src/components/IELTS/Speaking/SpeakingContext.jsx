@@ -23,8 +23,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentPart, setCurrentPart] = useState(1); // 1, 2, or 3
   const [usingFallback, setUsingFallback] = useState(false);
-  const [showCountdown, setShowCountdown] = useState(false);
-  const [countdownNumber, setCountdownNumber] = useState(3);
   const [transcriptions, setTranscriptions] = useState({
     part1: ["", "", "", ""],
     part2: "",
@@ -39,31 +37,14 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  // Countdown animation effect
-  useEffect(() => {
-    if (showCountdown) {
-      if (countdownNumber > 0) {
-        const timer = setTimeout(() => {
-          setCountdownNumber(countdownNumber - 1);
-        }, 1000);
-        return () => clearTimeout(timer);
-      } else {
-        // When countdown reaches 0, hide countdown and show the test
-        setShowCountdown(false);
-        setShowInstructions(false);
-        setCurrentPart(1);
-      }
-    }
-  }, [countdownNumber, showCountdown]);
-
-  // Start the test by showing countdown first
+  // Start the test immediately (like Writing component)
   const startTest = () => {
     // Stop any active recordings when starting the test
     stopAllRecordings();
     
-    // Start countdown animation
-    setShowCountdown(true);
-    setCountdownNumber(3);
+    // Start test immediately without countdown
+    setShowInstructions(false);
+    setCurrentPart(1);
   };
 
   // Move to the next part of the test
@@ -128,8 +109,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
   const resetTest = () => {
     setShowInstructions(true);
     setCurrentPart(1);
-    setShowCountdown(false);
-    setCountdownNumber(3);
     setTranscriptions({
       part1: ["", "", "", ""],
       part2: "",
@@ -346,8 +325,6 @@ export const SpeakingProvider = ({ children, type = 'general-training' }) => {
     showInstructions,
     currentPart,
     usingFallback,
-    showCountdown,
-    countdownNumber,
     transcriptions,
     isRecording,
     feedback,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './writingPage.css';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -14,6 +14,7 @@ import { logger } from '../../../utils/globalLogger.js';
 import { logProductionError } from '../../../utils/envCheck.js';
 
 const WritingPage = ({ onBackToStart, testType, testData }) => {
+  const navigate = useNavigate();
   const [currentTask, setCurrentTask] = useState('task1');
   const [task1Response, setTask1Response] = useState('');
   const [task2Response, setTask2Response] = useState('');
@@ -431,10 +432,20 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
     setRefreshLoading(true);
     
     try {
-      // Navigate back to writing home to get a new test
-      // The home component should handle generating a new random test
+      // Reset the timer before generating a new test
       resetTimer();
-      onBackToStart(); // This will navigate back to the WritingHome component
+      
+      // Generate a random test number between 1 and 20 for writing tests
+      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
+      
+      // Navigate back to writing home with a flag to load a new test
+      navigate(`/ielts/${testType}/writing`, { 
+        state: { 
+          refreshTest: true,
+          testNumber: randomTestNumber
+        },
+        replace: true
+      });
       
     } catch (error) {
       console.error('Error refreshing writing test:', error);
@@ -872,11 +883,13 @@ const WritingPage = ({ onBackToStart, testType, testData }) => {
           </div>
         </div>
 
-        {/* Refresh Test Button */}
+        {/* Refresh Test Button - Positioned at top-middle for better visibility */}
         <RefreshTestButton
           testType="writing test"
           isLoading={refreshLoading}
           onRefreshTest={confirmRefreshTest}
+          position="top-middle"
+          variant="visible"
         />
       </div>
     );

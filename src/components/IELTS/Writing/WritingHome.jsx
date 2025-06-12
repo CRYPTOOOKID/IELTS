@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import WritingPage from './writingPage';
 import { useTimer } from '../../../lib/TimerContext';
 import ExamContainer from '../../ui/ExamContainer';
@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 
 const WritingHome = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { type } = useParams(); // Get IELTS type from URL (academic or general-training)
   const { resetTimer, setTimerStarted } = useTimer();
   const [showInstructions, setShowInstructions] = useState(true);
@@ -16,16 +17,27 @@ const WritingHome = () => {
   
   // Trigger API call when component mounts (like Action game topic selection)
   useEffect(() => {
-    fetchExamData();
-  }, [type]);
+    // Check if this is a refresh request from the writing test page
+    const isRefreshRequest = location.state?.refreshTest;
+    const customTestNumber = location.state?.testNumber;
+    
+    if (isRefreshRequest) {
+      // If it's a refresh request, automatically start the new test
+      setShowInstructions(false);
+      // Clear the state to prevent loops
+      window.history.replaceState({}, document.title);
+    }
+    
+    fetchExamData(customTestNumber);
+  }, [type, location.state]);
 
-  const fetchExamData = async () => {
+  const fetchExamData = async (customTestNumber = null) => {
     try {
       setError(null);
       setIsDataReady(false);
       
-      // Generate random test number between 1-20
-      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
+      // Use custom test number if provided (from refresh), otherwise generate random
+      const randomTestNumber = customTestNumber || Math.floor(Math.random() * 20) + 1;
       
       // Use the correct IELTS endpoint pattern based on test type
       const testId = type === 'academic' 

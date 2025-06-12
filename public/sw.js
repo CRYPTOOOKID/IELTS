@@ -1,113 +1,499 @@
-// Service Worker for Image Caching and Performance Optimization
-const CACHE_NAME = 'spinta-action-game-v1';
-const IMAGE_CACHE_NAME = 'spinta-images-v1';
+// Service Worker for Cambridge Test Platform
+// Provides offline capability, caching, and background sync
 
-// URLs to cache immediately
+const CACHE_NAME = 'cambridge-test-v1.2.0';
+const RUNTIME_CACHE = 'cambridge-runtime-v1.2.0';
+const CDN_CACHE = 'cambridge-cdn-v1.2.0';
+const API_CACHE = 'cambridge-api-v1.2.0';
+
+// Static assets to cache immediately
 const STATIC_ASSETS = [
   '/',
-  '/index.html',
-  '/manifest.json'
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/manifest.json',
+  '/favicon.ico',
+  // Add other static assets
+];
+
+// CDN assets to cache
+const CDN_ASSETS = [
+  'https://cdn.cambridge-test.com/fonts/',
+  'https://cdn.cambridge-test.com/images/',
+  'https://cdn.cambridge-test.com/audio/',
+];
+
+// API endpoints that should be cached
+const CACHEABLE_APIS = [
+  '/api/passages/',
+  '/api/questions/',
+  '/api/test-structure',
+  '/api/user-progress'
 ];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
+  
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
+    Promise.all([
+      // Cache static assets
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.addAll(STATIC_ASSETS);
+      }),
+      
+      // Skip waiting to activate immediately
+      self.skipWaiting()
+    ])
   );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating...');
+  
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME && cacheName !== IMAGE_CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME && 
+                cacheName !== RUNTIME_CACHE && 
+                cacheName !== CDN_CACHE && 
+                cacheName !== API_CACHE) {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      
+      // Take control of all clients
+      self.clients.claim()
+    ])
   );
 });
 
-// Fetch event - handle requests with caching strategies
+// Fetch event - implement caching strategies
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
-  // Skip service worker for Google/Firebase authentication domains
-  if (url.hostname.includes('google.com') || 
-      url.hostname.includes('googleapis.com') || 
-      url.hostname.includes('gstatic.com') ||
-      url.hostname.includes('googletagmanager.com') ||
-      url.hostname.includes('firebase.com') ||
-      url.hostname.includes('firebaseapp.com') ||
-      url.pathname.includes('/__/auth/') ||
-      url.pathname.includes('/__/firebase/')) {
-    // Let these requests go through normally without service worker interference
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
     return;
   }
+  
+  // Handle different types of requests with appropriate strategies
+  if (isStaticAsset(request)) {
+    event.respondWith(cacheFirst(request, CACHE_NAME));
+  } else if (isCDNAsset(request)) {
+    event.respondWith(staleWhileRevalidate(request, CDN_CACHE));
+  } else if (isAPIRequest(request)) {
+    event.respondWith(networkFirst(request, API_CACHE));
+  } else if (isNavigationRequest(request)) {
+    event.respondWith(navigationHandler(request));
+  } else {
+    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
+  }
+});
 
-  // Handle image requests from S3
-  if (url.hostname.includes('amazonaws.com') && request.destination === 'image') {
-    event.respondWith(
-      caches.open(IMAGE_CACHE_NAME).then(cache => {
-        return cache.match(request).then(cachedResponse => {
-          if (cachedResponse) {
-            // Return cached image immediately
-            return cachedResponse;
-          }
+// Background sync for offline data
+self.addEventListener('sync', (event) => {
+  console.log('Background sync triggered:', event.tag);
+  
+  if (event.tag === 'answer-sync') {
+    event.waitUntil(syncAnswers());
+  } else if (event.tag === 'progress-sync') {
+    event.waitUntil(syncProgress());
+  }
+});
 
-          // Fetch and cache the image
-          return fetch(request).then(response => {
-            // Only cache successful responses
-            if (response.status === 200) {
-              cache.put(request, response.clone());
-            }
-            return response;
-          }).catch(() => {
-            // Return a placeholder or error image if fetch fails
-            return new Response('', {
-              status: 404,
-              statusText: 'Image not found'
-            });
-          });
+// Message handling for communication with main thread
+self.addEventListener('message', (event) => {
+  const { type, payload } = event.data;
+  
+  switch (type) {
+    case 'SKIP_WAITING':
+      self.skipWaiting();
+      break;
+      
+    case 'CACHE_PASSAGES':
+      event.waitUntil(cachePassages(payload.passageIds));
+      break;
+      
+    case 'CLEAR_CACHE':
+      event.waitUntil(clearCaches());
+      break;
+      
+    case 'GET_CACHE_STATUS':
+      event.waitUntil(getCacheStatus().then((status) => {
+        event.ports[0].postMessage({ type: 'CACHE_STATUS', payload: status });
+      }));
+      break;
+  }
+});
+
+// Caching strategies
+
+// Cache First - for static assets
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.warn('Cache first failed for:', request.url, error);
+    throw error;
+  }
+}
+
+// Network First - for API requests
+async function networkFirst(request, cacheName, timeout = 3000) {
+  const cache = await caches.open(cacheName);
+  
+  try {
+    // Try network with timeout
+    const networkPromise = fetch(request);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Network timeout')), timeout);
+    });
+    
+    const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
+    
+    if (networkResponse.ok) {
+      // Update cache with fresh data
+      cache.put(request, networkResponse.clone());
+      
+      // If this is user data, clear background sync queue
+      if (isUserDataRequest(request)) {
+        clearSyncQueue(request);
+      }
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.warn('Network first fallback to cache for:', request.url, error);
+    
+    // Fallback to cache
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Return offline page for navigation requests
+    if (isNavigationRequest(request)) {
+      return getOfflinePage();
+    }
+    
+    throw error;
+  }
+}
+
+// Stale While Revalidate - for CDN assets and runtime cache
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  
+  // Fetch fresh version in background
+  const fetchPromise = fetch(request).then((networkResponse) => {
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  }).catch((error) => {
+    console.warn('Stale while revalidate fetch failed:', request.url, error);
+  });
+  
+  // Return cached version immediately if available
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  // Otherwise wait for network
+  return fetchPromise;
+}
+
+// Navigation handler with offline fallback
+async function navigationHandler(request) {
+  try {
+    const networkResponse = await fetch(request);
+    return networkResponse;
+  } catch (error) {
+    console.warn('Navigation request failed, serving offline page:', error);
+    return getOfflinePage();
+  }
+}
+
+// Utility functions
+
+function isStaticAsset(request) {
+  const url = new URL(request.url);
+  return url.pathname.includes('/static/') || 
+         url.pathname.includes('.js') || 
+         url.pathname.includes('.css') || 
+         url.pathname.includes('.ico');
+}
+
+function isCDNAsset(request) {
+  const url = new URL(request.url);
+  return CDN_ASSETS.some(cdn => url.href.startsWith(cdn)) ||
+         url.hostname.includes('cdn.');
+}
+
+function isAPIRequest(request) {
+  const url = new URL(request.url);
+  return CACHEABLE_APIS.some(api => url.pathname.startsWith(api));
+}
+
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || 
+         (request.method === 'GET' && request.headers.get('accept').includes('text/html'));
+}
+
+function isUserDataRequest(request) {
+  const url = new URL(request.url);
+  return url.pathname.includes('/api/answers') || 
+         url.pathname.includes('/api/progress') ||
+         url.pathname.includes('/api/user');
+}
+
+// Background sync functions
+
+async function syncAnswers() {
+  try {
+    const syncData = await getStoredSyncData('answers');
+    
+    for (const item of syncData) {
+      try {
+        const response = await fetch('/api/answers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(item.data)
         });
-      })
-    );
+        
+        if (response.ok) {
+          await removeSyncData('answers', item.id);
+          console.log('Successfully synced answer data:', item.id);
+        }
+      } catch (error) {
+        console.error('Failed to sync answer:', item.id, error);
+      }
+    }
+  } catch (error) {
+    console.error('Answer sync failed:', error);
+    throw error;
+  }
+}
+
+async function syncProgress() {
+  try {
+    const syncData = await getStoredSyncData('progress');
+    
+    for (const item of syncData) {
+      try {
+        const response = await fetch('/api/progress', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(item.data)
+        });
+        
+        if (response.ok) {
+          await removeSyncData('progress', item.id);
+          console.log('Successfully synced progress data:', item.id);
+        }
+      } catch (error) {
+        console.error('Failed to sync progress:', item.id, error);
+      }
+    }
+  } catch (error) {
+    console.error('Progress sync failed:', error);
+    throw error;
+  }
+}
+
+// IndexedDB operations for sync queue
+
+async function getStoredSyncData(type) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('CambridgeTestSync', 1);
+    
+    request.onerror = () => reject(request.error);
+    
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction([type], 'readonly');
+      const store = transaction.objectStore(type);
+      const getAllRequest = store.getAll();
+      
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    };
+    
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('answers')) {
+        db.createObjectStore('answers', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('progress')) {
+        db.createObjectStore('progress', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+async function removeSyncData(type, id) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('CambridgeTestSync', 1);
+    
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction([type], 'readwrite');
+      const store = transaction.objectStore(type);
+      const deleteRequest = store.delete(id);
+      
+      deleteRequest.onsuccess = () => resolve();
+      deleteRequest.onerror = () => reject(deleteRequest.error);
+    };
+  });
+}
+
+async function clearSyncQueue(request) {
+  // Clear related items from sync queue when successfully synced
+  const url = new URL(request.url);
+  if (url.pathname.includes('/api/answers')) {
+    // Clear answer sync queue
+    const syncData = await getStoredSyncData('answers');
+    for (const item of syncData) {
+      await removeSyncData('answers', item.id);
+    }
+  }
+}
+
+// Passage pre-caching
+async function cachePassages(passageIds) {
+  const cache = await caches.open(CDN_CACHE);
+  
+  for (const passageId of passageIds) {
+    try {
+      const metaUrl = `https://cdn.cambridge-test.com/passages/${passageId}/meta.json`;
+      const textUrl = `https://cdn.cambridge-test.com/passages/${passageId}/text.json`;
+      
+      await Promise.all([
+        cache.add(metaUrl),
+        cache.add(textUrl)
+      ]);
+      
+      console.log('Cached passage:', passageId);
+    } catch (error) {
+      console.warn('Failed to cache passage:', passageId, error);
+    }
+  }
+}
+
+// Cache management
+async function clearCaches() {
+  const cacheNames = await caches.keys();
+  await Promise.all(cacheNames.map(name => caches.delete(name)));
+  console.log('All caches cleared');
+}
+
+async function getCacheStatus() {
+  const cacheNames = await caches.keys();
+  const status = {};
+  
+  for (const cacheName of cacheNames) {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    status[cacheName] = {
+      size: keys.length,
+      items: keys.map(key => key.url)
+    };
   }
   
-  // Handle API requests with network-first strategy
-  else if (url.hostname.includes('execute-api') && url.pathname.includes('/lesson/')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          // Cache successful API responses for offline use
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(request);
-        })
-    );
+  return status;
+}
+
+// Offline page
+async function getOfflinePage() {
+  const cache = await caches.open(CACHE_NAME);
+  const offlinePage = await cache.match('/offline.html');
+  
+  if (offlinePage) {
+    return offlinePage;
   }
   
-  // Default: network first, fallback to cache (but only for our own domain)
-  else if (url.origin === self.location.origin) {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match(request);
-      })
-    );
-  }
-  // For external domains not handled above, let them pass through normally
-}); 
+  // Fallback offline page
+  return new Response(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Cambridge Test - Offline</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        body {
+          font-family: system-ui, sans-serif;
+          background: linear-gradient(135deg, #1e3a8a, #7c3aed);
+          color: white;
+          margin: 0;
+          padding: 2rem;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+        .container {
+          max-width: 500px;
+        }
+        h1 { font-size: 2rem; margin-bottom: 1rem; }
+        p { font-size: 1.1rem; line-height: 1.6; opacity: 0.9; }
+        .status {
+          background: rgba(255,255,255,0.1);
+          padding: 1rem;
+          border-radius: 8px;
+          margin-top: 2rem;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>📡 You're Offline</h1>
+        <p>
+          Don't worry! Your progress is saved locally and will sync 
+          automatically when you're back online.
+        </p>
+        <div class="status">
+          <p>
+            🔄 Background sync is active<br>
+            💾 Your data is safe
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `, {
+    headers: {
+      'Content-Type': 'text/html'
+    }
+  });
+}
+
+console.log('Cambridge Test Service Worker loaded successfully'); 

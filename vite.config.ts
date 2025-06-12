@@ -27,15 +27,28 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    host: true, // Allow external connections
     hmr: {
-      overlay: true
+      overlay: true,
+      port: 3000
     },
     // Use default file watching behavior
     watch: {
       usePolling: false,
     },
     headers: {
-      // Remove CSP from Vite config to avoid conflicts - use index.html CSP instead
+      // Less aggressive caching - still fresh but doesn't break Vite
+      'Cache-Control': 'no-store',
     }
+  },
+  // Moderate optimizations that don't break development
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'] // Pre-bundle these for faster startup
+  },
+  // Clear cache on restart
+  cacheDir: 'node_modules/.vite-fresh-cache',
+  // Force module replacement
+  define: {
+    __DEV_SESSION_ID__: `"${Date.now()}"` // Unique session identifier
   }
 }) 

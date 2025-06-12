@@ -1,23 +1,42 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../Auth/AuthContext';
+import { useAuth } from '../../Auth/AuthContext';
 
-const IELTSTypeSelection = () => {
+const QuestionTypesPage = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [hoveredType, setHoveredType] = useState(null);
   
-  const handleTypeSelection = (type) => {
-    if (type === 'practice-by-types') {
-      navigate('/ielts/practice-by-types');
+  const handleTypeSelection = (typeId) => {
+    // Navigate to specific question type instructions
+    if (typeId === 'table-completion') {
+      navigate('/ielts/table-completion/instructions');
+    } else if (typeId === 'form-completion') {
+      navigate('/ielts/form-completion/instructions');
+    } else if (typeId === 'note-completion') {
+      navigate('/ielts/form-completion/instructions'); // Note completion uses form completion logic
+    } else if (typeId === 'short-answer') {
+      navigate('/ielts/short-answer/instructions');
+    } else if (typeId === 'matching') {
+      navigate('/ielts/matching/instructions');
+    } else if (typeId === 'map-labeling') {
+      navigate('/ielts/map-labeling/instructions');
+    } else if (typeId === 'mc-single') {
+      navigate('/ielts/multiple-choice/instructions');
+    } else if (typeId === 'mc-multiple') {
+      navigate('/ielts/multiple-choice-multiple/instructions');
+    } else if (typeId === 'sentence-completion') {
+      navigate('/ielts/sentence-completion/instructions');
+    } else if (typeId === 'flowchart') {
+      navigate('/ielts/flowchart-completion/instructions');
     } else {
-      navigate(`/ielts/${type}/skills`);
+      console.log(`Question type ${typeId} not yet implemented`);
     }
   };
   
   const handleBack = () => {
-    navigate('/skills');
+    navigate('/ielts-skills');
   };
   
   const handleLogout = async () => {
@@ -34,36 +53,96 @@ const IELTSTypeSelection = () => {
     }
   };
   
-  const examTypes = [
+  const questionTypes = [
     {
-      id: 'general-training',
-      name: 'General Training',
-      icon: 'work',
-      description: 'For immigration, work experience, or training programs',
+      id: 'table-completion',
+      name: 'Table Completion',
+      icon: 'table_chart',
+      description: 'Complete missing information in tables',
+      color: 'from-cyan-500 to-cyan-700',
+      iconBg: 'bg-cyan-600',
+      delay: '0.1s'
+    },
+    {
+      id: 'form-completion',
+      name: 'Form Completion',
+      icon: 'description',
+      description: 'Fill in forms with correct information',
       color: 'from-emerald-500 to-emerald-700',
       iconBg: 'bg-emerald-600',
-      delay: '0.1s',
-      features: ['Practical everyday contexts', 'Workplace scenarios', 'Social situations', 'General interest topics']
+      delay: '0.2s'
     },
     {
-      id: 'academic',
-      name: 'Academic',
-      icon: 'school',
-      description: 'For university admission and academic purposes',
+      id: 'note-completion',
+      name: 'Note Completion',
+      icon: 'sticky_note_2',
+      description: 'Complete notes with missing details',
       color: 'from-blue-500 to-blue-700',
       iconBg: 'bg-blue-600',
-      delay: '0.2s',
-      features: ['Academic texts and contexts', 'University-level content', 'Research-based materials', 'Scholarly discussions']
+      delay: '0.3s'
     },
     {
-      id: 'practice-by-types',
-      name: 'Practice by Question Types',
-      icon: 'quiz',
-      description: 'Practice specific question types to master your skills',
+      id: 'sentence-completion',
+      name: 'Sentence Completion',
+      icon: 'format_align_left',
+      description: 'Complete sentences with appropriate words',
       color: 'from-purple-500 to-purple-700',
       iconBg: 'bg-purple-600',
-      delay: '0.3s',
-      features: ['10 different question types', 'Targeted practice', 'Skill-specific training', 'Focused improvement']
+      delay: '0.4s'
+    },
+    {
+      id: 'short-answer',
+      name: 'Short Answer',
+      icon: 'short_text',
+      description: 'Provide brief answers to questions',
+      color: 'from-pink-500 to-pink-700',
+      iconBg: 'bg-pink-600',
+      delay: '0.5s'
+    },
+    {
+      id: 'mc-multiple',
+      name: 'Multiple Choice (Multiple)',
+      icon: 'checklist',
+      description: 'Select multiple correct answers',
+      color: 'from-indigo-500 to-indigo-700',
+      iconBg: 'bg-indigo-600',
+      delay: '0.6s'
+    },
+    {
+      id: 'mc-single',
+      name: 'Multiple Choice (Single)',
+      icon: 'radio_button_checked',
+      description: 'Choose one correct answer',
+      color: 'from-teal-500 to-teal-700',
+      iconBg: 'bg-teal-600',
+      delay: '0.7s'
+    },
+    {
+      id: 'matching',
+      name: 'Matching',
+      icon: 'connect_without_contact',
+      description: 'Match items from different lists',
+      color: 'from-orange-500 to-orange-700',
+      iconBg: 'bg-orange-600',
+      delay: '0.8s'
+    },
+    {
+      id: 'map-labeling',
+      name: 'Map Labeling',
+      icon: 'map',
+      description: 'Label locations on maps and diagrams',
+      color: 'from-lime-500 to-lime-700',
+      iconBg: 'bg-lime-600',
+      delay: '0.9s'
+    },
+    {
+      id: 'flowchart',
+      name: 'Flowchart',
+      icon: 'account_tree',
+      description: 'Complete flowcharts and process diagrams',
+      color: 'from-red-500 to-red-700',
+      iconBg: 'bg-red-600',
+      delay: '1.0s'
     }
   ];
   
@@ -86,17 +165,8 @@ const IELTSTypeSelection = () => {
               onClick={() => navigate('/skills')}
               className="flex items-center space-x-2 hover:scale-105 transition-transform duration-300"
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                <img 
-                  src="/logo.ico" 
-                  alt="SPINTA Logo" 
-                  className="w-8 h-8 rounded-lg object-contain" 
-                  style={{
-                    imageRendering: 'crisp-edges',
-                    filter: 'contrast(1.1) brightness(1.05)',
-                    WebkitFilter: 'contrast(1.1) brightness(1.05)'
-                  }} 
-                />
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="material-icons text-white text-lg">school</span>
               </div>
               <span className="text-2xl font-bold text-white drop-shadow-lg">SPINTA</span>
             </button>
@@ -108,10 +178,10 @@ const IELTSTypeSelection = () => {
                 className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
               >
                 <span className="material-icons text-sm">arrow_back</span>
-                <span>Home</span>
+                <span>Back</span>
               </button>
               <div className="text-white/60">|</div>
-              <span className="text-white/80 font-medium">IELTS Selection</span>
+              <span className="text-white/80 font-medium">Practice by Question Types</span>
             </nav>
             
             {/* User Actions */}
@@ -146,40 +216,41 @@ const IELTSTypeSelection = () => {
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl mb-6 shadow-xl">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mb-6 shadow-xl">
               <span className="material-icons text-white text-3xl">quiz</span>
             </div>
             <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                IELTS
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                Practice by
               </span>
               <br />
-              <span className="text-white/90">Test Type</span>
+              <span className="text-white/90">Question Types</span>
             </h1>
             <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-              Choose your IELTS test type to access tailored practice materials and exam preparation.
+              Master specific question types with targeted practice. Choose from 10 different question formats
+              commonly found in IELTS exams to strengthen your skills.
             </p>
             
-            {/* Info indicators */}
+            {/* Progress indicators */}
             <div className="flex justify-center mt-8 space-x-8">
               <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-400">3</div>
-                <div className="text-sm text-white/60">Test Types</div>
+                <div className="text-2xl font-bold text-purple-400">10</div>
+                <div className="text-sm text-white/60">Question Types</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">4+</div>
-                <div className="text-sm text-white/60">Skills</div>
+                <div className="text-2xl font-bold text-pink-400">∞</div>
+                <div className="text-sm text-white/60">Practice</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-400">AI</div>
+                <div className="text-2xl font-bold text-cyan-400">AI</div>
                 <div className="text-sm text-white/60">Powered</div>
               </div>
             </div>
           </div>
 
-          {/* Test Types Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {examTypes.map((type) => (
+          {/* Question Types Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {questionTypes.map((type) => (
               <div
                 key={type.id}
                 className="group cursor-pointer transform transition-all duration-500 hover:scale-105"
@@ -188,41 +259,26 @@ const IELTSTypeSelection = () => {
                 onMouseLeave={() => setHoveredType(null)}
                 style={{animationDelay: type.delay}}
               >
-                <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl min-h-[400px] flex flex-col`}>
+                <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-6 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl min-h-[280px] flex flex-col`}>
                   {/* Floating icon */}
-                  <div className={`inline-flex items-center justify-center w-20 h-20 ${type.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
-                    <span className="material-icons text-white text-3xl">{type.icon}</span>
+                  <div className={`inline-flex items-center justify-center w-14 h-14 ${type.iconBg} rounded-xl mb-4 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
+                    <span className="material-icons text-white text-xl">{type.icon}</span>
                   </div>
                   
                   {/* Content */}
                   <div className="flex-grow flex flex-col">
-                    <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-white">
+                    <h3 className="text-lg font-bold text-white mb-3 group-hover:text-white leading-tight">
                       {type.name}
                     </h3>
-                    <p className="text-white/70 mb-6 leading-relaxed group-hover:text-white/80 text-lg">
+                    <p className="text-white/70 mb-4 leading-relaxed group-hover:text-white/80 flex-grow text-sm">
                       {type.description}
                     </p>
-                    
-                    {/* Features list */}
-                    <div className="space-y-3 mb-6">
-                      {type.features.map((feature, index) => (
-                        <div key={index} className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                          <span className="text-white/80 group-hover:text-white/90">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Action indicator */}
-                    <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20 mt-auto">
-                      <span className="font-medium">Start {type.name} Practice</span>
-                      <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
-                    </div>
                   </div>
                   
-                  {/* Progress bar simulation */}
-                  <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden mt-4">
-                    <div className={`h-full bg-gradient-to-r ${type.color} rounded-full transition-all duration-1000 group-hover:w-full w-0`}></div>
+                  {/* Action indicator */}
+                  <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20 mt-auto">
+                    <span className="font-medium">Practice</span>
+                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
                   </div>
                   
                   {/* Hover effect overlay */}
@@ -235,9 +291,9 @@ const IELTSTypeSelection = () => {
           {/* Call to action */}
           <div className="text-center mt-16">
             <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
-              <span className="material-icons text-cyan-400">info</span>
-              <span className="font-medium">Choose the test type that matches your goals</span>
-              <span className="material-icons text-blue-400 animate-pulse">arrow_forward</span>
+              <span className="material-icons text-purple-400">psychology</span>
+              <span className="font-medium">Choose a question type to start practicing</span>
+              <span className="material-icons text-pink-400 animate-pulse">arrow_forward</span>
             </div>
           </div>
         </div>
@@ -246,4 +302,4 @@ const IELTSTypeSelection = () => {
   );
 };
 
-export default IELTSTypeSelection; 
+export default QuestionTypesPage; 

@@ -4,33 +4,35 @@ import { motion } from 'framer-motion';
 import ExamContainer from '../../ui/ExamContainer';
 import { Part1, Part2, Part3 } from './SpeakingParts';
 import SpeakingFeedback from './SpeakingFeedback';
+import { SpeakingProvider, useSpeakingContext } from './SpeakingContext';
 import fallbackData from './fallback.js';
 import './speaking.css';
 
 // Global request cache to prevent duplicate requests
 const requestCache = new Map();
 
-const SpeakingHome = () => {
+const SpeakingHomeContent = () => {
   const navigate = useNavigate();
   const { type } = useParams(); // Get IELTS type from URL (academic or general-training)
-  const [showInstructions, setShowInstructions] = useState(true);
-  const [isDataReady, setIsDataReady] = useState(false);
-  const [testData, setTestData] = useState(null);
-  const [error, setError] = useState(null);
   
-  // Test state
-  const [currentPart, setCurrentPart] = useState(1);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [transcriptions, setTranscriptions] = useState({
-    part1: ["", "", "", ""],
-    part2: "",
-    part3: ["", "", "", ""]
-  });
-  const [isRecording, setIsRecording] = useState({
-    part1: [false, false, false, false],
-    part2: false,
-    part3: [false, false, false, false]
-  });
+  // Use context for state management
+  const {
+    testData,
+    error,
+    showInstructions,
+    currentPart,
+    showFeedback,
+    transcriptions,
+    isRecording,
+    setTestDataDirectly,
+    resetTest,
+    startTest,
+    nextPart,
+    updateTranscription,
+    toggleRecording
+  } = useSpeakingContext();
+  
+  const [isDataReady, setIsDataReady] = useState(false);
 
   // Ref to track if component is mounted
   const isMountedRef = useRef(true);
@@ -51,174 +53,89 @@ const SpeakingHome = () => {
     };
   }, [type]);
 
+  // Removed auto-start behavior - user needs to click Start Test button like in Writing
+
   const fetchTestData = async () => {
-    const cacheKey = `speaking-${type}`;
-    
-    // Check if we already have a cached result
-    if (requestCache.has(cacheKey)) {
-      const cachedResult = requestCache.get(cacheKey);
-      if (isMountedRef.current) {
-        console.log('Using cached speaking test data');
-        setTestData(cachedResult.data);
-        setIsDataReady(true);
-        if (cachedResult.error) {
-          setError(cachedResult.error);
+    try {
+      // Both Academic and General Training use the same speaking tests
+      const cacheKey = `speaking-unified`;
+      
+      // Check if we have cached data first
+      if (requestCache.has(cacheKey)) {
+        const cachedResult = requestCache.get(cacheKey);
+        if (isMountedRef.current) {
+          console.log('Using cached speaking test data');
+          setTestDataDirectly(cachedResult.data);
+          setIsDataReady(true);
+          if (cachedResult.error) {
+            console.warn('Cached data has error:', cachedResult.error);
+          }
+          return;
         }
       }
-      return;
-    }
 
-    try {
-      setError(null);
-      setIsDataReady(false);
+      // Generate random test number from T1 to T20
+      const testNumber = `T${Math.floor(Math.random() * 20) + 1}`;
+      // Both Academic and General Training use the same GT test format
+      const testCode = `ILTS.SPKNG.GT.${testNumber}`;
       
-      // Generate random test number between 1-20
-      const randomTestNumber = Math.floor(Math.random() * 20) + 1;
+      console.log(`Fetching speaking test: ${testCode}`);
       
-      // Use the correct IELTS endpoint pattern based on test type
-      const testId = type === 'academic' 
-        ? `ILTS.SPKNG.ACAD.T${randomTestNumber}`
-        : `ILTS.SPKNG.GT.T${randomTestNumber}`;
-      
-      const endpoint = `https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testId}`;
-      
-      console.log(`Fetching speaking test: ${testId} from ${endpoint}`);
-      
-      const response = await fetch(endpoint, { 
-        method: 'GET', 
-        headers: { 'Accept': 'application/json' }
+      // Use the correct AWS API endpoint for speaking tests
+      const response = await fetch(`https://8l1em9gvy7.execute-api.us-east-1.amazonaws.com/speakingtest/${testCode}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
-      
+
       if (!response.ok) {
-        let errorPayload = null; 
-        try { errorPayload = await response.json(); } catch (e) {}
-        const errorMsg = errorPayload?.message || errorPayload?.error || `Request failed with status: ${response.status}`;
-        throw new Error(errorMsg);
+        throw new Error(`API responded with status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      console.log(`Successfully fetched speaking test: ${testId}`);
+      console.log(`Successfully fetched speaking test: ${testCode}`);
       
-      // Cache the result
-      requestCache.set(cacheKey, { data });
-      
-      // Clear cache after 5 minutes to allow fresh requests
-      setTimeout(() => {
-        requestCache.delete(cacheKey);
-        console.log(`Cache cleared for speaking test: ${cacheKey}`);
-      }, 5 * 60 * 1000);
+      // Cache the successful result
+      requestCache.set(cacheKey, { data, error: null });
       
       if (isMountedRef.current) {
-        setTestData(data);
+        setTestDataDirectly(data);
         setIsDataReady(true);
       }
-      
     } catch (err) {
       console.error('Error fetching speaking test data:', err);
-      console.log('Using fallback data due to error');
+      const errorMessage = err.message || 'Failed to load test data. Using practice questions.';
       
-      const errorMessage = `Error loading test data: ${err.message}. Using fallback data.`;
-      
-      // Cache the fallback result
+      // Cache the fallback data with error info
+      const cacheKey = `speaking-unified`;
       requestCache.set(cacheKey, { data: fallbackData, error: errorMessage });
       
       if (isMountedRef.current) {
         // Use fallback data when API fails
-        setTestData(fallbackData);
+        setTestDataDirectly(fallbackData);
         setIsDataReady(true);
-        setError(errorMessage);
       }
-    }
-  };
-
-  const handleStartTest = () => {
-    if (isDataReady && testData) {
-      setShowInstructions(false);
-      setCurrentPart(1);
     }
   };
 
   const handleRetry = () => {
-    // Clear cache and reset request flag to allow new request
-    const cacheKey = `speaking-${type}`;
-    requestCache.delete(cacheKey);
-    hasRequestedRef.current = false;
     fetchTestData();
   };
 
+  const handleStartTest = () => {
+    if (isDataReady && testData) {
+      startTest();
+    }
+  };
+
   const handleBack = () => {
-    if (type) {
-      navigate(`/ielts/${type}/skills`);
-    } else {
-      navigate('/skills');
-    }
-  };
-
-  // Test control functions
-  const nextPart = () => {
-    stopAllRecordings();
-    if (currentPart < 3) {
-      setCurrentPart(currentPart + 1);
-    }
-  };
-
-  const updateTranscription = (part, questionIndex, text) => {
-    setTranscriptions(prev => {
-      if (part === 2) {
-        return { ...prev, part2: text };
-      } else {
-        const partKey = part === 1 ? 'part1' : 'part3';
-        const newPartTranscriptions = [...prev[partKey]];
-        newPartTranscriptions[questionIndex] = text;
-        return { ...prev, [partKey]: newPartTranscriptions };
-      }
-    });
-  };
-
-  const stopAllRecordings = () => {
-    setIsRecording({
-      part1: [false, false, false, false],
-      part2: false,
-      part3: [false, false, false, false]
-    });
-  };
-
-  const toggleRecording = (part, questionIndex) => {
-    const isStartingRecording = part === 2
-      ? !isRecording.part2
-      : !isRecording[part === 1 ? 'part1' : 'part3'][questionIndex];
-
-    if (isStartingRecording) {
-      stopAllRecordings();
-    }
-    
-    setIsRecording(prev => {
-      if (part === 2) {
-        return { ...prev, part2: isStartingRecording };
-      } else {
-        const partKey = part === 1 ? 'part1' : 'part3';
-        const newPartRecording = [...prev[partKey]];
-        newPartRecording[questionIndex] = isStartingRecording;
-        return { ...prev, [partKey]: newPartRecording };
-      }
-    });
-  };
-
-  const resetTest = () => {
-    setShowInstructions(true);
-    setCurrentPart(1);
-    setShowFeedback(false);
-    setTranscriptions({
-      part1: ["", "", "", ""],
-      part2: "",
-      part3: ["", "", "", ""]
-    });
-    stopAllRecordings();
+    navigate('/ielts-skills');
   };
 
   const showFeedbackPage = () => {
-    stopAllRecordings();
-    setShowFeedback(true);
+    // This function is no longer needed as Part3 will directly call getFeedback from context
+    console.warn('showFeedbackPage called - this should not happen with the new context approach');
   };
 
   // Determine test type display name
@@ -434,7 +351,6 @@ const SpeakingHome = () => {
     updateTranscription,
     toggleRecording,
     nextPart,
-    showFeedbackPage,
     onBack: resetTest
   };
 
@@ -448,5 +364,11 @@ const SpeakingHome = () => {
     </div>
   );
 };
+
+const SpeakingHome = () => (
+  <SpeakingProvider>
+    <SpeakingHomeContent />
+  </SpeakingProvider>
+);
 
 export default SpeakingHome;

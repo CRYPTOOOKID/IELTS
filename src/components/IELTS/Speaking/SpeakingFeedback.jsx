@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { feedbackPrompt } from './prompt.js';
+import { useSpeakingContext } from './SpeakingContext';
 import './speaking.css';
 
 // Enhanced Radar chart component
@@ -271,16 +272,10 @@ const SkillMeter = ({ value, color, label, delay = 0 }) => {
 };
 
 const SpeakingFeedback = ({ testData, transcriptions, onBack }) => {
-  const [feedback, setFeedback] = useState(null);
-  const [feedbackLoading, setFeedbackLoading] = useState(true);
+  const { feedback, feedbackLoading, error: contextError } = useSpeakingContext();
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [progressPercentage, setProgressPercentage] = useState(0);
-  
-  // Generate feedback when component mounts
-  useEffect(() => {
-    generateFeedback();
-  }, []);
   
   // Set up the progress animation when feedbackLoading changes
   useEffect(() => {
@@ -308,144 +303,12 @@ const SpeakingFeedback = ({ testData, transcriptions, onBack }) => {
     };
   }, [feedbackLoading]);
 
-  const generateFeedback = async () => {
-    if (!testData) return;
-    
-    // Check if the user has spoken at all
-    const hasSpoken = () => {
-      const hasSpokenPart1 = transcriptions.part1.some(answer => answer.trim().length > 0);
-      const hasSpokenPart2 = transcriptions.part2.trim().length > 0;
-      const hasSpokenPart3 = transcriptions.part3.some(answer => answer.trim().length > 0);
-      
-      return hasSpokenPart1 || hasSpokenPart2 || hasSpokenPart3;
-    };
-    
-    if (!hasSpoken()) {
-      setError("You need to record at least one answer before getting feedback.");
-      setFeedbackLoading(false);
-      return;
+  // Set error from context if it exists
+  useEffect(() => {
+    if (contextError) {
+      setError(contextError);
     }
-    
-    try {
-      setFeedbackLoading(true);
-      setError(null);
-      
-      // The API now returns data directly in the structure we need
-      const part1Questions = testData.Part1;
-      const part2Question = {
-        title: testData.Part2.title,
-        cues: testData.Part2.cues,
-        final_question: testData.Part2.final_question
-      };
-      const part3Questions = testData.Part3;
-      
-      // Combine questions and answers
-      const part1Data = part1Questions.map((question, index) => ({
-        question,
-        answer: transcriptions.part1[index]
-      }));
-      
-      const part2Data = {
-        question: part2Question,
-        answer: transcriptions.part2
-      };
-      
-      const part3Data = part3Questions.map((question, index) => ({
-        question,
-        answer: transcriptions.part3[index]
-      }));
-      
-      // Combine all parts
-      const testContent = {
-        part1: part1Data,
-        part2: part2Data,
-        part3: part3Data
-      };
-      
-      // Format the content for the AI
-      let promptContent = "IELTS Speaking Test Responses:\n\n";
-      
-      // Part 1
-      promptContent += "PART 1 - Introduction and Interview:\n";
-      part1Data.forEach((item, index) => {
-        promptContent += `Q${index + 1}: ${item.question}\n`;
-        promptContent += `A${index + 1}: ${item.answer || "[No response recorded]"}\n\n`;
-      });
-      
-      // Part 2
-      promptContent += "PART 2 - Long Turn:\n";
-      promptContent += `Topic: ${part2Data.question.title}\n`;
-      if (part2Data.question.cues && Array.isArray(part2Data.question.cues)) {
-        promptContent += "Cues:\n";
-        part2Data.question.cues.forEach((cue, index) => {
-          promptContent += `- ${cue}\n`;
-        });
-      }
-      if (part2Data.question.final_question) {
-        promptContent += `Final Question: ${part2Data.question.final_question}\n`;
-      }
-      promptContent += `Response: ${part2Data.answer || "[No response recorded]"}\n\n`;
-      
-      // Part 3
-      promptContent += "PART 3 - Discussion:\n";
-      part3Data.forEach((item, index) => {
-        promptContent += `Q${index + 1}: ${item.question}\n`;
-        promptContent += `A${index + 1}: ${item.answer || "[No response recorded]"}\n\n`;
-      });
-      
-      // Get the Gemini API key from environment variables
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      
-      if (!apiKey) {
-        throw new Error('Gemini API key not found. Please check your environment configuration.');
-      }
-      
-      // Call the Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: feedbackPrompt + "\n\n" + promptContent
-            }]
-          }]
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error('Invalid response format from Gemini API');
-      }
-      
-      const feedbackText = data.candidates[0].content.parts[0].text;
-      
-      // Parse the JSON response
-      let parsedFeedback;
-      try {
-        parsedFeedback = JSON.parse(feedbackText);
-      } catch (parseError) {
-        console.error('Failed to parse feedback JSON:', parseError);
-        throw new Error('Failed to parse AI feedback. Please try again.');
-      }
-      
-      setFeedback(parsedFeedback);
-      
-    } catch (err) {
-      console.error('Error getting feedback:', err);
-      setError(`Failed to get AI feedback: ${err.message}`);
-    } finally {
-      setFeedbackLoading(false);
-    }
-  };
+  }, [contextError]);
 
   if (feedbackLoading) {
     return (
@@ -559,15 +422,27 @@ const SpeakingFeedback = ({ testData, transcriptions, onBack }) => {
     lexicalResource,
     grammaticalRangeAndAccuracy,
     scoreBand,
+    improvementRecommendations
   } = feedback;
   
   // Calculate numeric scores for the radar chart and skill meters
-  // Use the actual scores from the feedback data
-  const baseScore = parseFloat(scoreBand);
-  // Ensure scores are between 0 and 9, and not all the same
-  const fluencyScore = Math.min(Math.max(baseScore * 0.85, 1), 8.0);
-  const vocabularyScore = Math.min(Math.max(baseScore * 0.75, 1), 7.5);
-  const grammarScore = Math.min(Math.max(baseScore * 0.8, 1), 7.8);
+  // Parse the score band range (e.g., "7.0 to 8.0") or single score
+  let baseScore = 6.0; // default
+  if (scoreBand) {
+    if (scoreBand.includes(' to ')) {
+      // Handle range format like "7.0 to 8.0"
+      const scores = scoreBand.split(' to ').map(s => parseFloat(s.trim()));
+      baseScore = (scores[0] + scores[1]) / 2; // Average of the range
+    } else {
+      // Handle single score
+      baseScore = parseFloat(scoreBand);
+    }
+  }
+  
+  // Ensure scores are between 0 and 9, and add some variation
+  const fluencyScore = Math.min(Math.max(baseScore + (Math.random() - 0.5) * 0.5, 1), 9);
+  const vocabularyScore = Math.min(Math.max(baseScore + (Math.random() - 0.5) * 0.5, 1), 9);
+  const grammarScore = Math.min(Math.max(baseScore + (Math.random() - 0.5) * 0.5, 1), 9);
   
   const radarScores = {
     fluency: fluencyScore,
@@ -647,16 +522,64 @@ const SpeakingFeedback = ({ testData, transcriptions, onBack }) => {
         {activeTab === 'detailed' && (
           <div className="space-y-8">
             <FeedbackCard title="Fluency and Coherence" color="indigo" icon="record_voice_over" delay={0.7}>
-              <p className="text-lg leading-relaxed">{fluencyAndCoherence}</p>
+              {fluencyAndCoherence?.strengths && (
+                <div className="mb-4">
+                  <h4 className="font-semibold text-green-700 mb-2">✓ Strengths:</h4>
+                  <p className="text-lg leading-relaxed text-green-600">{fluencyAndCoherence.strengths}</p>
+                </div>
+              )}
+              {fluencyAndCoherence?.areasForImprovement && (
+                <div>
+                  <h4 className="font-semibold text-orange-700 mb-2">→ Areas for Improvement:</h4>
+                  <p className="text-lg leading-relaxed text-orange-600">{fluencyAndCoherence.areasForImprovement}</p>
+                </div>
+              )}
+              {!fluencyAndCoherence?.strengths && !fluencyAndCoherence?.areasForImprovement && (
+                <p className="text-lg leading-relaxed">{fluencyAndCoherence}</p>
+              )}
             </FeedbackCard>
             
             <FeedbackCard title="Lexical Resource (Vocabulary)" color="purple" icon="library_books" delay={0.9}>
-              <p className="text-lg leading-relaxed">{lexicalResource}</p>
+              {lexicalResource?.strengths && (
+                <div className="mb-4">
+                  <h4 className="font-semibold text-green-700 mb-2">✓ Strengths:</h4>
+                  <p className="text-lg leading-relaxed text-green-600">{lexicalResource.strengths}</p>
+                </div>
+              )}
+              {lexicalResource?.areasForImprovement && (
+                <div>
+                  <h4 className="font-semibold text-orange-700 mb-2">→ Areas for Improvement:</h4>
+                  <p className="text-lg leading-relaxed text-orange-600">{lexicalResource.areasForImprovement}</p>
+                </div>
+              )}
+              {!lexicalResource?.strengths && !lexicalResource?.areasForImprovement && (
+                <p className="text-lg leading-relaxed">{lexicalResource}</p>
+              )}
             </FeedbackCard>
             
             <FeedbackCard title="Grammatical Range and Accuracy" color="pink" icon="spellcheck" delay={1.1}>
-              <p className="text-lg leading-relaxed">{grammaticalRangeAndAccuracy}</p>
+              {grammaticalRangeAndAccuracy?.strengths && (
+                <div className="mb-4">
+                  <h4 className="font-semibold text-green-700 mb-2">✓ Strengths:</h4>
+                  <p className="text-lg leading-relaxed text-green-600">{grammaticalRangeAndAccuracy.strengths}</p>
+                </div>
+              )}
+              {grammaticalRangeAndAccuracy?.areasForImprovement && (
+                <div>
+                  <h4 className="font-semibold text-orange-700 mb-2">→ Areas for Improvement:</h4>
+                  <p className="text-lg leading-relaxed text-orange-600">{grammaticalRangeAndAccuracy.areasForImprovement}</p>
+                </div>
+              )}
+              {!grammaticalRangeAndAccuracy?.strengths && !grammaticalRangeAndAccuracy?.areasForImprovement && (
+                <p className="text-lg leading-relaxed">{grammaticalRangeAndAccuracy}</p>
+              )}
             </FeedbackCard>
+
+            {improvementRecommendations && (
+              <FeedbackCard title="Improvement Recommendations" color="indigo" icon="trending_up" delay={1.3}>
+                <p className="text-lg leading-relaxed">{improvementRecommendations}</p>
+              </FeedbackCard>
+            )}
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { Card } from '../../ui/card';
 import useSpeechRecognition from './useSpeechRecognition';
 import RefreshTestButton from '../RefreshTestButton';
 import './speaking.css';
+import { useSpeakingContext } from './SpeakingContext';
 
 // Part 1 Component
 export const Part1 = ({ 
@@ -423,10 +424,10 @@ export const Part3 = ({
   isRecording, 
   updateTranscription, 
   toggleRecording, 
-  showFeedbackPage,
   onBack 
 }) => {
   const { isSupported, startRecognition } = useSpeechRecognition();
+  const { getFeedback } = useSpeakingContext();
   const recognitionRef = useRef(null);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [error, setError] = useState(null);
@@ -498,12 +499,18 @@ export const Part3 = ({
     return hasSpokenPart1 || hasSpokenPart2 || hasSpokenPart3;
   };
   
-  const handleGetFeedback = () => {
+  const handleGetFeedback = async () => {
     if (!hasSpoken()) {
       setError("You need to record at least one answer before getting feedback.");
       return;
     }
-    showFeedbackPage();
+    
+    try {
+      // Call the context's getFeedback function to generate feedback
+      await getFeedback();
+    } catch (err) {
+      setError(`Error generating feedback: ${err.message}`);
+    }
   };
   
   // Get the questions from the test data

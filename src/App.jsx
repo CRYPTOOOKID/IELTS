@@ -32,6 +32,43 @@ import ListeningFeedback from './components/IELTS/Listening/ListeningFeedback.js
 // Import new IELTS components
 import IELTSTypeSelection from './components/IELTS/IELTSTypeSelection.jsx';
 import IELTSSkillsPage from './components/IELTS/IELTSSkillsPage.jsx';
+import QuestionTypesPage from './components/IELTS/Byparts/QuestionTypesPage.jsx';
+
+// Import Form Completion components
+import FormCompletionInstructions from './components/IELTS/Byparts/FormCompletion/FormCompletionInstructions.jsx';
+import FormCompletionTest from './components/IELTS/Byparts/FormCompletion/FormCompletionTest.jsx';
+
+// Import Short Answer components
+import ShortAnswerInstructions from './components/IELTS/Byparts/ShortAnswer/ShortAnswerInstructions.jsx';
+import ShortAnswerTest from './components/IELTS/Byparts/ShortAnswer/ShortAnswerTest.jsx';
+
+// Import Matching components
+import MatchingInstructions from './components/IELTS/Byparts/Matching/MatchingInstructions.jsx';
+import MatchingTest from './components/IELTS/Byparts/Matching/MatchingTest.jsx';
+
+// Import MapLabeling components
+import MapLabelingInstructions from './components/IELTS/Byparts/MapLabeling/MapLabelingInstructions.jsx';
+import MapLabelingTest from './components/IELTS/Byparts/MapLabeling/MapLabelingTest.jsx';
+
+// Import MultipleChoice components
+import MultipleChoiceInstructions from './components/IELTS/Byparts/MultipleChoice/MultipleChoiceInstructions.jsx';
+import MultipleChoiceTest from './components/IELTS/Byparts/MultipleChoice/MultipleChoiceTest.jsx';
+
+// Import MultipleChoiceMultiple components
+import MultipleChoiceMultipleInstructions from './components/IELTS/Byparts/MultipleChoiceMultiple/MultipleChoiceMultipleInstructions.jsx';
+import MultipleChoiceMultipleTest from './components/IELTS/Byparts/MultipleChoiceMultiple/MultipleChoiceMultipleTest.jsx';
+
+// Import SentenceCompletion components
+import SentenceCompletionInstructions from './components/IELTS/Byparts/SentenceCompletion/SentenceCompletionInstructions.jsx';
+import SentenceCompletionTest from './components/IELTS/Byparts/SentenceCompletion/SentenceCompletionTest.jsx';
+
+// Import TableCompletion components
+import TableCompletionInstructions from './components/IELTS/Byparts/TableCompletion/TableCompletionInstructions.jsx';
+import TableCompletionTest from './components/IELTS/Byparts/TableCompletion/TableCompletionTest.jsx';
+
+// Import FlowchartCompletion components
+import FlowchartCompletionInstructions from './components/IELTS/Byparts/FlowchartCompletion/FlowchartCompletionInstructions.jsx';
+import FlowchartCompletionTest from './components/IELTS/Byparts/FlowchartCompletion/FlowchartCompletionTest.jsx';
 
 // Import Toefl UnderConstruction component
 import UnderConstructionPage from './components/Toefl/UnderConstructionPage.jsx';
@@ -52,6 +89,11 @@ import CambridgeListeningHome from './components/Cambdrige/Listening/ListeningHo
 import CambridgeListeningInstructions from './components/Cambdrige/Listening/ListeningInstructions.jsx';
 import CambridgeListeningExam from './components/Cambdrige/Listening/ListeningExam.jsx';
 import CambridgeListeningFeedback from './components/Cambdrige/Listening/ListeningFeedback.jsx';
+// Import Cambridge Reading components
+import CambridgeReadingHome from './components/Cambdrige/Reading/ReadingHome.jsx';
+import CambridgeReadingInstructions from './components/Cambdrige/Reading/ReadingInstructions.jsx';
+import CambridgeReadingTest from './components/Cambdrige/Reading/ReadingTest.jsx';
+import CambridgeReadingResults from './components/Cambdrige/Reading/ReadingResults.jsx';
 
 // Import Timer context
 import { TimerProvider, useTimer } from './lib/TimerContext.jsx';
@@ -827,6 +869,44 @@ function App() {
             {/* IELTS Routes */}
             {/* New IELTS type-specific routes */}
             <Route path="/ielts/:type/skills" element={<IELTSSkillsPage />} />
+            <Route path="/ielts/practice-by-types" element={<QuestionTypesPage />} />
+            
+            {/* Form Completion Routes */}
+            <Route path="/ielts/form-completion/instructions" element={<FormCompletionInstructions />} />
+            <Route path="/ielts/form-completion/test" element={<FormCompletionTest />} />
+            
+            {/* Short Answer Routes */}
+            <Route path="/ielts/short-answer/instructions" element={<ShortAnswerInstructions />} />
+            <Route path="/ielts/short-answer/test" element={<ShortAnswerTest />} />
+            
+            {/* Matching Routes */}
+            <Route path="/ielts/matching/instructions" element={<MatchingInstructions />} />
+            <Route path="/ielts/matching/test" element={<MatchingTest />} />
+            
+            {/* Map Labeling Routes */}
+            <Route path="/ielts/map-labeling/instructions" element={<MapLabelingInstructions />} />
+            <Route path="/ielts/map-labeling/test" element={<MapLabelingTest />} />
+            
+            {/* Multiple Choice Routes */}
+            <Route path="/ielts/multiple-choice/instructions" element={<MultipleChoiceInstructions />} />
+            <Route path="/ielts/multiple-choice/test" element={<MultipleChoiceTest />} />
+            
+            {/* Multiple Choice Multiple Routes */}
+            <Route path="/ielts/multiple-choice-multiple/instructions" element={<MultipleChoiceMultipleInstructions />} />
+            <Route path="/ielts/multiple-choice-multiple/test" element={<MultipleChoiceMultipleTest />} />
+            
+            {/* Sentence Completion Routes */}
+            <Route path="/ielts/sentence-completion/instructions" element={<SentenceCompletionInstructions />} />
+            <Route path="/ielts/sentence-completion/test" element={<SentenceCompletionTest />} />
+            
+            {/* Table Completion Routes */}
+            <Route path="/ielts/table-completion/instructions" element={<TableCompletionInstructions />} />
+            <Route path="/ielts/table-completion/test" element={<TableCompletionTest />} />
+            
+            {/* Flowchart Completion Routes */}
+            <Route path="/ielts/flowchart-completion/instructions" element={<FlowchartCompletionInstructions />} />
+            <Route path="/ielts/flowchart-completion/test" element={<FlowchartCompletionTest />} />
+
             <Route path="/ielts/:type/writing" element={<WritingHome />} />
             <Route path="/ielts/:type/speaking" element={<SpeakingHome />} />
             <Route path="/ielts/:type/listening" element={<ListeningInstructions />} />
@@ -863,6 +943,12 @@ function App() {
             <Route path="/cambridge/listening/instructions" element={<CambridgeListeningInstructions />} />
             <Route path="/cambridge/listening/exam" element={<CambridgeListeningExam />} />
             <Route path="/cambridge/listening/feedback" element={<CambridgeListeningFeedback />} />
+            
+            {/* Cambridge Reading Routes */}
+            <Route path="/cambridge/reading" element={<CambridgeReadingHome />} />
+            <Route path="/cambridge/reading/instructions" element={<CambridgeReadingInstructions />} />
+            <Route path="/cambridge/reading/test" element={<CambridgeReadingTest />} />
+            <Route path="/cambridge/reading/results" element={<CambridgeReadingResults />} />
             
             {/* Play Zone Routes (common for both exam types) */}
             <Route path="/play-zone" element={<PlayZonePlaceholder />} />
