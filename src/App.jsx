@@ -487,7 +487,7 @@ const SkillsPage = ({ examType }) => {
                 onClick={handleBack}
                 className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
               >
-                <span className="material-icons text-sm">arrow_back</span>
+                <MaterialIcon name="arrow_back" className="text-sm" />
                 <span>Home</span>
               </button>
               <div className="text-white/60">|</div>
@@ -722,7 +722,7 @@ const PlayZonePlaceholder = () => {
                 onClick={() => navigate('/skills')}
                 className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
               >
-                <span className="material-icons text-sm">arrow_back</span>
+                <MaterialIcon name="arrow_back" className="text-sm" />
                 <span>Home</span>
               </button>
               <div className="text-white/60">|</div>

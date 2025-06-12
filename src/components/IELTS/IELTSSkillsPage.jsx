@@ -219,7 +219,7 @@ const IELTSSkillsPage = () => {
                 <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl min-h-[320px] flex flex-col`}>
                   {/* Floating icon */}
                   <div className={`inline-flex items-center justify-center w-16 h-16 ${skill.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
-                    <span className="material-icons text-white text-2xl">{skill.icon}</span>
+                    <MaterialIcon name={skill.icon} className="text-white text-2xl" />
                   </div>
                   
                   {/* Content */}
@@ -245,16 +245,17 @@ const IELTSSkillsPage = () => {
           {/* Type-specific info */}
           <div className="text-center mt-16">
             <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
-              <span className="material-icons text-cyan-400">
-                {type === 'academic' ? 'school' : 'work'}
-              </span>
+              <MaterialIcon 
+                name={type === 'academic' ? 'school' : 'work'} 
+                className="text-cyan-400" 
+              />
               <span className="font-medium">
                 {type === 'academic' 
                   ? 'Academic IELTS - Perfect for university applications' 
                   : 'General Training IELTS - Ideal for immigration and work'
                 }
               </span>
-              <span className="material-icons text-blue-400 animate-pulse">star</span>
+              <MaterialIcon name="star" className="text-blue-400 animate-pulse" />
             </div>
           </div>
         </div>
