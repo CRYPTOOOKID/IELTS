@@ -306,6 +306,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Firebase auth or Google provider not properly initialized');
       }
       
+      // Add a small delay to ensure Google APIs are loaded
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Use popup method only
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
@@ -348,11 +351,13 @@ export const AuthProvider = ({ children }) => {
       } else if (err.code === 'auth/cancelled-popup-request') {
         errorMessage = 'Another sign-in popup is already open. Please close it and try again.';
       } else if (err.code === 'auth/internal-error') {
-        errorMessage = 'Internal error occurred. Please try again.';
+        errorMessage = 'Authentication service temporarily unavailable. Please refresh the page and try again.';
       } else if (err.code === 'auth/network-request-failed') {
         errorMessage = 'Network error. Please check your internet connection and try again.';
       } else if (err.code === 'auth/unauthorized-domain') {
         errorMessage = 'This domain is not authorized for Google Sign-In. Please contact support.';
+      } else if (err.message && err.message.includes('network')) {
+        errorMessage = 'Network connection issue. Please check your internet and try again.';
       }
       
       const error = { ...err, message: errorMessage };
