@@ -39,7 +39,11 @@ self.addEventListener('install', (event) => {
     Promise.all([
       // Cache static assets
       caches.open(CACHE_NAME).then((cache) => {
-        return cache.addAll(STATIC_ASSETS);
+        return cache.addAll(STATIC_ASSETS).catch((error) => {
+          console.warn('Failed to cache some static assets:', error);
+          // Continue even if some assets fail to cache
+          return Promise.resolve();
+        });
       }),
       
       // Skip waiting to activate immediately
@@ -85,17 +89,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Skip chrome-extension and other non-http(s) schemes
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+  
+  // Skip requests from browser extensions
+  if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+    return;
+  }
+  
   // Handle different types of requests with appropriate strategies
   if (isStaticAsset(request)) {
-    event.respondWith(cacheFirst(request, CACHE_NAME));
+    event.respondWith(cacheFirstSafe(request, CACHE_NAME));
   } else if (isCDNAsset(request)) {
-    event.respondWith(staleWhileRevalidate(request, CDN_CACHE));
+    event.respondWith(staleWhileRevalidateSafe(request, CDN_CACHE));
   } else if (isAPIRequest(request)) {
-    event.respondWith(networkFirst(request, API_CACHE));
+    event.respondWith(networkFirstSafe(request, API_CACHE));
   } else if (isNavigationRequest(request)) {
     event.respondWith(navigationHandler(request));
   } else {
-    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
+    event.respondWith(staleWhileRevalidateSafe(request, RUNTIME_CACHE));
   }
 });
 
@@ -135,95 +149,138 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Caching strategies
+// Caching strategies with improved error handling
 
-// Cache First - for static assets
-async function cacheFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cachedResponse = await cache.match(request);
-  
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-  
+// Cache First - for static assets (with safety checks)
+async function cacheFirstSafe(request, cacheName) {
   try {
-    const networkResponse = await fetch(request);
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
     
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
+    if (cachedResponse) {
+      return cachedResponse;
     }
     
-    return networkResponse;
-  } catch (error) {
-    console.warn('Cache first failed for:', request.url, error);
-    throw error;
-  }
-}
-
-// Network First - for API requests
-async function networkFirst(request, cacheName, timeout = 3000) {
-  const cache = await caches.open(cacheName);
-  
-  try {
-    // Try network with timeout
-    const networkPromise = fetch(request);
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Network timeout')), timeout);
-    });
+    const networkResponse = await fetch(request);
     
-    const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
-    
-    if (networkResponse.ok) {
-      // Update cache with fresh data
-      cache.put(request, networkResponse.clone());
-      
-      // If this is user data, clear background sync queue
-      if (isUserDataRequest(request)) {
-        clearSyncQueue(request);
+    if (networkResponse.ok && networkResponse.status < 400) {
+      // Only cache successful responses
+      try {
+        await cache.put(request, networkResponse.clone());
+      } catch (cacheError) {
+        console.warn('Failed to cache response:', request.url, cacheError);
+        // Continue without caching
       }
     }
     
     return networkResponse;
   } catch (error) {
-    console.warn('Network first fallback to cache for:', request.url, error);
-    
-    // Fallback to cache
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline page for navigation requests
-    if (isNavigationRequest(request)) {
-      return getOfflinePage();
-    }
-    
-    throw error;
+    console.warn('Cache first failed for:', request.url, error);
+    // Return a basic fetch as fallback
+    return fetch(request);
   }
 }
 
-// Stale While Revalidate - for CDN assets and runtime cache
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cachedResponse = await cache.match(request);
-  
-  // Fetch fresh version in background
-  const fetchPromise = fetch(request).then((networkResponse) => {
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
+// Network First - for API requests (with safety checks)
+async function networkFirstSafe(request, cacheName, timeout = 3000) {
+  try {
+    const cache = await caches.open(cacheName);
+    
+    try {
+      // Try network with timeout
+      const networkPromise = fetch(request);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Network timeout')), timeout);
+      });
+      
+      const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
+      
+      if (networkResponse.ok && networkResponse.status < 400) {
+        // Update cache with fresh data
+        try {
+          await cache.put(request, networkResponse.clone());
+        } catch (cacheError) {
+          console.warn('Failed to cache API response:', request.url, cacheError);
+        }
+        
+        // If this is user data, clear background sync queue
+        if (isUserDataRequest(request)) {
+          clearSyncQueue(request);
+        }
+      }
+      
+      return networkResponse;
+    } catch (error) {
+      console.warn('Network first fallback to cache for:', request.url, error);
+      
+      // Fallback to cache
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      
+      // Return offline page for navigation requests
+      if (isNavigationRequest(request)) {
+        return getOfflinePage();
+      }
+      
+      throw error;
     }
-    return networkResponse;
-  }).catch((error) => {
-    console.warn('Stale while revalidate fetch failed:', request.url, error);
-  });
-  
-  // Return cached version immediately if available
-  if (cachedResponse) {
-    return cachedResponse;
+  } catch (error) {
+    console.error('Network first completely failed for:', request.url, error);
+    return new Response('Service temporarily unavailable', { 
+      status: 503, 
+      statusText: 'Service Unavailable' 
+    });
   }
-  
-  // Otherwise wait for network
-  return fetchPromise;
+}
+
+// Stale While Revalidate - for CDN assets and runtime cache (with safety checks)
+async function staleWhileRevalidateSafe(request, cacheName) {
+  try {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+    
+    // Fetch fresh version in background (with error handling)
+    const fetchPromise = fetch(request).then((networkResponse) => {
+      if (networkResponse.ok && networkResponse.status < 400) {
+        try {
+          cache.put(request, networkResponse.clone());
+        } catch (cacheError) {
+          console.warn('Failed to cache during stale-while-revalidate:', request.url, cacheError);
+        }
+      }
+      return networkResponse;
+    }).catch((error) => {
+      console.warn('Stale while revalidate fetch failed:', request.url, error);
+      return null;
+    });
+    
+    // Return cached version immediately if available
+    if (cachedResponse) {
+      // Start background fetch but don't wait for it
+      fetchPromise;
+      return cachedResponse;
+    }
+    
+    // Otherwise wait for network
+    const networkResponse = await fetchPromise;
+    if (networkResponse) {
+      return networkResponse;
+    }
+    
+    // If all fails, return a basic error response
+    return new Response('Resource temporarily unavailable', { 
+      status: 503, 
+      statusText: 'Service Temporarily Unavailable' 
+    });
+  } catch (error) {
+    console.error('Stale while revalidate completely failed for:', request.url, error);
+    return new Response('Resource unavailable', { 
+      status: 503, 
+      statusText: 'Service Unavailable' 
+    });
+  }
 }
 
 // Navigation handler with offline fallback
