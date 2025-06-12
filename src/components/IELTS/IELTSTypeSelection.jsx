@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthContext';
+import MaterialIcon from '../common/MaterialIcon';
 
 const IELTSTypeSelection = () => {
   const navigate = useNavigate();
@@ -107,7 +108,7 @@ const IELTSTypeSelection = () => {
                 onClick={handleBack}
                 className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
               >
-                <span className="material-icons text-sm">arrow_back</span>
+                <MaterialIcon name="arrow_back" className="text-sm" />
                 <span>Home</span>
               </button>
               <div className="text-white/60">|</div>
@@ -131,7 +132,7 @@ const IELTSTypeSelection = () => {
                   </>
                 ) : (
                   <>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <MaterialIcon name="logout" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                     <span className="text-sm font-medium">Logout</span>
                   </>
                 )}
@@ -147,7 +148,7 @@ const IELTSTypeSelection = () => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl mb-6 shadow-xl">
-              <span className="material-icons text-white text-3xl">quiz</span>
+              <MaterialIcon name="quiz" className="text-white text-3xl" />
             </div>
             <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -191,7 +192,7 @@ const IELTSTypeSelection = () => {
                 <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl min-h-[400px] flex flex-col`}>
                   {/* Floating icon */}
                   <div className={`inline-flex items-center justify-center w-20 h-20 ${type.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
-                    <span className="material-icons text-white text-3xl">{type.icon}</span>
+                    <MaterialIcon name={type.icon} className="text-white text-3xl" />
                   </div>
                   
                   {/* Content */}
@@ -216,7 +217,7 @@ const IELTSTypeSelection = () => {
                     {/* Action indicator */}
                     <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20 mt-auto">
                       <span className="font-medium">Start {type.name} Practice</span>
-                      <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+                      <MaterialIcon name="arrow_forward" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                   </div>
                   
@@ -235,9 +236,9 @@ const IELTSTypeSelection = () => {
           {/* Call to action */}
           <div className="text-center mt-16">
             <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
-              <span className="material-icons text-cyan-400">info</span>
+              <MaterialIcon name="info" className="text-cyan-400" />
               <span className="font-medium">Choose the test type that matches your goals</span>
-              <span className="material-icons text-blue-400 animate-pulse">arrow_forward</span>
+              <MaterialIcon name="arrow_forward" className="text-blue-400 animate-pulse" />
             </div>
           </div>
         </div>

@@ -2,8 +2,9 @@
 import './utils/globalLogger.js';
 import { logger } from './utils/globalLogger.js';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate } from 'react-router-dom';
 
 import './App.css';
 import LandingPage from './components/LandingPage.jsx';
@@ -103,6 +104,8 @@ import LearnHome from './components/PlayZone/Learnhome.jsx';
 import GamesHome from './components/PlayZone/Gameshome.jsx';
 import LearnTopics from './components/PlayZone/learntopics.jsx';
 import FlashCards from './components/PlayZone/FlashCards.jsx';
+
+import MaterialIcon from './components/common/MaterialIcon';
 
 // ExamTypePage component for selecting exam type
 const ExamTypePage = () => {
@@ -225,7 +228,7 @@ const ExamTypePage = () => {
                   </>
                 ) : (
                   <>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <MaterialIcon name="logout" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                     <span className="text-sm font-medium">Logout</span>
                   </>
                 )}
@@ -241,7 +244,7 @@ const ExamTypePage = () => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl mb-8 shadow-2xl">
-              <span className="material-icons text-white text-4xl">school</span>
+              <MaterialIcon name="school" className="text-white text-4xl" />
             </div>
             <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -278,9 +281,9 @@ const ExamTypePage = () => {
               onClick={() => navigate('/play-zone')}
               className="group inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-8 py-4 rounded-2xl hover:from-emerald-600 hover:to-cyan-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
-              <span className="material-icons text-2xl group-hover:rotate-12 transition-transform duration-300">sports_esports</span>
+              <MaterialIcon name="sports_esports" className="text-2xl group-hover:rotate-12 transition-transform duration-300" />
               <span className="text-lg font-semibold">Play Zone</span>
-              <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+              <MaterialIcon name="arrow_forward" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
             </button>
           </div>
 
@@ -298,7 +301,7 @@ const ExamTypePage = () => {
                 <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:bg-white/20 h-full">
                   {/* Floating icon */}
                   <div className={`inline-flex items-center justify-center w-20 h-20 ${exam.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-3 group-hover:shadow-xl`}>
-                    <span className="material-icons text-white text-3xl">{exam.icon}</span>
+                    <MaterialIcon name={exam.icon} className="text-white text-3xl" />
                   </div>
                   
                   {/* Content */}
@@ -316,7 +319,7 @@ const ExamTypePage = () => {
                   <div className="space-y-3 mb-6">
                     {exam.features.map((feature, index) => (
                       <div key={index} className="flex items-center text-sm text-white/70">
-                        <span className="material-icons text-green-400 text-lg mr-3">check_circle</span>
+                        <MaterialIcon name="check_circle" className="text-green-400 text-lg mr-3" />
                         <span className="font-medium">{feature}</span>
                       </div>
                     ))}
@@ -325,7 +328,7 @@ const ExamTypePage = () => {
                   {/* Action indicator */}
                   <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20">
                     <span className="font-medium">Choose {exam.name}</span>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+                    <MaterialIcon name="arrow_forward" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                   
                   {/* Progress bar simulation */}
@@ -345,9 +348,9 @@ const ExamTypePage = () => {
           {/* Call to action */}
           <div className="text-center mt-16">
             <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
-              <span className="material-icons text-blue-400">bolt</span>
+              <MaterialIcon name="bolt" className="text-blue-400" />
               <span className="font-medium">Ready to start your English proficiency journey?</span>
-              <span className="material-icons text-green-400 animate-pulse">star</span>
+              <MaterialIcon name="star" className="text-green-400 animate-pulse" />
             </div>
           </div>
         </div>
@@ -508,7 +511,7 @@ const SkillsPage = ({ examType }) => {
                   </>
                 ) : (
                   <>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <MaterialIcon name="logout" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                     <span className="text-sm font-medium">Logout</span>
                   </>
                 )}
@@ -524,7 +527,7 @@ const SkillsPage = ({ examType }) => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl mb-6 shadow-xl">
-              <span className="material-icons text-white text-3xl">school</span>
+              <MaterialIcon name="school" className="text-white text-3xl" />
             </div>
             <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -569,7 +572,7 @@ const SkillsPage = ({ examType }) => {
                 <div className={`relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:bg-white/20 group-hover:shadow-2xl min-h-[280px] flex flex-col`}>
                   {/* Floating icon */}
                   <div className={`inline-flex items-center justify-center w-16 h-16 ${skill.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
-                    <span className="material-icons text-white text-2xl">{skill.icon}</span>
+                    <MaterialIcon name={skill.icon} className="text-white text-2xl" />
                   </div>
                   
                   {/* Content */}
@@ -743,7 +746,7 @@ const PlayZonePlaceholder = () => {
                   </>
                 ) : (
                   <>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <MaterialIcon name="logout" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                     <span className="text-sm font-medium">Logout</span>
                   </>
                 )}
@@ -758,11 +761,11 @@ const PlayZonePlaceholder = () => {
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-3xl mb-8 shadow-2xl">
-              <span className="material-icons text-white text-4xl">sports_esports</span>
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-3xl mb-8 shadow-2xl">
+              <MaterialIcon name="school" className="text-white text-4xl" />
             </div>
             <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Play Zone
               </span>
             </h1>
@@ -800,7 +803,7 @@ const PlayZonePlaceholder = () => {
                 <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20 transition-all duration-500 group-hover:shadow-2xl group-hover:bg-white/20 h-full">
                   {/* Floating icon */}
                   <div className={`inline-flex items-center justify-center w-20 h-20 ${option.iconBg} rounded-2xl mb-6 shadow-lg transform transition-all duration-500 group-hover:-translate-y-3 group-hover:shadow-xl`}>
-                    <span className="material-icons text-white text-3xl">{option.icon}</span>
+                    <MaterialIcon name={option.icon} className="text-white text-3xl" />
                   </div>
                   
                   {/* Content */}
@@ -814,7 +817,7 @@ const PlayZonePlaceholder = () => {
                   {/* Action indicator */}
                   <div className="flex items-center justify-between text-sm text-white/60 pt-4 border-t border-white/20">
                     <span className="font-medium">Explore {option.name}</span>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+                    <MaterialIcon name="arrow_forward" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                   
                   {/* Progress bar simulation */}
@@ -832,9 +835,9 @@ const PlayZonePlaceholder = () => {
           {/* Call to action */}
           <div className="text-center mt-16">
             <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-lg text-white/70 px-8 py-4 rounded-full border border-white/20">
-              <span className="material-icons text-emerald-400">star</span>
+              <MaterialIcon name="star" className="text-emerald-400" />
               <span className="font-medium">Ready to make learning fun and interactive?</span>
-              <span className="material-icons text-cyan-400 animate-pulse">gamepad</span>
+              <MaterialIcon name="gamepad" className="text-cyan-400 animate-pulse" />
             </div>
           </div>
         </div>

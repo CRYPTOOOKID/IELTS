@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthContext';
 import { useTimer } from '../../lib/TimerContext';
+import MaterialIcon from '../common/MaterialIcon';
 
 const IELTSSkillsPage = () => {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const IELTSSkillsPage = () => {
                 onClick={handleBack}
                 className="text-white/80 hover:text-white transition duration-200 flex items-center space-x-1"
               >
-                <span className="material-icons text-sm">arrow_back</span>
+                <MaterialIcon name="arrow_back" className="text-sm" />
                 <span>Back</span>
               </button>
               <div className="text-white/60">|</div>
@@ -154,7 +155,7 @@ const IELTSSkillsPage = () => {
                   </>
                 ) : (
                   <>
-                    <span className="material-icons text-lg group-hover:translate-x-1 transition-transform duration-300">logout</span>
+                    <MaterialIcon name="logout" className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                     <span className="text-sm font-medium">Logout</span>
                   </>
                 )}
@@ -170,9 +171,10 @@ const IELTSSkillsPage = () => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl mb-6 shadow-xl">
-              <span className="material-icons text-white text-3xl">
-                {type === 'academic' ? 'school' : 'work'}
-              </span>
+              <MaterialIcon 
+                name={type === 'academic' ? 'school' : 'work'} 
+                className="text-white text-3xl" 
+              />
             </div>
             <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
