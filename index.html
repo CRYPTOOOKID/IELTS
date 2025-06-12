@@ -64,6 +64,34 @@
             });
           }
         }
+      } else {
+        // Production: Also unregister service workers that are causing auth issues
+        console.log('🧹 Production mode: Cleaning service workers to fix auth...');
+        
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => {
+              registration.unregister().then(success => {
+                if (success) {
+                  console.log('🗑️ Unregistered SW for auth fix:', registration.scope);
+                }
+              });
+            });
+          });
+          
+          // Clear all caches that might interfere with auth
+          if ('caches' in window) {
+            caches.keys().then(cacheNames => {
+              cacheNames.forEach(cacheName => {
+                caches.delete(cacheName).then(success => {
+                  if (success) {
+                    console.log('🗑️ Deleted cache for auth fix:', cacheName);
+                  }
+                });
+              });
+            });
+          }
+        }
       }
     </script>
     

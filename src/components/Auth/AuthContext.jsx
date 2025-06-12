@@ -306,10 +306,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Firebase auth or Google provider not properly initialized');
       }
       
-      // Add a small delay to ensure Google APIs are loaded
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Use popup method only
+      // Use popup method only - simplified
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
       
@@ -345,19 +342,19 @@ export const AuthProvider = ({ children }) => {
       // Convert Firebase errors to more user-friendly messages
       let errorMessage = err.message;
       if (err.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Sign-in was cancelled by closing the popup window.';
+        errorMessage = 'Sign-in was cancelled. Please try again.';
       } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.';
+        errorMessage = 'Pop-up was blocked. Please allow pop-ups and try again.';
       } else if (err.code === 'auth/cancelled-popup-request') {
-        errorMessage = 'Another sign-in popup is already open. Please close it and try again.';
+        errorMessage = 'Another sign-in popup is open. Please close it and try again.';
       } else if (err.code === 'auth/internal-error') {
-        errorMessage = 'Authentication service temporarily unavailable. Please refresh the page and try again.';
+        errorMessage = 'Service temporarily unavailable. Please try again in a moment.';
       } else if (err.code === 'auth/network-request-failed') {
-        errorMessage = 'Network error. Please check your internet connection and try again.';
+        errorMessage = 'Network error. Please check your connection and try again.';
       } else if (err.code === 'auth/unauthorized-domain') {
-        errorMessage = 'This domain is not authorized for Google Sign-In. Please contact support.';
-      } else if (err.message && err.message.includes('network')) {
-        errorMessage = 'Network connection issue. Please check your internet and try again.';
+        errorMessage = 'This domain is not authorized. Please contact support.';
+      } else {
+        errorMessage = 'Sign-in failed. Please try again.';
       }
       
       const error = { ...err, message: errorMessage };
